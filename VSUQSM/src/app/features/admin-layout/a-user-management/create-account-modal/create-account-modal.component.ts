@@ -29,7 +29,8 @@ export class CreateAccountModalComponent {
   type = 'Desk attendant';
   status: 'Enabled' | 'Disabled' = 'Enabled';
   password = '';
-  passwordVisible = false; // Added property
+  passwordVisible = false;
+  isGeneratingPassword = false; // New property for password generation animation
 
   ngOnInit() {
     if (this.editingUser) {
@@ -68,12 +69,18 @@ export class CreateAccountModalComponent {
   }
 
   generateRandomPassword() {
+    this.isGeneratingPassword = true;
     const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*';
     let result = '';
     for (let i = 0; i < 6; i++) {
       result += characters.charAt(Math.floor(Math.random() * characters.length));
     }
-    this.password = result;
+    
+    // Simulate a short delay to show the animation
+    setTimeout(() => {
+      this.password = result;
+      this.isGeneratingPassword = false;
+    }, 500);
   }
 
   togglePasswordVisibility() {
