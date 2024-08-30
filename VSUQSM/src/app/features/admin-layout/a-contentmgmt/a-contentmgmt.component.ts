@@ -1,11 +1,12 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ContentModComponent } from './content-mod/content-mod.component';
+import { ContentSettingsComponent } from './content-settings/content-settings.component';
 
 @Component({
   selector: 'app-a-contentmgmt',
   standalone: true,
-  imports: [ContentModComponent, CommonModule],
+  imports: [ContentModComponent, CommonModule,ContentSettingsComponent],
   templateUrl: './a-contentmgmt.component.html',
   styleUrls: ['./a-contentmgmt.component.css'] // Changed styleUrl to styleUrls (array)
 })
