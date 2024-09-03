@@ -15,17 +15,17 @@
           </div>
         </div>
 
-        <!-- Time and Currency Section -->
+        <!-- Widgets Section -->
         <div class="flex flex-col lg:w-3/5 w-full">
-          <div class="flex flex-wrap gap-2 items-center mt-2">
-            <!-- Time -->
-            <div class="flex items-center justify-between bg-neutral-800 text-white rounded-xl shadow-sm p-3 lg:w-[60%] w-full">
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-2 mt-2">
+            <!-- Time and Date Widget -->
+            <div class="flex items-center justify-between bg-neutral-800 text-white rounded-xl shadow-sm p-3">
               <time class="text-2xl font-bold">09:03 AM</time>
               <img loading="lazy" src="https://cdn.builder.io/api/v1/image/assets/TEMP/3bd0e49363aa81ccdd8af93c42caf4079228a9be701837c314c0450a22c2f753?placeholderIfAbsent=true&apiKey=f64b8ca6f281475cbe8b66b807b3c3ce" alt="Clock icon" class="w-[40px]" />
             </div>
 
-            <!-- Currency -->
-            <div class="flex items-center justify-between bg-neutral-800 text-white rounded-xl shadow-sm p-3 lg:w-[40%] w-full">
+            <!-- Currency Converter Widget -->
+            <div class="flex items-center justify-between bg-neutral-800 text-white rounded-xl shadow-sm p-3">
               <div class="flex items-center gap-2">
                 <img loading="lazy" src="https://cdn.builder.io/api/v1/image/assets/TEMP/d25debbe7864652bad403616a98dc7c697296b1021cf52becebd6b85a6000b51?placeholderIfAbsent=true&apiKey=f64b8ca6f281475cbe8b66b807b3c3ce" alt="Currency icon" class="w-[25px]" />
                 <span class="text-lg font-bold">USD</span>
@@ -34,6 +34,12 @@
                 <div class="text-lg font-light">90,6253 ₽</div>
                 <img loading="lazy" src="https://cdn.builder.io/api/v1/image/assets/TEMP/47e3d00f74c20ecfa25638abbab26facbc67a51972ecfda4e6cda285b0983f63?placeholderIfAbsent=true&apiKey=f64b8ca6f281475cbe8b66b807b3c3ce" alt="Exchange rate icon" class="w-[40px]" />
               </div>
+            </div>
+
+            <!-- Weather Widget (Placeholder) -->
+            <div class="flex items-center justify-between bg-neutral-800 text-white rounded-xl shadow-sm p-3">
+              <span class="text-lg font-bold">25°C</span>
+              <img loading="lazy" src="https://cdn.builder.io/api/v1/image/assets/TEMP/47e3d00f74c20ecfa25638abbab26facbc67a51972ecfda4e6cda285b0983f63?placeholderIfAbsent=true&apiKey=f64b8ca6f281475cbe8b66b807b3c3ce" alt="Weather icon" class="w-[40px]" />
             </div>
           </div>
         </div>
@@ -66,9 +72,11 @@
         </button>
       </div>
 
-      <!-- Announcement Section -->
-      <div class="relative bg-white text-xl font-bold text-lime-900 px-10 py-3 mt-6 text-center">
-        Announcement - Announcement - Announcement - Announcement - Announcement - Announcement - Announcement
+      <!-- Announcement Section with Scrolling Effect -->
+      <div class="relative bg-white text-xl font-bold text-lime-900 px-10 py-3 mt-6 overflow-hidden">
+        <div class="announcement-scroll">
+          Announcement - Important updates will be shared here. Stay tuned for more information. Announcement - Important updates will be shared here. Stay tuned for more information.
+        </div>
       </div>
     </div>
   </div>
