@@ -1,6 +1,13 @@
 <div class="w-full h-full">
-  <div class="  rounded-3xl shadow-xl overflow-hidden relative">
-    <img src="assets/logo/vsuHeader.png" class="w-full h-full object-contain ">
+  <div class="relative w-full h-24 overflow-hidden shadow-xl rounded-3xl">
+    <!-- Background Image with Gradient Overlay -->
+    <div class="absolute inset-0 bg-[url('assets/specifics/pcso/lottobg.png')] bg-cover bg-center"></div>
+    <div class="absolute inset-0 bg-gradient-to-r from-blue-800/50 to-blue-900/50"></div>
+
+    <!-- Optional: Text Content -->
+    <div class="relative flex items-center justify-center h-full px-6">
+      <!-- <h1 class="text-3xl font-bold text-white uppercase">Philippine Charity Sweepstakes Office</h1> -->
+    </div>
   </div>
   <div class="w-full py-4 px-6 my-4 flex justify-between rounded-lg bg-white shadow-md">
     <div>
@@ -16,9 +23,9 @@
     <!-- Divsion Selection -->
     <div *ngIf="isSuperAdmin" class="flex  2xl:flex-col gap-3 2xl:flex-[1_1_0%]">
       <!-- Item -->
-      <button 
+      <button
       (click)="selectDivision(division)"
-      class=" {{selectedDivision == division.id ? 'bg-[var(--primary-dark)] text-white':'bg-white'}}  tracking-wide h-12 rounded-lg shadow-md hover:bg-[var(--primary)] hover:text-white cursor-pointer flex items-center justify-between px-4 font-medium" 
+      class=" {{selectedDivision == division.id ? 'bg-[var(--primary-dark)] text-white':'bg-white'}}  tracking-wide h-12 rounded-lg shadow-md hover:bg-[var(--primary)] hover:text-white cursor-pointer flex items-center justify-between px-4 font-medium"
       *ngFor="let division of divisions">
         {{division.name.toUpperCase()}} <span  class="material-icons hidden 2xl:block"> keyboard_arrow_right </span>
       </button>
@@ -26,9 +33,9 @@
     </div>
     <!-- Item Selection -->
     <div class="bg-white rounded-lg shadow-md flex-[4_4_0%] h-full">
-      <div class=" grid grid-cols-3 px-3 py-3 gap-3"> 
-        <button 
-        *ngFor="let terminal of terminals; let i = index" 
+      <div class=" grid grid-cols-3 px-3 py-3 gap-3">
+        <button
+        *ngFor="let terminal of terminals; let i = index"
         class="group transition-all hover:scale-110  {{terminal.status == 'maintenance' ? 'bg-yellow-50 border-yellow-500' :'bg-white border-[var(--primary)] hover:bg-[var(--primary-dark)] hover:text-white hover:border-[var(--primary-light)] '}} h-48 p-4 rounded-lg flex flex-col gap-2 shadow-md border-2 border-dashed border-black/10 ">
 
           <!-- Header -->
@@ -59,16 +66,16 @@
                 </button>
                 <div *ngIf="terminal.status == 'online'"></div>
                 <button (click)="selectTerminal(terminal);openDialog('maintenance')" class="rounded-lg px-6 py-1 text-white flex gap-2 {{statusMap[terminal.status]}}">
-                  <span  class="material-icons hidden 2xl:block"> swap_horiz </span> {{terminal.status == 'online' ? 'Online' : terminal.status != 'maintenance'? 'Available':'Maintenance'}}  
+                  <span  class="material-icons hidden 2xl:block"> swap_horiz </span> {{terminal.status == 'online' ? 'Online' : terminal.status != 'maintenance'? 'Available':'Maintenance'}}
                 </button>
               </div>
             </div>
           </div>
         </button>
-        <button 
+        <button
         *ngIf="terminals.length <10"
         (click)="addTerminal()"
-        class="bg-white tracking-wider h-48 font-thin rounded-lg gap-3 shadow-md  hover:bg-green-950 hover:text-white cursor-pointer flex justify-center border-2 border-solid border-black/10 items-center  " 
+        class="bg-white tracking-wider h-48 font-thin rounded-lg gap-3 shadow-md  hover:bg-green-950 hover:text-white cursor-pointer flex justify-center border-2 border-solid border-black/10 items-center  "
         >
         <span class="text-4xl font-medium">
           +

@@ -22,7 +22,7 @@ interface MenuItem {
   styleUrls: ['./sidebar.component.css']
 })
 export class SidebarComponent implements OnInit {
-  appTitle =  config.texts.title;
+  appTitle =  config.texts.atitle;
   appDescription = 'Queue Management System';
   isExpanded = true;
   logoutOpen = false;
@@ -30,13 +30,13 @@ export class SidebarComponent implements OnInit {
 
 
   @Input() role: string = 'admin';
-  
+
   private router = inject(Router);
 
   private auth = inject(UswagonAuthService);
 
   private terminalService = inject(TerminalService);
-  
+
   menuItems: MenuItem[] = []
 
   ngOnInit() {

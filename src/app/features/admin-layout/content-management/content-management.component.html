@@ -1,47 +1,55 @@
-<section class="w-full h-full flex flex-col pb-10">
-        <div class="  rounded-3xl shadow-xl overflow-hidden relative">
-            <img src="assets/logo/vsuHeader.png" class="w-full h-full object-contain ">
-        </div>
+<section class="flex flex-col w-full h-full pb-10">
+  <div class="relative w-full h-24 overflow-hidden shadow-xl rounded-3xl">
+    <!-- Background Image with Gradient Overlay -->
+    <div class="absolute inset-0 bg-[url('assets/specifics/pcso/lottobg.png')] bg-cover bg-center"></div>
+    <div class="absolute inset-0 bg-gradient-to-r from-blue-800/50 to-blue-900/50"></div>
+
+    <!-- Optional: Text Content -->
+    <div class="relative flex items-center justify-center h-full px-6">
+      <!-- <h1 class="text-3xl font-bold text-white uppercase">Philippine Charity Sweepstakes Office</h1> -->
+    </div>
+  </div>
+
         <!-- Main Container -->
-        <div class="flex py-5 flex-col-reverse 2xl:flex-row w-full h-auto 2xl:flex-1 gap-5 relative z-0" >
+        <div class="relative z-0 flex flex-col-reverse w-full h-auto gap-5 py-5 2xl:flex-row 2xl:flex-1" >
             <!-- Edit Contents -->
             <div class="2xl:flex-[1_1_0%] h-full 2xl:relative flex absolute w-full top-4 z-10 2xl:top-0">
                 <div class="w-full 2xl:max-w-full  max-w-md {{showEditSection? 'block':'hidden 2xl:block'}}">
                     <!-- Tabs -->
                     <div *ngIf="isSuperAdmin" class="flex">
-                        <button  *ngFor="let division of divisions; let i = index" 
+                        <button  *ngFor="let division of divisions; let i = index"
                             (click)="selectDivision(division.id)"
                             class="h-10 transition-all {{division.id == selectedDivision ? 'bg-[var(--primary)] hover:bg-[var(--primary-hover)] text-white':'bg-white'}} px-4 flex-1 border-2 border-solid {{ i == 0 ? 'rounded-l-lg': i == 1 ? '':'rounded-r-lg' }} font-medium  hover:bg-[var(--primary-hover)] hover:text-white">
                             {{division.name.replace('Division', '').trim().replace('Cash','Cashier')}}</button>
-                    </div> 
-                    <div *ngIf="!contentLoading" class=" flex flex-col  gap-1 h-full bg-white shadow-md 
+                    </div>
+                    <div *ngIf="!contentLoading" class=" flex flex-col  gap-1 h-full bg-white shadow-md
                     rounded-b-lg
                     2xl:rounded-xl border-2 border-dashed hover:border-[var(--primary-hover)] py-3 px-3">
-                        <div class="text-lg px-1"> Edit Contents</div>
+                        <div class="px-1 text-lg"> Edit Contents</div>
                         <div class="px-1 font-thin">Change queue display layout by adjusting these settings.</div>
                         <!-- Uploads Collapsable -->
                         <div class="w-full
                             border-solid border-2 border-gray-300 text-gray-500
-                            transition-all 
+                            transition-all
                             hover:text-[var(--primary-hover)]
                             rounded-lg
                         "
                         [ngClass]="{'hover:bg-[var(--primary-light)]  hover:border-[var(--primary-hover)]':!collapsables.uploads}"
                         >
-                            <div (click)="toggleCollapse('uploads')" class="text-lg  px-2 py-2 flex items-center justify-between">
+                            <div (click)="toggleCollapse('uploads')" class="flex items-center justify-between px-2 py-2 text-lg">
                                 <span>Uploads</span>
                                 <span *ngIf="!collapsables.uploads" class="material-icons"> keyboard_arrow_down </span>
                             </div>
-                            <div *ngIf="collapsables.uploads" class="px-1 pb-2 gap-1 flex flex-col">
+                            <div *ngIf="collapsables.uploads" class="flex flex-col gap-1 px-1 pb-2">
                                 <!-- Logo Input -->
                                 <div class="flex flex-col">
-                                    <label for="logo" class=" text-gray-800 px-1">Logo</label>
-                                    <div (click)="logoInput.click()"  class="w-full h-10 rounded-md 
+                                    <label for="logo" class="px-1 text-gray-800 ">Logo</label>
+                                    <div (click)="logoInput.click()"  class="w-full h-10 rounded-md
                                         transition-all
-                                        hover:border-[var(--primary)] hover:text-[var(--primary)] hover:bg-[var(--primary-light)] 
+                                        hover:border-[var(--primary)] hover:text-[var(--primary)] hover:bg-[var(--primary-light)]
                                         text-gray-400
-                                        border-gray-300 border-2 border-solid 
-                                        bg-white cursor-pointer select-none flex items-center px-2 justify-between"> 
+                                        border-gray-300 border-2 border-solid
+                                        bg-white cursor-pointer select-none flex items-center px-2 justify-between">
                                             <span class="w-full overflow-hidden text-ellipsis whitespace-nowrap">{{files.logo != undefined ? files.logo.name : inputFields.logoUrl ? getLastDirectory(inputFields.logoUrl) : 'Choose Logo Image'}}</span>
                                             <span class="material-icons"> upload_file </span>
                                         </div>
@@ -49,19 +57,19 @@
                                 </div>
                                 <!-- Background Image Input -->
                                 <div class="flex flex-col">
-                                    <label for="background" class=" text-gray-800 px-1 flex justify-between">
+                                    <label for="background" class="flex justify-between px-1 text-gray-800 ">
                                         <span>Background Image</span>
-                                        <span class="flex gap-2 items-center">
+                                        <span class="flex items-center gap-2">
                                             <!-- <span class="material-icons  {{toggles.background ? 'text-green-600':'text-gray-500'}}"> {{ toggles.background ? 'visibility':'visibility_off'}} </span>  -->
                                             <app-toggle body="w-10 h-5" knob="w-3 h-3" translate="translate-x-5" [(isActive)]="toggles.background"></app-toggle>
                                         </span>
                                     </label>
-                                    <div (click)="bgInput.click()"   class="w-full h-10 rounded-md 
+                                    <div (click)="bgInput.click()"   class="w-full h-10 rounded-md
                                         transition-all
                                         hover:border-[var(--primary)] hover:text-[var(--primary)] hover:bg-[var(--primary-light)]
                                         text-gray-400
-                                        border-gray-300 border-2 border-solid 
-                                        bg-white cursor-pointer select-none flex items-center px-2 justify-between"> 
+                                        border-gray-300 border-2 border-solid
+                                        bg-white cursor-pointer select-none flex items-center px-2 justify-between">
                                         <span class="w-full overflow-hidden text-ellipsis whitespace-nowrap">{{files.background != undefined ? files.background.name : inputFields.backgroundUrl ? getLastDirectory(inputFields.backgroundUrl):  'Choose Background Image'}}</span>
                                             <span class="material-icons"> upload_file </span>
                                         </div>
@@ -69,32 +77,32 @@
                                 </div>
                                 <!-- Video Input -->
                                 <div class="flex flex-col">
-                                    <label for="video" class=" text-gray-800 px-1 flex justify-between">
+                                    <label for="video" class="flex justify-between px-1 text-gray-800 ">
                                         <span>Video</span>
-                                        <span class="flex gap-2 items-center">
-                                            <span class="material-icons  {{toggles.videoURL ? 'text-green-600':'text-gray-500'}}"> link </span> 
+                                        <span class="flex items-center gap-2">
+                                            <span class="material-icons  {{toggles.videoURL ? 'text-green-600':'text-gray-500'}}"> link </span>
                                             <app-toggle body="w-10 h-5" knob="w-3 h-3" translate="translate-x-5" [(isActive)]="toggles.videoURL"></app-toggle>
                                         </span>
                                     </label>
                                     <ng-container *ngIf="!toggles.videoURL;else videoURL">
-                                        <div (click)="videoInput.click()"  class="w-full h-10 rounded-md 
+                                        <div (click)="videoInput.click()"  class="w-full h-10 rounded-md
                                         transition-all
                                         hover:border-[var(--primary)] hover:text-[var(--primar)] hover:bg-[var(--primary-light)]
                                         text-gray-400
-                                        border-gray-300 border-2 border-solid 
-                                        bg-white cursor-pointer select-none flex items-center px-2 justify-between"> 
-                                            <span class="w-full max-w-60 overflow-hidden text-ellipsis whitespace-nowrap">{{files.video != undefined ? files.video.name :inputFields.videoUrl ? getLastDirectory(inputFields.videoUrl) ?? 'Choose Video File': 'Choose Video File'}}</span>
+                                        border-gray-300 border-2 border-solid
+                                        bg-white cursor-pointer select-none flex items-center px-2 justify-between">
+                                            <span class="w-full overflow-hidden max-w-60 text-ellipsis whitespace-nowrap">{{files.video != undefined ? files.video.name :inputFields.videoUrl ? getLastDirectory(inputFields.videoUrl) ?? 'Choose Video File': 'Choose Video File'}}</span>
                                             <span class="material-icons"> upload_file </span>
                                         </div>
                                         <input (change)="onFileChange('video', $event)" accept="video/*" name="video" #videoInput class="hidden" type="file">
                                     </ng-container>
                                     <ng-template #videoURL>
-                                        <div  class="w-full h-10 rounded-md 
+                                        <div  class="w-full h-10 rounded-md
                                         transition-all
                                         hover:border-[var(--primary)] hover:text-[var(--primary)] hover:bg-[var(--primary-light)]
                                         text-gray-400
-                                        border-gray-300 border-2 border-solid 
-                                        bg-white cursor-pointer select-none flex items-center px-2 justify-between"> 
+                                        border-gray-300 border-2 border-solid
+                                        bg-white cursor-pointer select-none flex items-center px-2 justify-between">
                                             <input [(ngModel)]="inputFields.youtubeURL" placeholder="Paste a youtube link" (keyup)="checkYoutubeUrl()" type="text" class="w-full h-full bg-transparent border-none outline-none">
                                             <span class="material-icons"> link </span>
                                         </div>
@@ -105,14 +113,14 @@
                         <!-- Widgets  Collasable-->
                         <div class="w-full
                             border-solid border-2 border-gray-300 text-gray-500
-                            transition-all 
+                            transition-all
                             hover:text-[var(--primary)]
                             rounded-lg
                         "
                         [ngClass]="{'hover:bg-[var(--primary-light)] hover:border-[var(--primary-hover)]':!collapsables.widgets}"
                         >
-                            <div (click)="toggleCollapse('widgets')" class="text-lg  px-2 py-2 flex items-center justify-between">
-                                <div class="flex justify-between items-center w-full">
+                            <div (click)="toggleCollapse('widgets')" class="flex items-center justify-between px-2 py-2 text-lg">
+                                <div class="flex items-center justify-between w-full">
                                         <span>Widgets</span>
                                         <div class="ml-2 flex gap-2 text-[var(--primary)] animate-pulse">
                                             <span *ngIf="toggles.time" class="material-icons"> paid </span>
@@ -122,12 +130,12 @@
                                     </div>
                                 <span *ngIf="!collapsables.widgets" class="material-icons"> keyboard_arrow_down </span>
                             </div>
-                            <div *ngIf="collapsables.widgets" class="flex flex-col px-1 pb-2 gap-1" >             
+                            <div *ngIf="collapsables.widgets" class="flex flex-col gap-1 px-1 pb-2" >
                                 <!-- Time -->
                                 <div class="p-1 border-2 border-gray-300 border-dashed hover:border-green-600 hover:bg-[var(--primary-light)] rounded-md">
                                     <div class="flex flex-col">
-                                        <div class="flex flex-row w-full justify-between items-center" >
-                                            <label class="text-lg text-gray-800 px-1">Time/Clock</label>
+                                        <div class="flex flex-row items-center justify-between w-full" >
+                                            <label class="px-1 text-lg text-gray-800">Time/Clock</label>
                                             <div>
                                                 <app-toggle  body="w-10 h-5" knob="w-3 h-3" translate="translate-x-5" [(isActive)]="toggles.time"></app-toggle>
                                             </div>
@@ -137,8 +145,8 @@
                                 <!-- Weather -->
                                 <div class="p-1 border-2 border-gray-300 border-dashed hover:border-green-600 hover:bg-[var(--primary-light)] rounded-md">
                                     <div class="flex flex-col">
-                                        <div class="flex flex-row w-full justify-between items-center" >
-                                            <label  class="text-lg text-gray-800 px-1">Weather View</label>
+                                        <div class="flex flex-row items-center justify-between w-full" >
+                                            <label  class="px-1 text-lg text-gray-800">Weather View</label>
                                             <div>
                                                 <app-toggle  body="w-10 h-5" knob="w-3 h-3" translate="translate-x-5" [(isActive)]="toggles.weather"></app-toggle>
                                             </div>
@@ -148,8 +156,8 @@
                                 <!-- Currency -->
                                 <div class="p-1 border-2 border-gray-300 border-dashed hover:border-green-600 hover:bg-[var(--primary-light)] rounded-md">
                                     <div class="flex flex-col">
-                                        <div class="flex flex-row w-full justify-between items-center" >
-                                            <label  class="text-lg text-gray-800 px-1">Currency Converter</label>
+                                        <div class="flex flex-row items-center justify-between w-full" >
+                                            <label  class="px-1 text-lg text-gray-800">Currency Converter</label>
                                             <div>
                                                 <app-toggle  body="w-10 h-5" knob="w-3 h-3" translate="translate-x-5" [(isActive)]="toggles.currency"></app-toggle>
                                             </div>
@@ -161,16 +169,16 @@
                         <!-- Colors Collapsable -->
                         <div class="w-full
                             border-solid border-2 border-gray-300 text-gray-500
-                            transition-all 
+                            transition-all
                         hover:text-[var(--primary)]
                             rounded-lg
                         "
                         [ngClass]="{'hover:bg-[var(--primary-light)] hover:border-[var(--primary-hover)]':!collapsables.colors}"
                         >
-                            <div (click)="toggleCollapse('colors')" class="text-lg  px-2 py-2 flex items-center justify-between">
-                                <div class="flex justify-between items-center w-full">
+                            <div (click)="toggleCollapse('colors')" class="flex items-center justify-between px-2 py-2 text-lg">
+                                <div class="flex items-center justify-between w-full">
                                     <span>Colors</span>
-                                    <div class="ml-2 flex gap-2">
+                                    <div class="flex gap-2 ml-2">
                                         <div class="border-solid border-2 hover:border-[var(--primary-hover)] rounded-full w-7 h-7" [ngStyle]="{backgroundColor: colors.primary_bg}"> </div>
                                         <div class="border-solid border-2 hover:border-[var(--primary-hover)] rounded-full w-7 h-7" [ngStyle]="{backgroundColor: colors.secondary_bg}"> </div>
                                         <div class="border-solid border-2 hover:border-[var(--primary-hover)] rounded-full w-7 h-7" [ngStyle]="{backgroundColor: colors.tertiary_bg}"> </div>
@@ -184,117 +192,117 @@
                             <div *ngIf="collapsables.colors" class="px-1 pb-2 ">
                                 <div class="flex gap-1">
                                     <!-- Background Colors -->
-                                    <div class="flex-1 flex flex-col gap-1">
+                                    <div class="flex flex-col flex-1 gap-1">
                                         <!-- Primary Background Input -->
                                         <div class="flex flex-col">
-                                            <label  class="text-sm text-gray-800 px-1">Primary Background</label>
-                                            <input [(ngModel)]="colors.primary_bg" class="w-full h-10 rounded-md 
+                                            <label  class="px-1 text-sm text-gray-800">Primary Background</label>
+                                            <input [(ngModel)]="colors.primary_bg" class="w-full h-10 rounded-md
                                             transition-all
                                             hover:border-[var(--primary)] hover:text-[var(--primary-light)] hover:bg-[var(--primary-light)]
                                             text-gray-400
-                                            border-gray-300 border-2 border-solid 
+                                            border-gray-300 border-2 border-solid
                                             bg-white cursor-pointer select-none" type="color">
                                         </div>
                                         <!-- Secondary Background Input -->
                                         <div class="flex flex-col">
-                                            <label class=" text-sm text-gray-800 px-1">Secondary Background</label>
-                                            <input [(ngModel)]="colors.secondary_bg" class="w-full h-10 rounded-md 
+                                            <label class="px-1 text-sm text-gray-800 ">Secondary Background</label>
+                                            <input [(ngModel)]="colors.secondary_bg" class="w-full h-10 rounded-md
                                             transition-all
                                             hover:border-[var(--primary)] hover:text-[var(--primary-light)] hover:bg-[var(--primary-light)]
                                             text-gray-400
-                                            border-gray-300 border-2 border-solid 
+                                            border-gray-300 border-2 border-solid
                                             bg-white cursor-pointer select-none" type="color">
                                         </div>
                                         <!-- Tertiary Background Input -->
                                         <div  class="flex flex-col">
-                                            <label  class="text-sm text-gray-800 px-1">Tertiary Background</label>
-                                            <input [(ngModel)]="colors.tertiary_bg" class="w-full h-10 rounded-md 
+                                            <label  class="px-1 text-sm text-gray-800">Tertiary Background</label>
+                                            <input [(ngModel)]="colors.tertiary_bg" class="w-full h-10 rounded-md
                                             transition-all
                                             hover:border-[var(--primary)] hover:text-[var(--primary-light)] hover:bg-[var(--primary-light)]
                                             text-gray-400
-                                            border-gray-300 border-2 border-solid 
+                                            border-gray-300 border-2 border-solid
                                             bg-white cursor-pointer select-none" type="color">
                                         </div>
                                     </div>
                                     <!-- Text Colors -->
-                                    <div class="flex-1 flex flex-col gap-1">
+                                    <div class="flex flex-col flex-1 gap-1">
                                         <!-- Primary Background Input -->
                                         <div class="flex flex-col ">
-                                            <label  class="text-sm text-gray-800 px-1">Primary Text</label>
-                                            <input [(ngModel)]="colors.primary_text" class="w-full h-10 rounded-md 
+                                            <label  class="px-1 text-sm text-gray-800">Primary Text</label>
+                                            <input [(ngModel)]="colors.primary_text" class="w-full h-10 rounded-md
                                             transition-all
                                             hover:border-[var(--primary)] hover:text-[var(--primary-light)] hover:bg-[var(--primary-light)]
                                             text-gray-400
-                                            border-gray-300 border-2 border-solid 
+                                            border-gray-300 border-2 border-solid
                                             bg-white cursor-pointer select-none" type="color">
                                         </div>
                                         <!-- Secondary Background Input -->
                                         <div class="flex flex-col">
-                                            <label class="text-sm text-gray-800 px-1">Secondary Text</label>
-                                            <input [(ngModel)]="colors.secondary_text" class="w-full h-10 rounded-md 
+                                            <label class="px-1 text-sm text-gray-800">Secondary Text</label>
+                                            <input [(ngModel)]="colors.secondary_text" class="w-full h-10 rounded-md
                                             transition-all
                                             hover:border-[var(--primary)] hover:text-[var(--primary-light)] hover:bg-[var(--primary-light)]
                                             text-gray-400
-                                            border-gray-300 border-2 border-solid 
+                                            border-gray-300 border-2 border-solid
                                             bg-white cursor-pointer select-none" type="color">
                                         </div>
                                         <!-- Tertiary Background Input -->
                                         <div  class="flex flex-col">
-                                            <label  class="text-sm text-gray-800 px-1">Tertiary Text</label>
-                                            <input [(ngModel)]="colors.tertiary_text" class="w-full h-10 rounded-md 
+                                            <label  class="px-1 text-sm text-gray-800">Tertiary Text</label>
+                                            <input [(ngModel)]="colors.tertiary_text" class="w-full h-10 rounded-md
                                             transition-all
                                             hover:border-[var(--primary)] hover:text-[var(--primary-light)] hover:bg-[var(--primary-light)]
                                             text-gray-400
-                                            border-gray-300 border-2 border-solid 
+                                            border-gray-300 border-2 border-solid
                                             bg-white cursor-pointer select-none" type="color">
                                         </div>
                                     </div>
                                 </div>
                             </div>
-                        </div>            
+                        </div>
                         <!-- Announcements Collapsable -->
                         <div class="w-full
                             border-solid border-2 border-gray-300 text-gray-500
-                            transition-all 
+                            transition-all
                             hover:border-[var(--primary)] hover:text-[var(--primary)]
                             rounded-lg
                         "
                         [ngClass]="{'hover:bg-[var(--primary-light)]   hover:border-[var(--primary-hover)]':!collapsables.announcements}"
                         >
-                            <div (click)="toggleCollapse('announcements')" class="text-lg  px-2 py-2 flex items-center justify-between">
-                                <div class="flex flex-row justify-between w-full gap-2 items-center" >
-                                    <label for="announcement" class="text-lg text-gray-800 px-1">Announcements</label>
+                            <div (click)="toggleCollapse('announcements')" class="flex items-center justify-between px-2 py-2 text-lg">
+                                <div class="flex flex-row items-center justify-between w-full gap-2" >
+                                    <label for="announcement" class="px-1 text-lg text-gray-800">Announcements</label>
                                     <div>
                                         <app-toggle  body="w-10 h-5" knob="w-3 h-3" translate="translate-x-5" [(isActive)]="toggles.announcements"></app-toggle>
                                     </div>
                                 </div>
                                 <span *ngIf="!collapsables.announcements" class="material-icons"> keyboard_arrow_down </span>
                             </div>
-                            <div class="flex flex-col pb-2 px-1" *ngIf="collapsables.announcements">
+                            <div class="flex flex-col px-1 pb-2" *ngIf="collapsables.announcements">
                                 <textarea
                                 placeholder="This will show on queue displays once announcements are enabled"
                                 name="announcement"
                                 [(ngModel)]="inputFields.announcements"
                                 class="w-full h-24 rounded-md
-                                py-1 
+                                py-1
                                 transition-all
                                 hover:border-[var(--primary)] hover:text-[var(--primary)] hover:bg-[var(--primary-light)]
                                 text-gray-400
-                                border-gray-300 border-2 border-solid 
+                                border-gray-300 border-2 border-solid
                                 bg-white cursor-pointer select-none flex items-center px-2 justify-between"
                                 ></textarea>
                             </div>
                         </div>
                         <div class="flex-1"></div>
                         <!-- ACTION BUTTONS -->
-                        <div class="flex gap-2 justify-end mt-2">
-                            <button (click)="confirmDialog('revert')" class="bg-red-800 hover:bg-red-700 w-40 h-10 rounded-lg text-white font-medium">Revert Changes</button>
+                        <div class="flex justify-end gap-2 mt-2">
+                            <button (click)="confirmDialog('revert')" class="w-40 h-10 font-medium text-white bg-red-800 rounded-lg hover:bg-red-700">Revert Changes</button>
                             <button (click)="confirmDialog('publish')" class="bg-[var(--primary)] hover:bg-[var(--primary-hover)] w-40 rounded-lg text-white font-medium">Publish Changes</button>
                         </div>
                     </div>
                 </div>
                 <!-- Knob -->
-                <button (click)="toggleEditor()" class="w-8 h-32 border-e-2 border-solid border-black/70 bg-white hover:bg-gray-200 rounded-e-xl my-auto shadow-lg cursor-pointer flex items-center 2xl:hidden">
+                <button (click)="toggleEditor()" class="flex items-center w-8 h-32 my-auto bg-white border-solid shadow-lg cursor-pointer border-e-2 border-black/70 hover:bg-gray-200 rounded-e-xl 2xl:hidden">
                     <span class="material-icons" *ngIf="!showEditSection">chevron_right</span>
                     <span class="material-icons" *ngIf="showEditSection">chevron_left</span>
                 </button>
@@ -303,17 +311,17 @@
             <div class="aspect-[3840/2180] 2xl:aspect-auto  2xl:flex-[3_3_0%] relative ">
                 <div *ngIf="contentLoading" class="h-full w=full aspect-[3840/2180] bg-white  text-white flex justify-center items-center  shadow-md rounded-xl"> Loading</div>
                 <div *ngIf="!contentLoading" class="2xl:mb-0 absolute inset-0  aspect-[3840/2180] shadow-md rounded-xl  border-2 border-dashed hover:border-green-500 overflow-hidden">
-                    <app-queue-display 
+                    <app-queue-display
                     [showAnnouncement]="toggles.announcements"
                     [showBackground]="toggles.background"
-                    [showTime]="toggles.time" 
-                    [showWeather]="toggles.weather" 
-                    [showCurrency]="toggles.currency" 
-                    [announcements]="inputFields.announcements" 
+                    [showTime]="toggles.time"
+                    [showWeather]="toggles.weather"
+                    [showCurrency]="toggles.currency"
+                    [announcements]="inputFields.announcements"
                     [videoUrl]="!toggles.videoURL ? inputFields.videoUrl : inputFields.youtubeURL"
                     [backgroundUrl]="inputFields.backgroundUrl"
                     [logoUrl]="inputFields.logoUrl"
-                    [colors]="colors" 
+                    [colors]="colors"
                     [disableAPI]="true"
                     [isPreview]="true"
                     [division]="getDivision()"
