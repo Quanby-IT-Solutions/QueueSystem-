@@ -174,3 +174,18 @@ p {
   top: -98px;
   left: -40px;
 }
+
+.id-card-tag:before {
+  content: "";
+  display: block;
+  width: 0;
+  height: 0;
+  border-left: 28px solid transparent; /* Slightly smaller to fit inside the main triangle */
+  border-right: 28px solid transparent; /* Slightly smaller to fit inside the main triangle */
+  border-top: 99px solid var(--primary); /* Slightly smaller to fit inside the main triangle */
+  margin: -85px auto -30px auto;
+  position: relative;
+  top: 1px; /* Adjusted to sit on top of the main triangle */
+  left: -28px; /* Adjusted to sit on top of the main triangle */
+  z-index: 1; /* Ensure it sits on top */
+}

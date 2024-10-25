@@ -4,7 +4,7 @@
 
   <!-- Loading Overlay -->
   <div *ngIf="isLoading" class="absolute z-50 flex flex-col items-center justify-center w-full h-full overflow-hidden bg-white cursor-wait">
-    <app-lottie-animation class="w-72 h-72 2xl:w-96 2xl:h-96 animate-pop" animation="loader"></app-lottie-animation>
+    <app-lottie-animation class="w-72 h-72 2xl:w-96 2xl:h-96 animate-pop" animation="pcso"></app-lottie-animation>
     <div *ngIf="!showUploadProgress()" class="text-xl tracking-wider animate-bounce animate-pop">Please Wait</div>
     <div *ngIf="showUploadProgress()" class="text-xl tracking-wider animate-bounce animate-pop">Uploading File ... ({{showUploadProgress()}})%</div>
   </div>
