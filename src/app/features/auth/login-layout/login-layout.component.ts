@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, ViewChild, ElementRef, OnInit, AfterViewInit } from '@angular/core';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { UswagonAuthModule, UswagonAuthService } from 'uswagon-auth';
 import { environment } from '../../../../environment/environment';
@@ -6,6 +6,7 @@ import { LottieAnimationComponent } from '../../../shared/components/lottie-anim
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { config } from '../../../../environment/config';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 
 @Component({
   selector: 'app-login-layout',
@@ -14,7 +15,16 @@ import { config } from '../../../../environment/config';
   templateUrl: './login-layout.component.html',
   styleUrls: ['./login-layout.component.css']
 })
-export class LoginLayoutComponent implements OnInit {
+export class LoginLayoutComponent implements OnInit, AfterViewInit {
+  @ViewChild('youtubePlayer') youtubePlayer!: ElementRef;
+  videoUrl: SafeResourceUrl;
+  private player: any;
+  isMuted = false;
+
+  isVideoLoading = true;
+  videoError = false;
+
+[x: string]: any;
 
   config = config
 
@@ -60,7 +70,65 @@ export class LoginLayoutComponent implements OnInit {
 
   constructor(
     private route:ActivatedRoute,
-    private router: Router, private auth:UswagonAuthService) {}
+    private router: Router, private auth:UswagonAuthService,
+    public sanitizer: DomSanitizer) {
+  // Set up video URL with high quality parameters
+  const videoId = 'QsXz0Lh2WKo';
+  const url = `https://www.youtube.com/embed/${videoId}?enablejsapi=1&autoplay=1&loop=1&playlist=${videoId}&controls=0&vq=hd1080&hd=1&modestbranding=1`;
+  this.videoUrl = this.sanitizer.bypassSecurityTrustResourceUrl(url);
+    }
+    ngAfterViewInit() {
+      // Load YouTube API
+      if (!(window as any).YT) {
+        const tag = document.createElement('script');
+        tag.src = 'https://www.youtube.com/iframe_api';
+        document.body.appendChild(tag);
+      }
+
+      // Initialize player when API is ready
+      (window as any).onYouTubeIframeAPIReady = () => {
+        this.player = new (window as any).YT.Player(this.youtubePlayer.nativeElement, {
+          height: '100%',
+          width: '100%',
+          playerVars: {
+            'autoplay': 1,
+            'controls': 0,
+            'loop': 1,
+            'playlist': 'Ze_zzC7mu-4',
+            'modestbranding': 1,
+            'vq': 'hd1080', // Force HD quality
+            'hd': 1,        // Enable HD mode
+            'enablejsapi': 1
+          },
+          events: {
+            'onReady': (event: any) => {
+              // Set quality to highest available
+              event.target.setPlaybackQuality('hd1080');
+              event.target.setVolume(100); // Set to maximum volume
+              event.target.playVideo();
+            },
+            'onPlaybackQualityChange': (event: any) => {
+              // Force highest quality again if it changes
+              const qualities = event.target.getAvailableQualityLevels();
+              if (qualities.length > 0) {
+                event.target.setPlaybackQuality(qualities[0]); // First quality is usually highest
+              }
+            }
+          }
+        });
+      };
+    }
+
+    // Optional: Function to force HD quality
+    forceHDQuality() {
+      if (this.player) {
+        const qualities = this.player.getAvailableQualityLevels();
+        if (qualities.length > 0) {
+          this.player.setPlaybackQuality(qualities[0]);
+        }
+      }
+    }
+
 
   ngOnInit(): void {
     const userole = this.auth.accountLoggedIn();
@@ -76,24 +144,24 @@ export class LoginLayoutComponent implements OnInit {
     this.selectedRole = this.route.snapshot.queryParams['role'] || '';
     if(this.selectedRole ==  'desk_attendants'){
       this.auth.initialize({api:environment.api, apiKey: environment.apiKey, loginTable:['desk_attendants'],
-        app:environment.app, 
+        app:environment.app,
           redirect:  {'desk_attendants': '/desk-attendant',}
-  
+
       });
     }
     if(this.selectedRole == 'admin'){
       this.auth.initialize({api:environment.api, apiKey: environment.apiKey, loginTable:['administrators'],
-        app:environment.app, 
+        app:environment.app,
           redirect:{
             'superadmin': '/admin/dashboard',
             'registrar': '/admin/dashboard',
             'accountant': '/admin/dashboard',
             'cashier': '/admin/dashboard',
-          } 
-  
+          }
+
       });
     }
-    
+
   }
 
   updateRole(roleName: string): void {
@@ -107,7 +175,7 @@ export class LoginLayoutComponent implements OnInit {
       });
     }
   }
-  
+
   openExternalLink(link:string) {
     alert();
     window.open(link, '_blank');
