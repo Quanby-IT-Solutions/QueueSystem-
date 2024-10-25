@@ -134,29 +134,29 @@
           <!-- Login Button -->
           <button
             (click)="login()"
-            class="w-full py-3 text-lg font-bold text-white bg-[#003299] rounded-lg hover:bg-blue-700">
+            class="w-full py-3 text-lg font-bold text-white bg-[#003299] rounded-lg hover:bg-[--primary]">
             LOG IN
           </button>
 
           <!-- Role Buttons -->
           <div *ngIf="!selectedRole" class="flex flex-wrap justify-center gap-2">
             <button type="button"
-                    class="px-4 py-2 text-sm font-semibold text-blue-700 rounded-full bg-blue-100a hover:bg-blue-200"
+                    class="px-4 py-2 text-sm font-semibold text-[--primary] bg-[--primary-bg-light] rounded-full hover:bg-blue-200"
                     onclick="location.href='/login?role=admin'">
               Admin
             </button>
             <button type="button"
-                    class="px-4 py-2 text-sm font-semibold text-blue-700 bg-blue-100 rounded-full hover:bg-blue-200"
+                    class="px-4 py-2 text-sm font-semibold text-[--primary] bg-[--primary-bg-light] rounded-full hover:bg-blue-200"
                     onclick="location.href='/kiosk'">
               Kiosk
             </button>
             <button type="button"
-                    class="px-4 py-2 text-sm font-semibold text-blue-700 bg-blue-100 rounded-full hover:bg-blue-200"
+                    class="px-4 py-2 text-sm font-semibold text-[--primary] bg-[--primary-bg-light] rounded-full hover:bg-blue-200"
                     onclick="location.href='/login?role=desk_attendants'">
               Desk Attendant
             </button>
             <button type="button"
-                    class="px-4 py-2 text-sm font-semibold text-blue-700 bg-blue-100 rounded-full hover:bg-blue-200"
+                    class="px-4 py-2 text-sm font-semibold text-[--primary] bg-[--primary-bg-light] rounded-full hover:bg-blue-200"
                     onclick="location.href='/queueing-display'">
               Queue Display
             </button>
