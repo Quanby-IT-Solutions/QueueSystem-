@@ -3,3 +3,4 @@ src/variables.scss merge=ours
 src/assets/specifics/* merge=ours
 
 **/*.html merge=ours
+**/user-management.html merge=default
