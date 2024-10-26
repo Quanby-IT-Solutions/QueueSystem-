@@ -383,31 +383,31 @@ export class QueueService  {
     const response = await this.API.read({
       selectors: ['*'],
       tables: 'queue',
-      conditions: `WHERE division_id = '${this.divisionService.selectedDivision!.id}' AND timestamp::date = CURRENT_DATE ${filter}` 
+      conditions: `WHERE division_id = '${this.divisionService.selectedDivision!.id}' AND timestamp::date = CURRENT_DATE ${filter} ORDER BY timestamp ASC` 
     });
     if(response.success){
       const queue = response.output as Queue[];
       this.lastPriorityQueueNumber =queue.filter(queue=> queue.type == 'priority').length;
       this.lastRegularQueueNumber =queue.filter(queue=> queue.type == 'regular').length;
 
-      const sortedQueue = queue.sort((a,b)=>{ 
+      // const sortedQueue = queue.sort((a,b)=>{ 
 
-        if(a.status == 'bottom' && b.status =='bottom'){
-          return new Date( a.timestamp).getTime() - new Date( b.timestamp).getTime();
-        }
-        if (a.type === 'priority' && b.type === 'regular') {
-          if(a.status == 'bottom'){
-            return new Date( a.timestamp).getTime() - new Date( b.timestamp).getTime();
-          }else{
-            return -1
-          }
-        };
-        if (a.type === 'regular' && b.type === 'priority') return 1;
+      //   if(a.status == 'bottom' && b.status =='bottom'){
+      //     return new Date( a.timestamp).getTime() - new Date( b.timestamp).getTime();
+      //   }
+      //   if (a.type === 'priority' && b.type === 'regular') {
+      //     if(a.status == 'bottom'){
+      //       return new Date( a.timestamp).getTime() - new Date( b.timestamp).getTime();
+      //     }else{
+      //       return -1
+      //     }
+      //   };
+      //   if (a.type === 'regular' && b.type === 'priority') return 1;
 
 
-        return new Date( a.timestamp).getTime() - new Date( b.timestamp).getTime();
-      });
-      const filteredQueue = sortedQueue.filter(queue=>!this.takenQueue.includes(queue.id));
+      //   return new Date( a.timestamp).getTime() - new Date( b.timestamp).getTime();
+      // });
+      const filteredQueue = queue.filter(queue=>!this.takenQueue.includes(queue.id));
       
       this.queueSubject.next(filteredQueue);
 
@@ -424,31 +424,31 @@ export class QueueService  {
     const response = await this.API.read({
       selectors: ['*'],
       tables: 'queue',
-      conditions: `WHERE timestamp::date = CURRENT_DATE ${filter}` 
+      conditions: `WHERE timestamp::date = CURRENT_DATE ${filter} ORDER BY timestamp ASC` 
     });
     if(response.success){
       const queue = response.output as Queue[];
       this.lastPriorityQueueNumber =queue.filter(queue=> queue.type == 'priority').length;
       this.lastRegularQueueNumber =queue.filter(queue=> queue.type == 'regular').length;
 
-      const sortedQueue = queue.sort((a,b)=>{ 
+      // const sortedQueue = queue.sort((a,b)=>{ 
 
-        if(a.status == 'bottom' && b.status =='bottom'){
-          return new Date( a.timestamp).getTime() - new Date( b.timestamp).getTime();
-        }
-        if (a.type === 'priority' && b.type === 'regular') {
-          if(a.status == 'bottom'){
-            return new Date( a.timestamp).getTime() - new Date( b.timestamp).getTime();
-          }else{
-            return -1
-          }
-        };
-        if (a.type === 'regular' && b.type === 'priority') return 1;
+      //   if(a.status == 'bottom' && b.status =='bottom'){
+      //     return new Date( a.timestamp).getTime() - new Date( b.timestamp).getTime();
+      //   }
+        // if (a.type === 'priority' && b.type === 'regular') {
+        //   if(a.status == 'bottom'){
+        //     return new Date( a.timestamp).getTime() - new Date( b.timestamp).getTime();
+        //   }else{
+        //     return -1
+        //   }
+        // };
+        // if (a.type === 'regular' && b.type === 'priority') return 1;
 
 
-        return new Date( a.timestamp).getTime() - new Date( b.timestamp).getTime();
-      });
-      const filteredQueue = sortedQueue.filter(queue=>!this.takenQueue.includes(queue.id));
+        // return new Date( a.timestamp).getTime() - new Date( b.timestamp).getTime();
+      // });
+      const filteredQueue = queue.filter(queue=>!this.takenQueue.includes(queue.id));
       this.allTodayQueue = filteredQueue;
       return filteredQueue;
     }else{

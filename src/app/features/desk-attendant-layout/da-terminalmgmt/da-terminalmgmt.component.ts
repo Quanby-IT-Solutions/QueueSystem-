@@ -209,6 +209,8 @@ timerProgress: any;
           this.terminalService.terminateTerminalSession();
           this.selectedCounter = undefined;
           this.lastSession = undefined;
+          this.selectedTicket = undefined;
+          this.currentTicket = undefined;
           this.API.sendFeedback('error','Your terminal is for maintenance. You have been logout!',5000)
         }
       }
@@ -285,23 +287,29 @@ timerProgress: any;
     if (this.actionLoading) return;
 
     try {
-      const priorityTickets = this.tickets.filter(
-        ticket => ticket.type === 'priority' && 
-        (ticket.status === 'waiting' || ticket.status === 'bottom')
-      );
-
-      if (priorityTickets.length === 0) {
-        this.API.sendFeedback('warning', 'No priority clients in queue.', 5000);
-        return;
-      }
-
+      
       this.actionLoading = true;
-
+      
       // If there's a current transaction, finish it first
       if (this.currentTicket) {
         await this.queueService.resolveAttendedQueue('finished');
         this.resetInterface();
+        this.API.sendFeedback('success','Transaction successful!');
+        return;
       }
+
+      const priorityTickets = this.tickets.filter(
+        ticket => ticket.type === 'priority' && 
+        (ticket.status === 'waiting' || ticket.status === 'bottom')
+      );
+ 
+
+      if (priorityTickets.length === 0) {
+        this.API.sendFeedback('warning', 'No priority clients in queue.', 5000);
+        this.actionLoading = false;
+        return;
+      }
+
 
       // Use the type-based nextQueue method
       const nextTicket = await this.queueService.nextQueue('priority');
@@ -349,18 +357,23 @@ timerProgress: any;
     if (this.actionLoading) return;
 
     try {
-      if (this.tickets.length === 0) {
-        this.API.sendFeedback('warning', 'No clients in queue.', 5000);
-        return;
-      }
-
       this.actionLoading = true;
 
       // If there's a current transaction, finish it first
       if (this.currentTicket) {
         await this.queueService.resolveAttendedQueue('finished');
         this.resetInterface();
+        this.API.sendFeedback('success','Transaction successful!');
+        this.actionLoading = false;
+        return;
       }
+
+      if (this.tickets.length === 0) {
+        this.API.sendFeedback('warning', 'No clients in queue.', 5000);
+        this.actionLoading = false;
+        return;
+      }
+
 
       // Use the selected ticket type if available
       let nextTicket: Ticket | undefined;
