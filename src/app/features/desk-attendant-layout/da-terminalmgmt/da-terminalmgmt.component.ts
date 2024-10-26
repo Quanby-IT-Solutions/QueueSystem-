@@ -153,6 +153,7 @@ timerProgress: any;
     this.terminals = await this.terminalService.getAllTerminals();
     
     this.lastSession = await this.terminalService.getActiveSession()
+    this.services = await this.serviceService.getServices();
     if(this.lastSession){
       this.selectedCounter = this.terminals.find(terminal=>terminal.id == this.lastSession.terminal_id);
       this.terminalService.refreshTerminalStatus(this.lastSession.id);
@@ -160,6 +161,14 @@ timerProgress: any;
       const {attendedQueue,queue} =await this.queueService.getQueueOnDesk();
     
       this.currentTicket = queue ? {...queue!} : undefined;
+      this.currentClientDetails = {
+        name: this.currentTicket?.fullname || 'N/A',
+        date: this.currentTicket?.timestamp || this.currentDate,
+        services: this.services.filter(service=> this.currentTicket?.services.split(', ').includes(service.id)).map(service=>service.name),
+        student_id: this.currentTicket?.student_id || 'N/A',
+        department: this.currentTicket?.department_id || 'N/A',
+      };
+
      
       const lastQueue = await this.queueService.getLastQueueOnDesk();
   
@@ -305,6 +314,7 @@ timerProgress: any;
     this.API.socketSend({event:'queue-events'})
     this.API.socketSend({event:'admin-dashboard-events'})
     this.resetActionButtons();
+    await this.updateTerminalData();
     this.API.setLoading(false);
     this.API.sendFeedback('warning','You have logged out from your terminal.',5000);
   }
@@ -316,6 +326,10 @@ timerProgress: any;
       
       this.actionLoading = true;
       
+      if(this.currentTicket?.type == 'regular'){
+        this.API.sendFeedback('warning','Finish regular transaction first.',5000);
+        this.actionLoading = false;
+      }
       // If there's a current transaction, finish it first
       if (this.currentTicket) {
         await this.queueService.resolveAttendedQueue('finished');
@@ -383,6 +397,10 @@ timerProgress: any;
 
     try {
       this.actionLoading = true;
+      if(this.currentTicket?.type == 'priority'){
+        this.API.sendFeedback('warning','Finish priority transaction first.',5000);
+        this.actionLoading = false;
+      }
 
       // If there's a current transaction, finish it first
       if (this.currentTicket) {
@@ -415,7 +433,7 @@ timerProgress: any;
         this.currentClientDetails = {
           name: nextTicket.fullname || 'N/A',
           date: nextTicket.timestamp || this.currentDate,
-          services:this.services.filter(service=> nextTicket.services.split(', ').includes(service.id)).map(service=>service),
+          services:this.services.filter(service=> nextTicket.services.split(', ').includes(service.id)).map(service=>service.name),
           
           student_id: nextTicket.student_id || 'N/A',
           department: nextTicket.department_id || 'N/A',

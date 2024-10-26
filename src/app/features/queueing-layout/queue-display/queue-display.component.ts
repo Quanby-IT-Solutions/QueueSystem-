@@ -481,7 +481,7 @@ export class QueueDisplayComponent implements OnInit, AfterViewInit, OnChanges, 
   async loadTerminalData(){
     let existingTerminals:string[] = []
         this.attendedQueue = await this.queueService.getActiveAttendedQueues();
-        console.log(this.attendedQueue);
+        // console.log(this.attendedQueue);
         const updatedTerminals = await this.terminalService.getAllTerminals();
         // Update existing terminals
         updatedTerminals.forEach((updatedTerminal:any) => {

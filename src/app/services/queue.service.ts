@@ -252,6 +252,7 @@ export class QueueService  {
               number:  this.attendedQueue.queue?.number,
               type:  this.attendedQueue.queue?.type,
               gender:  this.attendedQueue.queue?.gender,
+              services:  this.attendedQueue.queue?.services,
               status:'bottom',
               timestamp: new DatePipe('en-US').transform(now, 'yyyy-MM-dd HH:mm:ss.SSSSSS'),
               student_id:  this.attendedQueue.queue?.student_id,
@@ -412,7 +413,8 @@ export class QueueService  {
       //   return new Date( a.timestamp).getTime() - new Date( b.timestamp).getTime();
       // });
       const filteredQueue = queue.filter(queue=>!this.takenQueue.includes(queue.id));
-      
+      console.log(filteredQueue);
+  
       this.queueSubject.next(filteredQueue);
 
       this.queue = filteredQueue;
