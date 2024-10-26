@@ -15,13 +15,15 @@ import { DivisionService } from '../../../services/division.service';
 import { ConfirmationComponent } from '../../../shared/modals/confirmation/confirmation.component';
 import { Subscription } from 'rxjs';
 import { QueueService } from '../../../services/queue.service';
+import { ServiceService } from '../../../services/service.service';
 
 
 interface Terminal{
   id:string;
   division_id:string;
   number:string;
-  status:string;  
+  get status():string;  
+  _status:string;  
   last_active?:string;
   attendant?:string;
 }
@@ -40,6 +42,7 @@ interface Ticket {
   timestamp?:string;
   type: 'priority' | 'regular';
   fullname?:string;
+  services:string;
   department_id?:string;
   kiosk_id?:string;
   gender?:string;
@@ -50,10 +53,7 @@ interface Ticket {
 interface ClientDetails {
   name: string;
   date: string;
-  services: {
-    name: string;
-    description: string;
-  }[];
+  services:string[];
   department?: string;
   student_id?: string;
   gender?:string;
@@ -109,6 +109,7 @@ export class DaTerminalmgmtComponent implements OnInit, OnDestroy {
 
   actionLoading:boolean = false;
   terminals: Terminal[]=[];
+  services: any[]=[];
   statusMap:any = {
     'available' : 'bg-green-500',
     'maintenance' : 'bg-red-500',
@@ -122,6 +123,7 @@ timerProgress: any;
     private dvisionService:DivisionService,
     private API:UswagonCoreService,
     private queueService:QueueService,
+    private serviceService:ServiceService,
     private terminalService:TerminalService) {}
 
   ngOnInit(): void {
@@ -151,6 +153,7 @@ timerProgress: any;
     this.terminals = await this.terminalService.getAllTerminals();
     
     this.lastSession = await this.terminalService.getActiveSession()
+    this.services = await this.serviceService.getServices();
     if(this.lastSession){
       this.selectedCounter = this.terminals.find(terminal=>terminal.id == this.lastSession.terminal_id);
       this.terminalService.refreshTerminalStatus(this.lastSession.id);
@@ -158,6 +161,14 @@ timerProgress: any;
       const {attendedQueue,queue} =await this.queueService.getQueueOnDesk();
     
       this.currentTicket = queue ? {...queue!} : undefined;
+      this.currentClientDetails = {
+        name: this.currentTicket?.fullname || 'N/A',
+        date: this.currentTicket?.timestamp || this.currentDate,
+        services: this.services.filter(service=> this.currentTicket?.services.split(', ').includes(service.id)).map(service=>service.name),
+        student_id: this.currentTicket?.student_id || 'N/A',
+        department: this.currentTicket?.department_id || 'N/A',
+      };
+
      
       const lastQueue = await this.queueService.getLastQueueOnDesk();
   
@@ -185,36 +196,56 @@ timerProgress: any;
     this.queueService.listenToQueue();
 
     await this.queueService.getTodayQueues();
-   
+
+    await this.updateTerminalData();
+    this.API.addSocketListener('terminal-events', async(data)=>{
+      if(data.event =='terminal-events'){
+        await this.updateTerminalData();
+      }
+    })
 
     this.API.setLoading(false);  
-    this.statusInterval = setInterval(async ()=>{
-      const exisitingTerminals:string[] = [];
-      const updatedTerminals = await this.terminalService.getAllTerminals();
-      // Update existing terminals
-      updatedTerminals.forEach((updatedTerminal:any) => {
-        exisitingTerminals.push(updatedTerminal.id);
-        const existingTerminal = this.terminals.find(t => t.id === updatedTerminal.id);
-        if (existingTerminal) {
-          Object.assign(existingTerminal, updatedTerminal);
-        } else {
-          this.terminals.push(updatedTerminal);
-        }
-      });
-      // get last session
-      this.terminals = this.terminals.filter(terminal=> exisitingTerminals.includes(terminal.id))
-      if(this.lastSession){
-        const terminal =  this.terminals.find(terminal=>terminal.id == this.lastSession.terminal_id);
-        if(terminal?.status == 'maintenance'){
-          this.terminalService.terminateTerminalSession();
-          this.selectedCounter = undefined;
-          this.lastSession = undefined;
-          this.API.sendFeedback('error','Your terminal is for maintenance. You have been logout!',5000)
-        }
-      }
-    },1000)  
   }
 
+  async updateTerminalData(){
+    const exisitingTerminals:string[] = [];
+    const updatedTerminals = await this.terminalService.getAllTerminals();
+
+    // Update existing terminals
+    updatedTerminals.forEach((updatedTerminal:Terminal) => {
+      exisitingTerminals.push(updatedTerminal.id);
+
+      const existingTerminal = this.terminals.find(t => t.id === updatedTerminal.id);
+      if (existingTerminal) {
+        Object.keys(updatedTerminal).forEach((key) => {
+          // Check if the property is a regular property (not a getter)
+          const descriptor = Object.getOwnPropertyDescriptor(updatedTerminal, key);
+          if (descriptor && !descriptor.get) {
+            existingTerminal[key as keyof Omit<Terminal, 'status'>] = updatedTerminal[key as keyof Omit<Terminal, 'status'>]!;
+          }
+        });
+      } else {
+        this.terminals.push(updatedTerminal);
+      }
+
+    });
+    this.terminals = this.terminals.filter(terminal=> exisitingTerminals.includes(terminal.id))
+
+    // get last session
+    this.terminals = [...updatedTerminals]
+    if(this.lastSession){
+      const terminal =  this.terminals.find(terminal=>terminal.id == this.lastSession.terminal_id);
+      if(terminal?.status == 'maintenance'){
+        this.terminalService.terminateTerminalSession();
+        this.selectedCounter = undefined;
+        this.lastSession = undefined;
+        this.selectedTicket = undefined;
+        this.currentTicket = undefined;
+        this.API.sendFeedback('error','Your terminal is for maintenance. You have been logout!',5000)
+      }
+    }
+    this.services = await this.serviceService.getServices();
+  }
   private updateUpcomingTicket() {
     // Find the next 'waiting' ticket in the queue
     const nextTicket = this.tickets.find(ticket => ticket.status === 'waiting');
@@ -260,6 +291,9 @@ timerProgress: any;
     await this.terminalService.startTerminalSession(counter.id);
     this.lastSession = await this.terminalService.getActiveSession()
     this.terminalService.refreshTerminalStatus(this.lastSession.id);
+    this.API.socketSend({event:'terminal-events'})
+    this.API.socketSend({event:'queue-events'})
+    this.API.socketSend({event:'admin-dashboard-events'})
     this.API.setLoading(false);
     const index = this.terminals.findIndex(terminal=>terminal.id == counter.id);
     this.API.sendFeedback('success',`You are now logged in to Terminal ${index + 1}`,5000);
@@ -276,7 +310,11 @@ timerProgress: any;
     this.currentTicket = undefined;
     await this.terminalService.terminateTerminalSession();
     this.stopTimer();
+    this.API.socketSend({event:'terminal-events'})
+    this.API.socketSend({event:'queue-events'})
+    this.API.socketSend({event:'admin-dashboard-events'})
     this.resetActionButtons();
+    await this.updateTerminalData();
     this.API.setLoading(false);
     this.API.sendFeedback('warning','You have logged out from your terminal.',5000);
   }
@@ -285,38 +323,47 @@ timerProgress: any;
     if (this.actionLoading) return;
 
     try {
-      const priorityTickets = this.tickets.filter(
-        ticket => ticket.type === 'priority' && 
-        (ticket.status === 'waiting' || ticket.status === 'bottom')
-      );
-
-      if (priorityTickets.length === 0) {
-        this.API.sendFeedback('warning', 'No priority clients in queue.', 5000);
-        return;
-      }
-
+      
       this.actionLoading = true;
-
+      
+      if(this.currentTicket?.type == 'regular'){
+        this.API.sendFeedback('warning','Finish regular transaction first.',5000);
+        this.actionLoading = false;
+      }
       // If there's a current transaction, finish it first
       if (this.currentTicket) {
         await this.queueService.resolveAttendedQueue('finished');
         this.resetInterface();
+        this.API.socketSend({event:'queue-events'})
+        this.API.socketSend({event:'admin-dashboard-events'})
+        this.API.sendFeedback('success','Transaction successful!',5000);
+        
+        return;
       }
+
+      const priorityTickets = this.tickets.filter(
+        ticket => ticket.type === 'priority' && 
+        (ticket.status === 'waiting' || ticket.status === 'bottom')
+      );
+ 
+
+      if (priorityTickets.length === 0) {
+        this.API.sendFeedback('warning', 'No priority clients in queue.', 5000);
+        this.actionLoading = false;
+        return;
+      }
+
 
       // Use the type-based nextQueue method
       const nextTicket = await this.queueService.nextQueue('priority');
-
+      this.API.socketSend({event:'queue-events'})
+      this.API.socketSend({event:'admin-dashboard-events'})
       if (nextTicket) {
         this.currentTicket = nextTicket;
         this.currentClientDetails = {
           name: nextTicket.fullname || 'N/A',
           date: nextTicket.timestamp || this.currentDate,
-          services: [
-            {
-              name: 'Request Documents',
-              description: '',
-            },
-          ],
+          services: this.services.filter(service=> nextTicket.services.split(', ').includes(service.id)).map(service=>service),
           student_id: nextTicket.student_id || 'N/A',
           department: nextTicket.department_id || 'N/A',
         };
@@ -349,18 +396,27 @@ timerProgress: any;
     if (this.actionLoading) return;
 
     try {
-      if (this.tickets.length === 0) {
-        this.API.sendFeedback('warning', 'No clients in queue.', 5000);
-        return;
-      }
-
       this.actionLoading = true;
+      if(this.currentTicket?.type == 'priority'){
+        this.API.sendFeedback('warning','Finish priority transaction first.',5000);
+        this.actionLoading = false;
+      }
 
       // If there's a current transaction, finish it first
       if (this.currentTicket) {
         await this.queueService.resolveAttendedQueue('finished');
         this.resetInterface();
+        this.API.sendFeedback('success','Transaction successful!');
+        this.actionLoading = false;
+        return;
       }
+
+      if (this.tickets.length === 0) {
+        this.API.sendFeedback('warning', 'No clients in queue.', 5000);
+        this.actionLoading = false;
+        return;
+      }
+
 
       // Use the selected ticket type if available
       let nextTicket: Ticket | undefined;
@@ -377,12 +433,8 @@ timerProgress: any;
         this.currentClientDetails = {
           name: nextTicket.fullname || 'N/A',
           date: nextTicket.timestamp || this.currentDate,
-          services: [
-            {
-              name: 'Request Documents',
-              description: '',
-            },
-          ],
+          services:this.services.filter(service=> nextTicket.services.split(', ').includes(service.id)).map(service=>service.name),
+          
           student_id: nextTicket.student_id || 'N/A',
           department: nextTicket.department_id || 'N/A',
         };
@@ -486,12 +538,6 @@ timerProgress: any;
     this.isManualSelectActive = !this.isManualSelectActive;
   }
 
-  /**
-   * Returns the current ticket to the top of the queue.
-   */
-  returnTop(): void {
-    
-  }
 
   /**
    * Returns the current ticket to the bottom of the queue.
@@ -503,6 +549,8 @@ timerProgress: any;
     this.resetInterface();
     this.stopTimer();
     this.actionLoading = false;
+    this.API.socketSend({event:'queue-events'})
+    this.API.socketSend({event:'admin-dashboard-events'})
     this.API.sendFeedback('warning', `Client has been put to bottom of queue.`,5000);
   }
 
@@ -524,6 +572,8 @@ timerProgress: any;
     this.updateUpcomingTicket();
   
     this.actionLoading = false;
+    this.API.socketSend({event:'queue-events'})
+    this.API.socketSend({event:'admin-dashboard-events'})
     this.API.sendFeedback('error', `Client has been removed from queue.`, 5000);
   }
   

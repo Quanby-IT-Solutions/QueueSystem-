@@ -25,7 +25,7 @@
           <div class="triangle-bg-left"></div>
           <div class="triangle-bg-right"></div>
           <div class="absolute z-10 top-4 right-4">
-            <img src="./assets/specifics/pcso/pcso-logo.svg" alt="Company Logo" class="logo">
+            <img src="./assets/logo/vsu.png" alt="Company Logo" class="logo">
           </div>
         </div>
 
@@ -34,13 +34,15 @@
         </div>
 
         <h2 class="name">{{ user.fullname }}</h2>
-        <h3 class="designation">{{ user.role ?? 'User' }}</h3>
+        <p>Division: <span>{{ user.division_name }}</span></p>
 
         <div class="info">
           <p>Username: <span>{{ user.username }}</span></p>
-          <p>Division: <span>{{ user.division }}</span></p>
         </div>
-        <div class="department">{{ user.role }}</div>
+        <div class="department">
+          {{ user.role === 'superadmin' ? 'Super Admin' : user.role !== 'desk_attendant' ? 'Admin' : 'Desk Attendant' }}
+
+        </div>
       </div>
     </div>
   </div>
@@ -111,6 +113,8 @@
 
 <app-change-password-modal
   *ngIf="showPasswordModal"
+  [userId]="user.id"
+  [userRole]="user.role"
   (closeModal)="closePasswordModal()"
   (passwordChanged)="handlePasswordChange($event)">
 </app-change-password-modal>

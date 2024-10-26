@@ -99,7 +99,7 @@
                   <!-- <span class="tracking-wide text-xs 2xl:text-sm text-shadow min-[3500px]:text-5xl min-[3500px]:font-medium">{{item.personName}}</span> -->
                 </div>
               </div>
-              <div *ngFor="let filler of computeFillers(i+1,countOnlineCounters())" class="w-full h-full"></div>
+              <div *ngFor="let filler of computeFillers(i,countOnlineCounters())" class="w-full h-full"></div>
             </ng-container>
 
 
@@ -116,8 +116,8 @@
               <iframe
               #iframePlayer
               [ngStyle]="{'border-color': colors.primary_text + '80',}"
-              *ngIf="safeYoutubeUrl"
-              [src]="safeYoutubeUrl"
+              *ngIf="safeYoutubeUrlMute"
+              [src]="safeYoutubeUrlMute"
               allow="autoplay"
               loop
               frameborder="0"
@@ -128,7 +128,7 @@
             [ngStyle]="{'border-color': colors.primary_text + '80',}"
             autoplay
             loop
-            [muted]="mute"
+            [muted]="true"
             class="absolute w-full h-full object-cover"
             #videoPlayer    controls="false">
               <source [src]="videoUrl ?? 'assets/queue-display/vsu.mp4'" type="video/mp4">

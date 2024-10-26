@@ -12,9 +12,9 @@ interface User {
   fullname: string;
   username: string;
   division_id: string;
-  role?: string;
+  role: string;
   profile?: string;
-  division: string;
+  division_name?: string;
 }
 
 interface Divisions {
@@ -77,26 +77,45 @@ export class ProfileLayoutComponent {
     });
   }
 
-  loadUserData() {
-    // Refetch the user data from the backend instead of using cached data.
-    const userId = this.auth.getUser().id; // Make sure this ID is correct and up-to-date
-    const targetTable = this.auth.getUser().role === 'superadmin' || this.auth.getUser().role === 'admin' ? 'administrators' : 'desk_attendants';
-
-    this.API.read({
-      selectors: ['*'],
-      tables: targetTable,
-      conditions: `WHERE id = '${userId}'`
-    }).then((response) => {
-      if (response.success && response.output && response.output.length > 0) {
-        this.user = response.output[0]; // Assuming the response contains the user data
-        console.log('User data loaded:', this.user);
-      } else {
-        console.error('Failed to load user data:', response.output);
-      }
-    }).catch((error) => {
-      console.error('Error loading user data:', error);
-    });
+  ngOnInit() {
+    this.loadUserData(); 
   }
+
+
+loadUserData() {
+  const userId = this.auth.getUser().id;
+  const userRole = this.auth.getUser().role || 'desk_attendant'; 
+
+  const targetTable = (userRole === 'superadmin' || ['admin', 'cashier', 'registrar', 'accountant'].includes(userRole))
+    ? 'administrators'
+    : 'desk_attendants';
+
+  this.API.read({
+    selectors: [`${targetTable}.*, divisions.name AS division_name`],
+    tables: `${targetTable}, divisions`,
+    conditions: `WHERE ${targetTable}.id = '${userId}' AND ${targetTable}.division_id = divisions.id`
+  }).then((response) => {
+
+    if (response.success && response.output && response.output.length > 0) {
+      this.user = response.output[0];
+      this.user.role = this.user.role || 'desk_attendant';
+
+      if (this.user.division_name) {
+        console.log('Division name loaded:', this.user.division_name);
+      } else {
+        console.warn('Division name not found in user data:', this.user);
+      }
+    } else {
+      console.error('Failed to load user data:', response.output);
+    }
+  }).catch((error) => {
+    console.error('Error loading user data:', error);
+  });
+}
+
+  
+  
+  
 
   getUserProfile() {
     return this.user.profile
@@ -115,7 +134,7 @@ export class ProfileLayoutComponent {
     };
 
     const targetTable = this.user.role === 'superadmin' || this.user.role === 'admin' ? 'administrators' : 'desk_attendants';
-    const { role, ...valuesToUpdate } = targetTable === 'desk_attendants' ? mergedUser : mergedUser;
+    const { role, division_name, ...valuesToUpdate } = targetTable === 'desk_attendants' ? mergedUser : mergedUser;
 
     console.log('Saving user info to table:', targetTable, 'with values:', valuesToUpdate);
 
@@ -125,7 +144,7 @@ export class ProfileLayoutComponent {
       conditions: `WHERE id = '${this.user.id}'`
     }).then((response) => {
       if (response.success) {
-        this.loadUserData(); // Reload the updated user data
+        this.loadUserData(); 
         this.closeModal();
         this.API.sendFeedback('success', 'User profile updated successfully!', 5000);
         console.log('User profile updated successfully.');
@@ -143,15 +162,13 @@ export class ProfileLayoutComponent {
   refreshUserData() {
     const targetTable = this.user.role === 'superadmin' || this.user.role === 'admin' ? 'administrators' : 'desk_attendants';
 
-    // Adjust the read call based on the user's role
     this.API.read({
-      selectors: ['*'],  // Adjust this to select specific fields if needed
+      selectors: ['*'], 
       tables: targetTable,
       conditions: `WHERE id = '${this.user.id}'`
     }).then((response) => {
       if (response.success && response.output && response.output.length > 0) {
-        // Update the user object with the latest data from the backend.
-        this.user = response.output[0];  // Assuming the API returns the updated user data as the first item in output
+        this.user = response.output[0];  
         console.log('User data successfully refreshed:', this.user);
       } else {
         console.error('Failed to refresh user data:', response.output);
@@ -166,9 +183,11 @@ export class ProfileLayoutComponent {
 
   showPasswordModal = false;
 
-initiatePasswordChange(): void {
-  this.showPasswordModal = true;
-}
+  initiatePasswordChange(): void {
+    console.log('User ID for password change:', this.user.id); 
+    this.showPasswordModal = true;
+  }
+  
 
 closePasswordModal(): void {
   this.showPasswordModal = false;

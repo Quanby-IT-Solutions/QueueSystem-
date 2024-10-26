@@ -6,6 +6,7 @@ import { CreateAccountModalComponent } from "./create-account-modal/create-accou
 import { UswagonAuthService } from 'uswagon-auth';
 import { LottieAnimationComponent } from '../../../shared/components/lottie-animation/lottie-animation.component';
 import { environment } from '../../../../environment/environment';
+import { ConfirmationComponent } from '../../../shared/modals/confirmation/confirmation.component';
 
 interface User {
   role: string;
@@ -39,7 +40,7 @@ interface PerformanceMetrics {
   templateUrl: './user-management.component.html',
   styleUrls: ['./user-management.component.css'],
   standalone: true,
-  imports: [CommonModule, FormsModule, CreateAccountModalComponent, LottieAnimationComponent],
+  imports: [CommonModule, FormsModule, CreateAccountModalComponent, LottieAnimationComponent, ConfirmationComponent],
 })
 export class UserManagementComponent implements OnInit {
   users: User[] = [];
@@ -61,8 +62,9 @@ export class UserManagementComponent implements OnInit {
   showModal = false;
   selectedUser: User | null = null;
   isSuperAdmin: boolean = this.auth.accountLoggedIn() === 'superadmin';
-
   divisions: Divisions[] = [];
+  showDeleteConfirmation: boolean = false;
+  userToDelete: User | null = null;
 
   constructor(private API: UswagonCoreService, private auth: UswagonAuthService) {}
 
@@ -193,10 +195,14 @@ export class UserManagementComponent implements OnInit {
     return this.API.getFileURL(file);
   }
 
- 
+  metricsLoading: boolean = false;
 
   setCurrentUser(user: User) {
-    this.currentUser = user;
+    this.metricsLoading = true;
+    setTimeout(() => {
+      this.currentUser = user;
+      this.metricsLoading = false;
+    }, 300); // Adjust the timeout to match the animation duration
     if (user) {
       this.fetchTerminalSessions(user.id);
     } else {
@@ -204,33 +210,74 @@ export class UserManagementComponent implements OnInit {
     }
   }
   
+  
 
   createNewAccount() {
     this.selectedUser = null;
     this.showModal = true;
   }
 
-  async deleteUser(user: User) {
-    const confirmed = confirm(`Are you sure you want to delete ${user.fullname}?`);
-    if (!confirmed) return;
+ 
 
+  // async deleteUser(user: User) {
+  //   const confirmed = confirm(`Are you sure you want to delete ${user.fullname}?`);
+  //   if (!confirmed) return;
+
+  //   try {
+  //     const response = await this.API.delete({
+  //       tables: user.role === 'Desk attendant' ? 'desk_attendants' : 'administrators',
+  //       conditions: `WHERE id = '${user.id}'`
+  //     });
+
+  //     if (response && response.success) {
+  //       this.users = this.users.filter(u => u.id !== user.id);
+  //       this.filteredUsers = this.filteredUsers.filter(u => u.id !== user.id);
+  //       this.API.sendFeedback('success', 'User has been deleted!', 5000);
+  //       console.log('User deleted successfully:', user.fullname);
+  //     } else {
+  //       alert(`Failed to delete user: ${response.output || 'Unknown error'}`);
+  //     }
+  //   } catch (error) {
+  //     console.error('Error occurred during user deletion:', error);
+  //   }
+  // }
+
+  
+
+  confirmDeleteUser(user: User) {
+    this.userToDelete = user;
+    this.showDeleteConfirmation = true;
+  }
+
+  async onConfirmDelete() {
+    if (!this.userToDelete) return;
+    this.showDeleteConfirmation = false;
+  
     try {
       const response = await this.API.delete({
-        tables: user.role === 'Desk attendant' ? 'desk_attendants' : 'administrators',
-        conditions: `WHERE id = '${user.id}'`
+        tables: this.userToDelete.role === 'Desk attendant' ? 'desk_attendants' : 'administrators',
+        conditions: `WHERE id = '${this.userToDelete.id}'`
       });
-
+  
       if (response && response.success) {
-        this.users = this.users.filter(u => u.id !== user.id);
-        this.filteredUsers = this.filteredUsers.filter(u => u.id !== user.id);
+        this.users = this.users.filter(u => u.id !== this.userToDelete!.id);
+        this.filteredUsers = this.filteredUsers.filter(u => u.id !== this.userToDelete!.id);
         this.API.sendFeedback('success', 'User has been deleted!', 5000);
-        console.log('User deleted successfully:', user.fullname);
+        console.log('User deleted successfully:', this.userToDelete.fullname);
       } else {
         alert(`Failed to delete user: ${response.output || 'Unknown error'}`);
       }
     } catch (error) {
       console.error('Error occurred during user deletion:', error);
+    } finally {
+      this.userToDelete = null;
     }
+  }
+  
+
+  onCancelDelete() {
+    this.showDeleteConfirmation = false;
+    this.userToDelete = null;
   }
 
   viewUserDetails(user: User) {
@@ -365,5 +412,7 @@ export class UserManagementComponent implements OnInit {
       rating: 0,
     };
   }
+
+  
 
 }

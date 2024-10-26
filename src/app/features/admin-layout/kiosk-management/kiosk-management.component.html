@@ -1,14 +1,5 @@
 <div class="w-full h-full">
-  <div class="relative w-full h-24 overflow-hidden shadow-xl rounded-3xl">
-    <!-- Background Image with Gradient Overlay -->
-    <div class="absolute inset-0 bg-[url('assets/specifics/pcso/lottobg.png')] bg-cover bg-center"></div>
-    <div class="absolute inset-0 bg-gradient-to-r from-blue-800/50 to-blue-900/50"></div>
 
-    <!-- Optional: Text Content -->
-    <div class="relative flex items-center justify-center h-full px-6">
-      <!-- <h1 class="text-3xl font-bold text-white uppercase">Philippine Charity Sweepstakes Office</h1> -->
-    </div>
-  </div>
   <div class="flex justify-between w-full px-6 py-4 my-4 bg-white rounded-lg shadow-md">
     <div>
       <h1 class="text-2xl font-medium tracking-wide">Kiosk Management</h1>
@@ -33,7 +24,7 @@
     </div>
     <!-- Item Selection -->
     <div class="bg-white rounded-lg shadow-md flex-[4_4_0%] h-full">
-      <div class="grid grid-cols-3 gap-3 px-3 py-3 ">
+      <div class="grid grid-cols-2 2xl:grid-cols-3 portrait:grid-cols-1 gap-3 px-3 py-3 ">
         <button
 
         *ngFor="let kiosk of kiosks; let i = index"
@@ -85,7 +76,7 @@
         </button>
         <button
         (click)="addKiosk()"
-        class="flex items-center justify-center h-auto gap-3 font-thin tracking-wider transition-all bg-white border-2 border-solid rounded-lg shadow-md cursor-pointer hover:scale-110 hover:bg-green-950 hover:text-white border-black/10 "
+        class="flex items-center justify-center h-auto min-h-48 gap-3 font-thin tracking-wider transition-all bg-white border-2 border-solid rounded-lg shadow-md cursor-pointer hover:scale-110 hover:bg-green-950 hover:text-white border-black/10 "
         >
         <span class="text-4xl font-medium">
           +
