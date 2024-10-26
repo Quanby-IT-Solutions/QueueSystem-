@@ -9,6 +9,7 @@ export interface Service{
   export interface Division{
     id:string;
     name:string;
+    logo?:string;
   }
 
   export interface Department{

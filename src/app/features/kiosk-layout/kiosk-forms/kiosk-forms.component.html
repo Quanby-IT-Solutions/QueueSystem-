@@ -3,24 +3,24 @@
   <header class="relative flex items-center w-full px-4 py-5 bg-white rounded-lg shadow-md">
     <div class="z-10 flex items-center w-full max-w-screen-xl mx-auto">
       <div class="flex items-center">
-        <img src="./assets/logo/vsu.png" alt="Registrar logo" class="w-16 h-16 rounded-full shadow-lg sm:w-[80px] sm:h-[80px]">
+        <img src="{{division?.logo ?? ''}}" alt="Registrar logo" class="w-16 h-16 rounded-full shadow-lg sm:w-[80px] sm:h-[80px]">
       </div>
     </div>
     <div class="absolute top-0 left-0 w-full h-full rounded-lg">
-      <img src="https://cdn.builder.io/api/v1/image/assets/TEMP/85c09607b00c21dff8197a29be4f9bd6ca70de103a8f9517fccb03f7820f1037?apiKey=f35c25b17acb406083beeda46a28c843" alt="VSU background" class="object-cover w-full h-full rounded-lg">
+      <img src="{{config.assets.banner}}" alt="VSU background" class="object-cover w-full h-full rounded-lg">
     </div>
   </header>
 
 
    <!-- Below Image Header: Registrar and Time Info -->
    <div class="flex flex-col items-center justify-between w-full px-4 py-3 bg-white sm:flex-row sm:px-6 sm:py-4">
-    <h1 class="mb-2 text-center registrar-title sm:mb-0">{{this.division?.name?.toUpperCase()}}</h1>
-    <div class="flex items-center gap-2 text-green-800 sm:gap-4">
+    <h1 class="mb-2 text-center registrar-title text-[var(--primary)] sm:mb-0">{{this.division?.name?.toUpperCase()}}</h1>
+    <div class="flex items-center gap-2 text-[var(--primary)] sm:gap-4">
       <div class="flex flex-col items-end">
         <time class="text-3xl font-semibold sm:text-4xl">{{ currentTime | date:'h:mm' }}</time>
         <span class="text-sm font-medium sm:text-md">{{ currentPeriod }}</span>
       </div>
-      <div class="h-[30px] w-[2px] bg-green-800 sm:h-[40px]"></div>
+      <div class="h-[30px] w-[2px] text-[var(--primary)] sm:h-[40px]"></div>
       <div class="flex flex-col text-left uppercase">
         <span class="text-2xl font sm:text-3xl">{{ currentTime | date:'EEEE' }}</span>
         <span class="text-sm sm:text-md">{{ currentDate | date:'MMMM d, yyyy' }}</span>
@@ -31,7 +31,7 @@
   <!-- Main Form Section -->
   <main class="flex flex-col w-full mt-4 bg-white">
     <div class="flex flex-col w-full px-4 py-4 sm:px-6 sm:py-6">
-      <h2 class="self-center text-center form-title">FILL UP FORM</h2>
+      <h2 class="self-center text-center text-[var(--primary)] form-title">FILL UP FORM</h2>
       <div class="w-full h-px mt-2 mb-6 bg-[#B0B0B0]"></div>
 
       <div class="p-4 bg-[#f4f4f4] rounded-lg sm:p-6">
@@ -39,19 +39,50 @@
           <div class="flex flex-col items-center mr-8">
             <div class="flex flex-col flex-1 mr-8">
               <div class="flex items-center mb-1">
-                <span [class.text-green-600]="!isFormVisible" [class.text-gray-400]="isFormVisible" class="mr-2 text-xl font-bold">1</span>
-                <span [class.text-green-600]="!isFormVisible" [class.text-gray-400]="isFormVisible" class="text-xs font-medium">Basic Information</span>
+   
+                <span
+                [ngClass]="{
+                  'text-[var(--primary)] ':!isFormVisible,
+                  'text-gray-400':isFormVisible
+                }"
+                class="mr-2 text-xl font-bold">1</span>
+                <span 
+                [ngClass]="{
+                  'text-[var(--primary)] ':!isFormVisible,
+                  'text-gray-400':isFormVisible
+                }"
+                class="text-xs font-medium">Basic Information</span>
               </div>
-              <div [class.bg-green-600]="!isFormVisible" [class.bg-gray-300]="isFormVisible" class="w-[130%] h-0.5 transition-all duration-300"></div>
+              <div 
+              [ngClass]="{
+                'text-[var(--primary)] ':!isFormVisible,
+                'text-gray-400':isFormVisible
+              }"
+              class="w-[130%] h-0.5 transition-all duration-300"></div>
             </div>
           </div>
           <div class="flex flex-col items-center">
             <div class="flex flex-col flex-1 mr-8">
                 <div class="flex items-center mb-1">
-                  <span [class.text-green-600]="isFormVisible" [class.text-gray-400]="!isFormVisible" class="mr-2 text-xl font-bold">2</span>
-                  <span [class.text-green-600]="isFormVisible" [class.text-gray-400]="!isFormVisible" class="text-xs font-medium">Confirmation</span>
+                  <span 
+                  [ngClass]="{
+                    'text-[var(--primary)] ':!isFormVisible,
+                    'text-gray-400':isFormVisible
+                  }"
+                  class="mr-2 text-xl font-bold">2</span>
+                  <span 
+                  [ngClass]="{
+                    'text-[var(--primary)] ':!isFormVisible,
+                    'text-gray-400':isFormVisible
+                  }"
+                  class="text-xs font-medium">Confirmation</span>
               </div>
-              <div [class.bg-green-600]="isFormVisible" [class.bg-white]="!isFormVisible" class="w-[150%] h-0.5 transition-all duration-300"></div>
+              <div 
+              [ngClass]="{
+                'text-[var(--primary)] ':!isFormVisible,
+                'text-gray-400':isFormVisible
+              }" 
+              class="w-[150%] h-0.5 transition-all duration-300"></div>
             </div>
           </div>
         </nav>
@@ -194,10 +225,10 @@
           PREVIOUS
         </button>
         <button *ngIf="!isFormVisible" class="invisible"></button>
-        <button *ngIf="!isFormVisible" (click)="isFormVisible = true" class="px-6 py-3 font-bold text-sm text-white transition bg-[#5F8D4E] rounded-lg sm:text-base hover:bg-green-500">
+        <button *ngIf="!isFormVisible" (click)="isFormVisible = true" class="px-6 py-3 font-bold text-sm text-white transition bg-[var(--primary)] rounded-lg sm:text-base hover:bg-[var(--primary-hover)]">
           NEXT STEP
         </button>
-        <button *ngIf="isFormVisible" (click)="confirmChecklist()" class="px-6 py-3 text-sm font-bold text-white transition bg-[#5F8D4E] rounded-lg sm:text-base hover:bg-green-500">
+        <button *ngIf="isFormVisible" (click)="confirmChecklist()" class="px-6 py-3 text-sm font-bold text-white transition bg-[var(--primary)] rounded-lg sm:text-base hover:bg-[var(--primary-hover)]">
           CONFIRM
         </button>
       </div>

@@ -15,6 +15,7 @@ import { DepartmentService } from '../../../services/department.service';
 import { SnackbarComponent } from '../../../shared/snackbar/snackbar.component';
 import { LottieAnimationComponent } from '../../../shared/components/lottie-animation/lottie-animation.component';
 import { ConfirmationComponent } from '../../../shared/modals/confirmation/confirmation.component';
+import { config } from '../../../../environment/config';
 
 @Component({
   selector: 'app-kiosk-forms',
@@ -66,6 +67,7 @@ export class KioskFormsComponent implements OnInit, OnDestroy {
     private API: UswagonCoreService) {}
 
  
+  config = config
   modal?:'priority'|'success';
 
   openFeedback(type:'priority'|'success'){
@@ -100,11 +102,8 @@ export class KioskFormsComponent implements OnInit, OnDestroy {
     });
 
     if (this.kioskService.kiosk != undefined) {
-      this.divisionService.setDivision({
-        id: this.kioskService.kiosk.division_id!,
-        name: this.kioskService.kiosk.division!,
-      });
-      this.division = this.divisionService.selectedDivision;
+      this.division =await  this.divisionService.getDivision(this.kioskService.kiosk.division_id)
+      this.divisionService.setDivision(this.division!);
       this.queueService.getTodayQueues(true);
     } else {
       throw new Error('Invalid method');
