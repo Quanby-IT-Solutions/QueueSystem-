@@ -165,4 +165,25 @@
       </div>
     </div>
   </div>
+
+  <div *ngIf="getAuthFeedback()"
+  class="absolute bottom-4 right-4 z-50 flex flex-col gap-4 ">
+     <ng-container  >
+         <div  class="animate-pop flex items-center gap-10 min-w-96 justify-between bg-white rounded-xl  w-auto shadow-md border-2 border-solid {{borderColorMap[getAuthFeedback()!.type]}} h-auto py-2 pl-4 pr-4">
+             <div class="flex gap-4 items-center">
+                 <div class="w-14 h-14 flex items-center">
+                     <app-lottie-animation animation="{{lottieMap[getAuthFeedback()!.type]}}" [loop]="false"></app-lottie-animation>
+                 </div>
+                 <div class="text-{{bgColorMap[getAuthFeedback()!.type]}}-500  text-lg font-medium text-center">
+                     {{getAuthFeedback()!.message}}
+                 </div>
+             </div>
+             <div (click)="closeFeedback()" class="flex items-center rounded-full p-1 bg-gray-200 hover:bg-gray-100 cursor-pointer">
+                 <span  class="material-icons text-lg leading-none"> close </span>
+             </div>
+         </div>
+         <audio [volume]="0.4" [src]="getAuthFeedback()!.type !='success' ? 'assets/audio/pop-notif.wav': 'assets/audio/notif.mp3'" autoplay preload="auto"></audio>
+     </ng-container>
+    </div>
+
 </section>
