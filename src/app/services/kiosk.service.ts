@@ -34,14 +34,22 @@ export class KioskService {
   isSuperAdmin:boolean = this.auth.accountLoggedIn() == 'superadmin';
 
 
-  thermalPrint(filename:string, base64String:string){
+  thermalPrint(data:any){
    firstValueFrom( this.http
     .post(environment.printserver + '/print', {
       key: environment.apiKey,
       app: environment.app,
       printer_ip: this.kiosk?.printer_ip,
-      chunk: base64String,
-      fileName:  filename,
+      // chunk: base64String,
+      // fileName:  filename,
+      number: data.number,
+      name: data.name,
+      gender:data.gender,
+      id:data.id,
+      location:data.location,
+      date:data.date,
+      time:data.time,
+      services: data.services
     }))
   }
 
@@ -201,6 +209,25 @@ export class KioskService {
     } catch (error) {
       console.error('Error fetching kiosks:', error);
       return [];
+    }
+  }
+
+  async getKiosk(id:string):Promise<Kiosk> {
+    try {
+      const response = await this.API.read({
+        selectors: ['divisions.name as division, kiosks.*'],
+        tables: 'kiosks, divisions',
+        conditions: `WHERE kiosks.id = '${id}' AND divisions.id = kiosks.division_id`
+      });
+
+      if (response.success) {
+        return response.output[0];
+      } else {
+        throw new Error('Something went wrong');
+      }
+    } catch (error) {
+      console.error('Error fetching kiosks:', error);
+      throw new Error('Something went wrong');
     }
   }
 

@@ -200,7 +200,6 @@ export class QueueDisplayComponent implements OnInit, AfterViewInit, OnChanges, 
     
     this.API.addSocketListener('number-calling', (data:any)=>{
       if(data.event == 'number-calling' && data.division == this.division?.id){
-       
         const voices = speechSynthesis.getVoices();
           // Find a female voice (you may need to check which voices are available)
         const femaleVoice = voices.find(voice => voice.name.includes('Zira'));

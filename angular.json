@@ -66,6 +66,10 @@
               "buildTarget": "VSUQSM:build:development"
             }
           },
+          "options":{
+            "sslKey": "self-signed-certs/server.key",
+            "sslCert": "self-signed-certs/server.crt"
+          },
           "defaultConfiguration": "development"
         },
         "extract-i18n": {

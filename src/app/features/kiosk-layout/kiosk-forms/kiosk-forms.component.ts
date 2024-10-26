@@ -102,6 +102,8 @@ export class KioskFormsComponent implements OnInit, OnDestroy {
     });
 
     if (this.kioskService.kiosk != undefined) {
+      this.kioskService.kiosk = await this.kioskService.getKiosk(this.kioskService.kiosk.id!);
+
       this.division =await  this.divisionService.getDivision(this.kioskService.kiosk.division_id)
       this.divisionService.setDivision(this.division!);
       this.queueService.getTodayQueues(true);
@@ -275,108 +277,117 @@ export class KioskFormsComponent implements OnInit, OnDestroy {
 
     try {
         // Background Logo
-        const logoUrl = './assets/logo/vsu.png';
-        const logoData = await this.getBase64Image(logoUrl);
-        const transparentLogoData = await this.makeImageTransparent(logoData, 0.7);
+        // const logoUrl = './assets/logo/vsu.png';
+        // const logoData = await this.getBase64Image(logoUrl);
+        // const transparentLogoData = await this.makeImageTransparent(logoData, 0.7);
 
 
-        // Drawing content into the canvas
-        const canvas = document.createElement('canvas');
-        const ctx = canvas.getContext('2d');
-        if (ctx) {
-            canvas.width = ticketWidth;
-            canvas.height = ticketHeight;
+        // // Drawing content into the canvas
+        // const canvas = document.createElement('canvas');
+        // const ctx = canvas.getContext('2d');
+        // if (ctx) {
+        //     canvas.width = ticketWidth;
+        //     canvas.height = ticketHeight;
 
-            // Set background color
-            ctx.fillStyle = '#FFFFFF';
-            ctx.fillRect(0, 0, ticketWidth, ticketHeight);
+        //     // Set background color
+        //     ctx.fillStyle = '#FFFFFF';
+        //     ctx.fillRect(0, 0, ticketWidth, ticketHeight);
 
           
 
-            // Header with Queue Number
-            ctx.fillStyle = 'rgb(95, 141, 78)'; // #5F8D4E
-            const headerWidth = 450; // Fixed header width
-            const headerX = (ticketWidth - headerWidth) / 2; // Center the header
-            // ctx.fillRect(headerX, margin, headerWidth, 50);
-            ctx.fillStyle = '#000000';
-            ctx.font = 'bold 82px helvetica';
-            ctx.textAlign = 'center';
-            ctx.fillText(code, ticketWidth / 2, margin + 40);
+        //     // Header with Queue Number
+        //     ctx.fillStyle = 'rgb(95, 141, 78)'; // #5F8D4E
+        //     const headerWidth = 450; // Fixed header width
+        //     const headerX = (ticketWidth - headerWidth) / 2; // Center the header
+        //     // ctx.fillRect(headerX, margin, headerWidth, 50);
+        //     ctx.fillStyle = '#000000';
+        //     ctx.font = 'bold 82px helvetica';
+        //     ctx.textAlign = 'center';
+        //     ctx.fillText(code, ticketWidth / 2, margin + 40);
 
-            // Welcome text
-            ctx.fillStyle = '#000000';
-            ctx.font = '28px helvetica';
-            ctx.fillText("Welcome! You're currently in the queue", ticketWidth / 2, margin + 80);
+        //     // Welcome text
+        //     ctx.fillStyle = '#000000';
+        //     ctx.font = '28px helvetica';
+        //     ctx.fillText("Welcome! You're currently in the queue", ticketWidth / 2, margin + 80);
 
-            // Horizontal line
-            ctx.strokeStyle = 'rgb(200, 200, 200)';
-            ctx.beginPath();
-            ctx.moveTo(margin + 20, margin + 110);
-            ctx.lineTo(ticketWidth - (margin + 20), margin + 110);
-            ctx.stroke();
+        //     // Horizontal line
+        //     ctx.strokeStyle = 'rgb(200, 200, 200)';
+        //     ctx.beginPath();
+        //     ctx.moveTo(margin + 20, margin + 110);
+        //     ctx.lineTo(ticketWidth - (margin + 20), margin + 110);
+        //     ctx.stroke();
 
-            // Customer details
-            ctx.textAlign ='left';
-            const contentStartX = margin;
+        //     // Customer details
+        //     ctx.textAlign ='left';
+        //     const contentStartX = margin;
 
 
-            const details = [
-                { label: 'Name:', value: this.customerName },
-                { label: 'Gender:', value: this.gender},
-                { label: 'Student ID:', value: this.studentNumber || 'No ID specified.'},
-                { label: 'Department:', value: this.department || 'No department selected.'},
-                { label: 'Date:', value: this.currentDate.toLocaleDateString() },
-                { label: 'Time:', value: this.currentTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) },
-            ];
+        //     const details = [
+        //         { label: 'Name:', value: this.customerName },
+        //         { label: 'Gender:', value: this.gender},
+        //         { label: 'Student ID:', value: this.studentNumber || 'No ID specified.'},
+        //         { label: 'Department:', value: this.department || 'No department selected.'},
+        //         { label: 'Date:', value: this.currentDate.toLocaleDateString() },
+        //         { label: 'Time:', value: this.currentTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) },
+        //     ];
 
-            let yPosition = margin + 140;
+        //     let yPosition = margin + 140;
             
-            details.forEach(detail => {
-                ctx.fillStyle = '#000000';
-                ctx.font = 'bold 30px helvetica';
-                ctx.fillText(detail.label, contentStartX, yPosition);
-                const textWidth = ctx.measureText(detail.label).width;
-                ctx.font = '30px helvetica';
-                ctx.fillText(detail.value, contentStartX + 10 + textWidth, yPosition);
-                yPosition += 35;
-            });
+        //     details.forEach(detail => {
+        //         ctx.fillStyle = '#000000';
+        //         ctx.font = 'bold 30px helvetica';
+        //         ctx.fillText(detail.label, contentStartX, yPosition);
+        //         const textWidth = ctx.measureText(detail.label).width;
+        //         ctx.font = '30px helvetica';
+        //         ctx.fillText(detail.value, contentStartX + 10 + textWidth, yPosition);
+        //         yPosition += 35;
+        //     });
             
-            ctx.fillStyle = '#000000';
-            ctx.font = 'bold 30px helvetica';
-            ctx.fillText('Services:', contentStartX , yPosition, 200);
-            yPosition += 35;
-            ctx.font = '30px helvetica';
-            for(let service of this.selectedServices){
-              ctx.fillText( '• '+service.name, contentStartX, yPosition, 200);
-              yPosition += 30;
-            }
+        //     ctx.fillStyle = '#000000';
+        //     ctx.font = 'bold 30px helvetica';
+        //     ctx.fillText('Services:', contentStartX , yPosition, 200);
+        //     yPosition += 35;
+        //     ctx.font = '30px helvetica';
+        //     for(let service of this.selectedServices){
+        //       ctx.fillText( '• '+service.name, contentStartX, yPosition, 200);
+        //       yPosition += 30;
+        //     }
 
-            yPosition += 30;
-            // Footer text
-            ctx.textAlign = 'center';
-            ctx.font = '24px helvetica';
-            ctx.fillText('Your number will be called shortly.', ticketWidth / 2, yPosition);
-            yPosition += 30;
-            const logoWidth = 150;
-            const logoHeight = 150;
-            const logoX = (ticketWidth - logoWidth) / 2;
-            // Draw logo
-            const logoImg = new Image();
-            logoImg.src = transparentLogoData;
-            await new Promise((resolve) => {
-                logoImg.onload = () => {
-                    ctx.drawImage(logoImg, logoX, yPosition, logoWidth, logoHeight);
-                    resolve(null);
-                };
-            });
-        }
+        //     yPosition += 30;
+        //     // Footer text
+        //     ctx.textAlign = 'center';
+        //     ctx.font = '24px helvetica';
+        //     ctx.fillText('Your number will be called shortly.', ticketWidth / 2, yPosition);
+        //     yPosition += 30;
+        //     const logoWidth = 150;
+        //     const logoHeight = 150;
+        //     const logoX = (ticketWidth - logoWidth) / 2;
+        //     // Draw logo
+        //     const logoImg = new Image();
+        //     logoImg.src = transparentLogoData;
+        //     await new Promise((resolve) => {
+        //         logoImg.onload = () => {
+        //             ctx.drawImage(logoImg, logoX, yPosition, logoWidth, logoHeight);
+        //             resolve(null);
+        //         };
+        //     });
+        // }
 
         // Convert canvas to Base64
-        const base64Image = canvas.toDataURL('image/png');
-        const base64String = base64Image.split(',')[1];
-        this.kioskService.thermalPrint((Date.now().toString()+code+'.png'),base64String)
+        // const base64Image = canvas.toDataURL('image/png');
+        // const base64String = base64Image.split(',')[1];
+        this.kioskService.thermalPrint({
+          number:code,
+          name: this.customerName,
+          gender:this.gender,
+          id:this.studentNumber || 'No ID specified.',
+          location: this.department || 'No location specified.',
+          date: this.currentDate.toLocaleDateString(),
+          time:this.currentTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+          services: this.selectedServices.map(service=> service.name)
+        })
     } catch (error) {
-        console.error('Error generating image:', error);
+        alert();
     } finally {
         // Clean up the temporary container
         document.body.removeChild(container);
