@@ -116,8 +116,8 @@
               <iframe
               #iframePlayer
               [ngStyle]="{'border-color': colors.primary_text + '80',}"
-              *ngIf="safeYoutubeUrl"
-              [src]="safeYoutubeUrl"
+              *ngIf="safeYoutubeUrlMute"
+              [src]="safeYoutubeUrlMute"
               allow="autoplay"
               loop
               frameborder="0"
@@ -128,7 +128,7 @@
             [ngStyle]="{'border-color': colors.primary_text + '80',}"
             autoplay
             loop
-            [muted]="mute"
+            [muted]="true"
             class="absolute w-full h-full object-cover"
             #videoPlayer    controls="false">
               <source [src]="videoUrl ?? 'assets/queue-display/vsu.mp4'" type="video/mp4">

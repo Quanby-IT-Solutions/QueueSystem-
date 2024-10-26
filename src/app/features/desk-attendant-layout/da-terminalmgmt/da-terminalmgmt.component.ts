@@ -15,6 +15,7 @@ import { DivisionService } from '../../../services/division.service';
 import { ConfirmationComponent } from '../../../shared/modals/confirmation/confirmation.component';
 import { Subscription } from 'rxjs';
 import { QueueService } from '../../../services/queue.service';
+import { ServiceService } from '../../../services/service.service';
 
 
 interface Terminal{
@@ -41,6 +42,7 @@ interface Ticket {
   timestamp?:string;
   type: 'priority' | 'regular';
   fullname?:string;
+  services:string;
   department_id?:string;
   kiosk_id?:string;
   gender?:string;
@@ -51,10 +53,7 @@ interface Ticket {
 interface ClientDetails {
   name: string;
   date: string;
-  services: {
-    name: string;
-    description: string;
-  }[];
+  services:string[];
   department?: string;
   student_id?: string;
   gender?:string;
@@ -110,6 +109,7 @@ export class DaTerminalmgmtComponent implements OnInit, OnDestroy {
 
   actionLoading:boolean = false;
   terminals: Terminal[]=[];
+  services: any[]=[];
   statusMap:any = {
     'available' : 'bg-green-500',
     'maintenance' : 'bg-red-500',
@@ -123,6 +123,7 @@ timerProgress: any;
     private dvisionService:DivisionService,
     private API:UswagonCoreService,
     private queueService:QueueService,
+    private serviceService:ServiceService,
     private terminalService:TerminalService) {}
 
   ngOnInit(): void {
@@ -234,6 +235,7 @@ timerProgress: any;
         this.API.sendFeedback('error','Your terminal is for maintenance. You have been logout!',5000)
       }
     }
+    this.services = await this.serviceService.getServices();
   }
   private updateUpcomingTicket() {
     // Find the next 'waiting' ticket in the queue
@@ -320,7 +322,7 @@ timerProgress: any;
         this.resetInterface();
         this.API.socketSend({event:'queue-events'})
         this.API.socketSend({event:'admin-dashboard-events'})
-        this.API.sendFeedback('success','Transaction successful!');
+        this.API.sendFeedback('success','Transaction successful!',5000);
         
         return;
       }
@@ -347,12 +349,7 @@ timerProgress: any;
         this.currentClientDetails = {
           name: nextTicket.fullname || 'N/A',
           date: nextTicket.timestamp || this.currentDate,
-          services: [
-            {
-              name: 'Request Documents',
-              description: '',
-            },
-          ],
+          services: this.services.filter(service=> nextTicket.services.split(', ').includes(service.id)).map(service=>service),
           student_id: nextTicket.student_id || 'N/A',
           department: nextTicket.department_id || 'N/A',
         };
@@ -418,12 +415,8 @@ timerProgress: any;
         this.currentClientDetails = {
           name: nextTicket.fullname || 'N/A',
           date: nextTicket.timestamp || this.currentDate,
-          services: [
-            {
-              name: 'Request Documents',
-              description: '',
-            },
-          ],
+          services:this.services.filter(service=> nextTicket.services.split(', ').includes(service.id)).map(service=>service),
+          
           student_id: nextTicket.student_id || 'N/A',
           department: nextTicket.department_id || 'N/A',
         };

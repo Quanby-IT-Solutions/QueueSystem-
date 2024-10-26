@@ -17,6 +17,7 @@ interface Queue{
   timestamp:string;
   type:'regular'|'priority';
   fullname:string;
+  services:string;
   department_id?:string;
   kiosk_id:string;
   gender:'male'|'female'|'other';
@@ -158,27 +159,28 @@ export class QueueService  {
         number: info.type == 'regular' ? this.lastRegularQueueNumber: this.lastPriorityQueueNumber,
         type: info.type,
         gender: info.gender,
+        services:  info.services.join(', '),
         status:'waiting',
         timestamp: new DatePipe('en-US').transform(now, 'yyyy-MM-dd HH:mm:ss.SSSSSS'),
         student_id: info.student_id
       }
     });
-   for(let service_id of info.services){
-    const intent_id = this.API.createUniqueID32();
-    // Add services
-    const servicesResponse = await this.API.create({
-      tables: 'client_intents',
-      values:{
-        id: intent_id,
-        queue_id: id,
-        service_id: service_id
-      }
-    });
-    if(!servicesResponse.success){
-      this.decrementQueueNumber(info.type,this.kioskService.kiosk?.division_id!);
-      throw new Error('Something went wrong.')
-    }
-   }
+  //  for(let service_id of info.services){
+  //   const intent_id = this.API.createUniqueID32();
+  //   // Add services
+  //   const servicesResponse = await this.API.create({
+  //     tables: 'client_intents',
+  //     values:{
+  //       id: intent_id,
+  //       queue_id: id,
+  //       service_id: service_id
+  //     }
+  //   });
+  //   if(!servicesResponse.success){
+  //     this.decrementQueueNumber(info.type,this.kioskService.kiosk?.division_id!);
+  //     throw new Error('Something went wrong.')
+  //   }
+  //  }
     
 
     
@@ -198,7 +200,7 @@ export class QueueService  {
       const sessionResponse = await this.API.read({
         selectors: ['id'],
         tables: 'terminal_sessions',
-        conditions: `WHERE attendant_id = '${user.id}'`
+        conditions: `WHERE attendant_id = '${user.id}' ORDER BY last_active DESC`
       });
   
       if(!sessionResponse.success)throw new Error(sessionResponse.output);

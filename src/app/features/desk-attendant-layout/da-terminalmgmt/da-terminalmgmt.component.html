@@ -100,7 +100,13 @@
             <p class="text-sm text-gray-800">Department: {{ currentClientDetails?.department || 'N/A' }}</p>
             <p class="text-sm text-gray-500">Student ID: {{ currentClientDetails?.student_id || 'N/A' }}</p>
           </div>
-          <p class="text-sm font-medium text-green-600">{{ currentClientDetails?.services?.[0]?.name || 'N/A' }}</p>
+          <ng-container  *ngFor="let service of currentClientDetails?.services">
+            <div  class="text-sm font-medium text-green-600">
+              {{ service }}
+            </div>
+          </ng-container>
+          <span class="text-sm font-medium text-green-600" *ngIf="!currentClientDetails?.services?.length">N/A</span>
+          <!-- <p class="text-sm font-medium text-green-600">{{ currentClientDetails?.services|| 'N/A' }}</p> -->
         </div>
       </div>
 
@@ -191,7 +197,12 @@
                   </span>
                 </td>
                 <td class="p-3 text-sm w-1/6 truncate">
-                  {{ currentClientDetails?.services?.[0]?.name || 'N/A' }}
+                  <ng-container  *ngFor="let service of services">
+                    <div *ngIf="ticket?.services?.split(', ')?.includes(service.id)">
+                      {{ service.name }}
+                    </div>
+                  </ng-container>
+                  <span *ngIf="!ticket.services?.split(', ')?.length">N/A</span>
                 </td>
                 <td class="p-3 text-sm w-1/6">
                   {{ ticket.student_id || 'N/A' }}

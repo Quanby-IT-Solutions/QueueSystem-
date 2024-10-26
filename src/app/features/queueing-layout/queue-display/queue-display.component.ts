@@ -323,13 +323,17 @@ export class QueueDisplayComponent implements OnInit, AfterViewInit, OnChanges, 
   }
 
   safeYoutubeUrl?:SafeResourceUrl;
+  safeYoutubeUrlMute?:SafeResourceUrl;
 
   getSafeYoutubeUrl(url?:string) {
     if (this.isValidYouTubeUrl(url ??'')) {
       const videoId = this.getYouTubeVideoId(url!);
       const embedUrl = `https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1&loop=1&controls=0&playlist=${videoId}`;
+      const embedUrlMute = `https://www.youtube-nocookie.com/embed/${videoId}?mute=1&autoplay=1&loop=1&controls=0&playlist=${videoId}`;
       this.safeYoutubeUrl = this.sanitizer.bypassSecurityTrustResourceUrl(embedUrl);
+      this.safeYoutubeUrlMute = this.sanitizer.bypassSecurityTrustResourceUrl(embedUrlMute);
     } else{
+      this.safeYoutubeUrlMute = undefined;
       this.safeYoutubeUrl = undefined;
     }
   }
@@ -468,6 +472,7 @@ export class QueueDisplayComponent implements OnInit, AfterViewInit, OnChanges, 
     await this.loadTerminalData();
     this.API.addSocketListener('queue-events',async(data:any)=>{
       if(data.event == 'queue-events'){
+
         await this.loadTerminalData();
       }
     });    
@@ -476,6 +481,7 @@ export class QueueDisplayComponent implements OnInit, AfterViewInit, OnChanges, 
   async loadTerminalData(){
     let existingTerminals:string[] = []
         this.attendedQueue = await this.queueService.getActiveAttendedQueues();
+        console.log(this.attendedQueue);
         const updatedTerminals = await this.terminalService.getAllTerminals();
         // Update existing terminals
         updatedTerminals.forEach((updatedTerminal:any) => {

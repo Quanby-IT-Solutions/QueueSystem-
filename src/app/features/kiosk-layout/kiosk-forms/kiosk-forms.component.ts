@@ -387,7 +387,7 @@ export class KioskFormsComponent implements OnInit, OnDestroy {
           services: this.selectedServices.map(service=> service.name)
         })
     } catch (error) {
-        alert();
+        // alert();
     } finally {
         // Clean up the temporary container
         document.body.removeChild(container);
