@@ -1,3 +1,5 @@
 src/environment/* merge=ours
 src/variables.scss merge=ours
 src/assets/specifics/* merge=ours
+
+**/*.html merge=ours

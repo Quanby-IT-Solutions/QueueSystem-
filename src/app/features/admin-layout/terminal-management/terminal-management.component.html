@@ -36,7 +36,7 @@
       <div class=" grid grid-cols-3 px-3 py-3 gap-3">
         <button
         *ngFor="let terminal of terminals; let i = index"
-        class="group transition-all hover:scale-110  {{terminal.status == 'maintenance' ? 'bg-yellow-50 border-yellow-500' :'bg-white border-[var(--primary)] hover:bg-[var(--primary-dark)] hover:text-white hover:border-[var(--primary-light)] '}} h-48 p-4 rounded-lg flex flex-col gap-2 shadow-md border-2 border-dashed border-black/10 ">
+        class="group transition-all hover:scale-110  {{terminal.status == 'maintenance' ? 'bg-yellow-50 border-yellow-500' :'bg-white border-[var(--primary)] hover:bg-[var(--primary-dark)] hover:text-white hover:border-[var(--primary-light)] '}} h-auto p-4 rounded-lg flex flex-col gap-2 shadow-md border-2 border-dashed border-black/10 ">
 
           <!-- Header -->
           <div class="flex gap-4 items-center">
@@ -75,7 +75,7 @@
         <button
         *ngIf="terminals.length <10"
         (click)="addTerminal()"
-        class="bg-white tracking-wider h-48 font-thin rounded-lg gap-3 shadow-md  hover:bg-green-950 hover:text-white cursor-pointer flex justify-center border-2 border-solid border-black/10 items-center  "
+        class="bg-white tracking-wider h-auto font-thin rounded-lg gap-3 shadow-md  hover:bg-green-950 hover:text-white cursor-pointer flex justify-center border-2 border-solid border-black/10 items-center  "
         >
         <span class="text-4xl font-medium">
           +
