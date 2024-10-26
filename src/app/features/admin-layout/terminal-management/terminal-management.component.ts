@@ -15,11 +15,11 @@ interface Terminal{
   id:string;
   division_id:string;
   number:string;
-  status:string;  
+  get status():string;  
+  _status:string;  
   last_active?:string;
   attendant?:string;
 }
-
 interface Division{
   id:string;
   name:string;
@@ -67,30 +67,40 @@ export class TerminalManagementComponent implements OnInit, OnDestroy {
     this.API.setLoading(true);
     this.selectedDivision = (await this.divisionService.getDivision())?.id;
     this.divisions = this.divisionService.divisions;
-    if(this.statusInterval){
-      clearInterval(this.statusInterval);
-    }
-    
-    this.statusInterval = setInterval(async ()=>{
-      const exisitingTerminals:string[] = [];
-      const updatedTerminals = await this.terminalService.getAllTerminals();
+    await this.updateTerminalData();
+    this.API.addSocketListener('terminal-events', async(data)=>{
+      if(data.event =='terminal-events'){
+        await this.updateTerminalData();
+      }
+    })
+  }
 
-      // Update existing terminals
-      updatedTerminals.forEach((updatedTerminal:any) => {
-        exisitingTerminals.push(updatedTerminal.id);
-        const existingTerminal = this.terminals.find(t => t.id === updatedTerminal.id);
-        if (existingTerminal) {
-          Object.assign(existingTerminal, updatedTerminal);
-        } else {
-          this.terminals.push(updatedTerminal);
-        }
-        if(!this.dataLoaded){
-          this.API.setLoading(false);
-          this.dataLoaded = true;
-        }
-      });
-      this.terminals = this.terminals.filter(terminal=> exisitingTerminals.includes(terminal.id))
-    },1000)   
+  async updateTerminalData(){
+    const exisitingTerminals:string[] = [];
+    const updatedTerminals = await this.terminalService.getAllTerminals();
+
+    // Update existing terminals
+    updatedTerminals.forEach((updatedTerminal:Terminal) => {
+      exisitingTerminals.push(updatedTerminal.id);
+
+      const existingTerminal = this.terminals.find(t => t.id === updatedTerminal.id);
+      if (existingTerminal) {
+        Object.keys(updatedTerminal).forEach((key) => {
+          // Check if the property is a regular property (not a getter)
+          const descriptor = Object.getOwnPropertyDescriptor(updatedTerminal, key);
+          if (descriptor && !descriptor.get) {
+            existingTerminal[key as keyof Omit<Terminal, 'status'>] = updatedTerminal[key as keyof Omit<Terminal, 'status'>]!;
+          }
+        });
+      } else {
+        this.terminals.push(updatedTerminal);
+      }
+      if(!this.dataLoaded){
+        this.API.setLoading(false);
+        this.dataLoaded = true;
+      }
+    });
+    this.terminals = this.terminals.filter(terminal=> exisitingTerminals.includes(terminal.id))
   }
 
   async selectDivision(division:Division){

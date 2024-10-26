@@ -207,7 +207,8 @@ export class KioskFormsComponent implements OnInit, OnDestroy {
       student_id: this.studentNumber.trim() == '' ? undefined : this.studentNumber.trim(),
       department_id: this.department.trim() == '' ? undefined : this.department.trim(),
     });
- 
+    this.API.socketSend({event:'queue-events'})
+    this.API.socketSend({event:'admin-dashboard-events'})
     this.successDescription = `Your current position is <span class='font-medium'>${this.selectedType === 'regular' ? 'R' : 'P'}-${number.toString().padStart(3,'0')}</span>`
     await this.printImage(`${this.selectedType === 'regular' ? 'R' : 'P'}-${number.toString().padStart(3,'0')}`);
     this.selectedServices = this.services

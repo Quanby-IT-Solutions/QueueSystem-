@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { UswagonCoreService } from 'uswagon-core';
 import { UswagonAuthService } from 'uswagon-auth';
 import { environment } from '../../../../../environment/environment';
+import { ConfirmationComponent } from '../../../../shared/modals/confirmation/confirmation.component';
 
 interface PartialUser {
   id: string;
@@ -25,7 +26,7 @@ interface Divisions {
   templateUrl: './create-account-modal.component.html',
   styleUrls: ['./create-account-modal.component.css'],
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, ConfirmationComponent],
 })
 export class CreateAccountModalComponent {
   @Input() editingUser: boolean = false;
@@ -44,6 +45,7 @@ export class CreateAccountModalComponent {
     password: '',
   };
 
+  showConfirmation: boolean = false;
   passwordVisible: boolean = false;
   showError: boolean = false;
   errorMessage: string = '';
@@ -261,5 +263,19 @@ export class CreateAccountModalComponent {
       this.showError = true;
       this.errorMessage = error instanceof Error ? error.message : 'An error occurred. Please try again.';
     }
+  }
+
+ 
+  showConfirmationDialog() {
+    this.showConfirmation = true;
+  }
+
+  onConfirmAction() {
+    this.showConfirmation = false;
+    this.submitForm();
+  }
+
+  onCancelAction() {
+    this.showConfirmation = false;
   }
 }

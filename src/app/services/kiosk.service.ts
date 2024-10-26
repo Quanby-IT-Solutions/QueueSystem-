@@ -55,7 +55,6 @@ export class KioskService {
       `
     });
     if(response.success){
-     
       if(response.output.length > 0){
         this.kiosk = response.output[0];
         if(this.kiosk!.status == 'maintenance'){

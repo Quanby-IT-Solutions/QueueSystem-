@@ -10,7 +10,7 @@ import { LottieAnimationComponent } from '../../components/lottie-animation/lott
   styleUrl: './confirmation.component.css'
 })
 export class ConfirmationComponent {
-  @Input() type:'publish'|'revert'| 'logout'|'custom' ='publish';
+  @Input() type:'publish'|'revert'| 'logout'|'custom'| 'delete' | 'create' | 'update' ='publish';
   @Output() onCancel = new EventEmitter<void>();
   @Output() onConfirm = new EventEmitter<void>();
   @Input() title:string = '';
@@ -30,6 +30,10 @@ export class ConfirmationComponent {
     revert : 'Revert',
     logout : 'Logout',
     custom : 'Proceed',
+    delete: 'Delete',
+    update: 'Update',
+    create: 'Create'
+
   }
 
 

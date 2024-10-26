@@ -3,7 +3,7 @@ export const environment = {
     api: 'https://quanbylab.com:85/q-api.php',
     socket: 'wss://quanbylab.com:3002',
     nodeserver: 'https://quanbylab.com:3002',
-    printserver: 'http://192.168.40.43:3002',
+    printserver: 'https://192.168.40.48:3002',
     server: 'https://quanbylab.com/public/',
     // api: 'http://192.168.10.2:85/api.php',
     // socket: 'ws://192.168.10.2:3000',

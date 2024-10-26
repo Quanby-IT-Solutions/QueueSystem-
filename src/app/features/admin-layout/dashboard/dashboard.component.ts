@@ -161,9 +161,11 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   private startRealtimeUpdates() {
-    this.refreshInterval = setInterval(() => {
-      this.refreshData();
-    }, 30000); // 30 seconds
+   this.API.addSocketListener('admin-dashboard-events' ,(data)=>{
+      if(data.event == 'admin-dashboard-events' ){
+        this.refreshData();
+      }
+   })
   }
 
   async refreshData() {
@@ -1046,24 +1048,7 @@ const datasets = filteredMetrics.map((metric) => {
     if(this.dashboardInterval){
       clearInterval(this.dashboardInterval)
     }
-    this.dashboardInterval = setInterval( async()=>{
-      await this.queueService.getAllQueues();
-      await this.queueService.getAllTodayQueues();
-      this.queueAnalytics$ = this.getMockQueueAnalytics();
-      this.staffPerformance$ = this.getMockStaffPerformance();
-      this.kioskStatus$ = this.getMockKioskStatus();
-      this.updateKioskPagination();
-      if(this.lastOverallTransaction !== this.queueService.allQueue.length){
-        this.lastOverallTransaction = this.queueService.allQueue.length;
-        this.updateOverallMetrics();
-      }
-
-      if(!this.dataLoaded){
-        this.dataLoaded = true;
-
-      }
-    },2000)
-
+    this.startRealtimeUpdates();
     this.cdr.detectChanges();
   }
 

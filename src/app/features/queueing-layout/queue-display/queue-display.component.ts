@@ -192,6 +192,7 @@ export class QueueDisplayComponent implements OnInit, AfterViewInit, OnChanges, 
     clearInterval(this.intervalSwitchter);
     this.subscription?.unsubscribe();
     this.API.addSocketListener('number-calling',(data)=>{})
+    this.API.addSocketListener('queue-events',(data)=>{})
   }
 
   ngOnInit(): void {
@@ -465,47 +466,49 @@ export class QueueDisplayComponent implements OnInit, AfterViewInit, OnChanges, 
     });
 
     await this.queueService.getTodayQueues();
-
-    this.terminalInterval = setInterval(async ()=>{
-      let existingTerminals:string[] = []
-      this.attendedQueue = await this.queueService.geAllAttendedQueues();
-      const updatedTerminals = await this.terminalService.getAllTerminals();
-      // Update existing terminals
-      updatedTerminals.forEach((updatedTerminal:any) => {
-        existingTerminals.push(updatedTerminal.id);
-        const existingTerminal = this.counters.find(t => t.id === updatedTerminal.id);
-        const ticket = this.attendedQueue.find(t=> t.terminal_id ==  updatedTerminal.id);
-  
-        if (existingTerminal) {
-          // Update properties of the existing terminal
-          Object.assign(existingTerminal, {
-            id: updatedTerminal.id,
-            status: updatedTerminal.status,
-            ticketNumber: ticket ==undefined ? undefined : (ticket.type=='priority'?'P':'R') + '-'+ ticket.number!.toString().padStart(3, '0'),
-            personName: updatedTerminal.fullname,
-            number:updatedTerminal.number
-          });
-        } else {
-          // Optionally handle new terminals
-          this.counters.push({
-            id: updatedTerminal.id,
-            status: updatedTerminal.status,
-            ticketNumber: ticket ==undefined ? undefined : (ticket.type=='priority'?'P':'R') + '-'+ ticket.number!.toString().padStart(3, '0'),
-            personName: updatedTerminal.fullname,
-            number:updatedTerminal.number
-          });
-        }
-      });
-      this.counters = this.counters.filter((counter)=>existingTerminals.includes(counter.id));
-      if(!this.dataLoaded){
-        this.loading = false;
-        this.dataLoaded = true;
+    await this.loadTerminalData();
+    this.API.addSocketListener('queue-events',async(data:any)=>{
+      if(data.event == 'queue-events'){
+        await this.loadTerminalData();
       }
-    },1000)   
-    
+    });    
+  }
 
-    
-    
+  async loadTerminalData(){
+    let existingTerminals:string[] = []
+        this.attendedQueue = await this.queueService.getActiveAttendedQueues();
+        const updatedTerminals = await this.terminalService.getAllTerminals();
+        // Update existing terminals
+        updatedTerminals.forEach((updatedTerminal:any) => {
+          existingTerminals.push(updatedTerminal.id);
+          const existingTerminal = this.counters.find(t => t.id === updatedTerminal.id);
+          const ticket = this.attendedQueue.find(t=> t.terminal_id ==  updatedTerminal.id);
+          
+          if (existingTerminal) {
+            // Update properties of the existing terminal
+            Object.assign(existingTerminal, {
+              id: updatedTerminal.id,
+              status: updatedTerminal.status,
+              ticketNumber: ticket ==undefined ? undefined : (ticket.type=='priority'?'P':'R') + '-'+ ticket.number!.toString().padStart(3, '0'),
+              personName: updatedTerminal.fullname,
+              number:updatedTerminal.number
+            });
+          } else {
+            // Optionally handle new terminals
+            this.counters.push({
+              id: updatedTerminal.id,
+              status: updatedTerminal.status,
+              ticketNumber: ticket ==undefined ? undefined : (ticket.type=='priority'?'P':'R') + '-'+ ticket.number!.toString().padStart(3, '0'),
+              personName: updatedTerminal.fullname,
+              number:updatedTerminal.number
+            });
+          }
+        });
+        this.counters = this.counters.filter((counter)=>existingTerminals.includes(counter.id));
+        if(!this.dataLoaded){
+          this.loading = false;
+          this.dataLoaded = true;
+        }
   }
   
   countOnlineCounters(){

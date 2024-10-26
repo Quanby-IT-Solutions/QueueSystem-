@@ -25,6 +25,27 @@
                 <div class="text-center font-medium text-xl"> {{title}} </div>
                 <div  class="text-center font-thin" > {{description}} </div>
             </div>
+
+            <!-- Delete -->
+            <div *ngIf="type =='delete'"  class="flex flex-col items-center">
+                <app-lottie-animation class="w-40 h-40" [loop]="false" [animation]="animation"></app-lottie-animation>
+                <div class="text-center font-medium text-xl"> {{title}} </div>
+                <div  class="text-center font-thin" > {{description}} </div>
+            </div>
+
+               <!-- Update -->
+               <div *ngIf="type =='update'"  class="flex flex-col items-center">
+                <app-lottie-animation class="w-40 h-40" [loop]="false" [animation]="animation"></app-lottie-animation>
+                <div class="text-center font-medium text-xl"> {{title}} </div>
+                <div  class="text-center font-thin" > {{description}} </div>
+            </div>
+
+               <!-- create -->
+               <div *ngIf="type =='create'"  class="flex flex-col items-center">
+                <app-lottie-animation class="w-40 h-40" [loop]="false" [animation]="animation"></app-lottie-animation>
+                <div class="text-center font-medium text-xl"> {{title}} </div>
+                <div  class="text-center font-thin" > {{description}} </div>
+            </div>
             
         </div>
         <div class="flex justify-center gap-2 mt-2">

@@ -11,7 +11,8 @@ interface Terminal{
   id:string;
   division_id:string;
   number:string;
-  status:string;  
+  get status():string;   
+  _status:string;  
   last_active?:string;
   attendant?:string;
 }
@@ -59,6 +60,9 @@ async addTerminal(division_id:string){
   if(!response.success){
     throw new Error('Unable to add terminal');
   }
+  this.API.socketSend({event:'queue-events'})
+  this.API.socketSend({event:'terminal-events'})
+  this.API.socketSend({event:'admin-dashboard-events'})
 }
 
 async updateTerminalStatus(id:string, status: 'available'|'maintenance'){
@@ -73,6 +77,9 @@ async updateTerminalStatus(id:string, status: 'available'|'maintenance'){
   if(!response.success){
     throw new Error('Unable to add terminal');
   }
+  this.API.socketSend({event:'queue-events'})
+  this.API.socketSend({event:'terminal-events'})
+  this.API.socketSend({event:'admin-dashboard-events'})
 }
 async deleteTerminal(id:string){
   const response = await this.API.delete({
@@ -83,9 +90,12 @@ async deleteTerminal(id:string){
   if(!response.success){
     throw new Error('Unable to delete terminal');
   }
+  this.API.socketSend({event:'queue-events'})
+  this.API.socketSend({event:'terminal-events'})
+  this.API.socketSend({event:'admin-dashboard-events'})
 }
 
- async getAllTerminals(){
+ async getAllTerminals() : Promise<Terminal[]>{
       const response = await this.API.read({
         selectors: ['divisions.name as division,latest_session.last_active as last_active ,latest_session.status as session_status, desk_attendants.fullname as attendant, terminals.*'],
         tables: 'terminals',
@@ -99,7 +109,7 @@ async deleteTerminal(id:string){
           WHERE terminals.division_id = '${this.divisionService.selectedDivision?.id}' 
           AND (index =1 OR index IS NULL)
           GROUP BY terminals.id, divisions.id, terminal_sessions.terminal_id,desk_attendants.id, latest_session.last_active, latest_session.status
-          ORDER BY terminals.number ASC ,session_status DESC
+          ORDER BY terminals.number ASC 
           `});
    
     if(response.success){
@@ -112,16 +122,23 @@ async deleteTerminal(id:string){
           seen.add(item.id); // Mark as seen
           return true; // Keep first occurrence
       });
-      let i = 1;
-      for(let session of response.output){
-        const now = new Date(); 
-        const lastActive = new Date(session.last_active);
-        const diffInMinutes = (now.getTime() - lastActive.getTime()) / 60000; 
-        if(diffInMinutes < 1.5 && session.status != 'maintenance' && session.session_status != 'closed'){
-          session.status = 'online';
+      for(let i = 0 ; i < response.output.length; i++){
+        response.output[i]._status = response.output[i].status;
+        response.output[i] = {
+          ...response.output[i],
+          get status():string {
+            const now = new Date(); 
+            const lastActive = new Date(this.last_active);
+            const diffInMinutes = (now.getTime() - lastActive.getTime()) / 60000; 
+    
+            if (diffInMinutes < 1.5 && this._status !== 'maintenance' && this.session_status !== 'closed') {
+                return 'online';
+            } else {
+                return this._status; // Return the default status if not online
+            }
+          }
         }
-        session.number = i;
-        i +=1;
+        response.output[i].number = i+1;
       }
       return response.output;
     }else{
@@ -162,6 +179,9 @@ async deleteTerminal(id:string){
     if(!response.success){
       throw new Error('Unable to start terminal session');
     }else{
+      this.API.socketSend({event:'queue-events'})
+      this.API.socketSend({event:'terminal-events'})
+      this.API.socketSend({event:'admin-dashboard-events'})
       return id;
     }
   }
@@ -213,6 +233,9 @@ async deleteTerminal(id:string){
         alert(response.output);
         throw new Error('Unable to update terminal session');
       }
+      this.API.socketSend({event:'queue-events'})
+      this.API.socketSend({event:'terminal-events'})
+      this.API.socketSend({event:'admin-dashboard-events'})
     },1000)
   }
 
