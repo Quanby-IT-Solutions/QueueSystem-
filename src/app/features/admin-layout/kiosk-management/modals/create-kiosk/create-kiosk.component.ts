@@ -17,19 +17,24 @@ export class CreateKioskComponent implements OnInit, OnDestroy {
   @Input() exisitingkiosk?:Kiosk;
   @Output() onClose = new EventEmitter<boolean>();
   errorMessageTimeout:any;
-  errorMessage?:string;
+  errorMessage:any ={};
   submittingForm:boolean = false;
 
   constructor(private API:UswagonCoreService, private kioskService:KioskService){}
 
   kiosk:Kiosk =  {
     code:'',
+    printer_ip: '',
   } 
+
+  oldKiosk?:Kiosk;
 
   ngOnInit(): void {
     if(this.exisitingkiosk){
       this.kiosk = {...this.exisitingkiosk}
+     
     }
+    this.oldKiosk = {...this.kiosk};
   }
 
   ngOnDestroy(): void {
@@ -45,21 +50,35 @@ export class CreateKioskComponent implements OnInit, OnDestroy {
   async submitForm(){
     this.submittingForm = true;
     if(this.kiosk.code.trim() == ''){
-      this.errorMessage = 'This field is required.';
+      this.errorMessage.code = 'This field is required.';
       if(this.errorMessageTimeout){
         clearTimeout(this.errorMessageTimeout)
       }
       this.errorMessageTimeout = setTimeout(()=>{
-        this.errorMessage = undefined;
+        this.errorMessage.code = undefined;
+      },5000)
+      return;
+    }
+    if(this.kiosk.printer_ip.trim() == ''){
+      this.errorMessage.printer_ip = 'This field is required.';
+      if(this.errorMessageTimeout){
+        clearTimeout(this.errorMessageTimeout)
+      }
+      this.errorMessageTimeout = setTimeout(()=>{
+        this.errorMessage.printer_ip = undefined;
       },5000)
       return;
     }
     try{
       if(this.kiosk.id){
-        await this.kioskService.updateKiosk(this.kiosk.id,this.kiosk.code);
+        if(this.oldKiosk?.code == this.kiosk.code){
+          await this.kioskService.updateKiosk(this.kiosk,false);
+        }else{
+          await this.kioskService.updateKiosk(this.kiosk,true);
+        }
       }else{
         await this.kioskService.addKiosk(
-          this.kiosk.code
+          this.kiosk
         )
       }
     }catch(e:any){

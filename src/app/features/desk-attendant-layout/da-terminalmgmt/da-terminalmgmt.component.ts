@@ -1,3 +1,6 @@
+
+
+
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
@@ -30,7 +33,7 @@ interface Division{
 
 
 interface Ticket {
-  id?:string;
+  id:string;
   division_id?:string;
   number: number;
   status?:string;
@@ -51,6 +54,9 @@ interface ClientDetails {
     name: string;
     description: string;
   }[];
+  department?: string;
+  student_id?: string;
+  gender?:string;
 } 
 
 @Component({
@@ -75,24 +81,13 @@ export class DaTerminalmgmtComponent implements OnInit, OnDestroy {
   currentDate: string = '';
   timer: string = '00:00:00';
   timerStartTime: number | null = null;
-
+  selectedTicket?: Ticket; //selection manually
   division?:Division;
 
   terminateModal:boolean = false;
 
   tickets: Ticket[] = [
-    { number: 112, timestamp: '9/29/2024, 9:13:24 PM', type: 'priority' },
-    { number: 113, timestamp: '9/29/2024, 9:15:10 PM', type: 'priority' },
-    { number: 114, timestamp: '9/29/2024, 9:20:45 PM', type: 'regular' },
-    { number: 115, timestamp: '9/29/2024, 9:25:30 PM', type: 'regular' },
-    { number: 116, timestamp: '9/29/2024, 9:30:15 PM', type: 'priority' },
-    { number: 117, timestamp: '9/29/2024, 9:35:00 PM', type: 'priority' },
-    { number: 118, timestamp: '9/29/2024, 9:40:45 PM', type: 'regular' },
-    { number: 119, timestamp: '9/29/2024, 9:45:30 PM', type: 'regular' },
-    { number: 120, timestamp: '9/29/2024, 9:50:15 PM', type: 'regular' },
-    { number: 121, timestamp: '9/29/2024, 9:55:00 PM', type: 'regular' },
-    { number: 122, timestamp: '9/29/2024, 10:00:45 PM', type: 'regular' },
-    { number: 123, timestamp: '9/29/2024, 10:05:30 PM', type: 'regular' },
+    
   ];
 
   currentClientDetails: ClientDetails | null = null;
@@ -119,6 +114,8 @@ export class DaTerminalmgmtComponent implements OnInit, OnDestroy {
     'maintenance' : 'bg-red-500',
     'online' : 'bg-orange-500',
   }
+timerProgress: any;
+
 
 
   constructor( 
@@ -131,6 +128,14 @@ export class DaTerminalmgmtComponent implements OnInit, OnDestroy {
     this.updateCurrentDate();
     this.dateInterval = setInterval(() => this.updateCurrentDate(), 60000);
     this.loadContent();
+
+    this.subscription = this.queueService.queue$.subscribe((queueItems: Ticket[]) => {
+      this.tickets = [...queueItems];
+      // Clear selection if selected ticket no longer exists in queue
+      if (this.selectedTicket && !queueItems.find(t => t.id === this.selectedTicket!.id)) {
+        this.selectedTicket = undefined;
+      }
+    });
   }
 
   ngOnDestroy(): void {
@@ -207,14 +212,18 @@ export class DaTerminalmgmtComponent implements OnInit, OnDestroy {
           this.API.sendFeedback('error','Your terminal is for maintenance. You have been logout!',5000)
         }
       }
-    },1000)   
-
-      
-   
-
-     
+    },1000)  
   }
 
+  private updateUpcomingTicket() {
+    // Find the next 'waiting' ticket in the queue
+    const nextTicket = this.tickets.find(ticket => ticket.status === 'waiting');
+  
+    // Update the lastCalledNumber with the next ticket's number or 'N/A' if not available
+    this.lastCalledNumber = nextTicket
+      ? `${nextTicket.type === 'priority' ? 'P-' : 'R-'}${nextTicket.number.toString().padStart(3, '0')}`
+      : 'N/A';
+  }  
 
   openTerminateModal(){
     this.terminateModal = true;
@@ -223,7 +232,16 @@ export class DaTerminalmgmtComponent implements OnInit, OnDestroy {
   closeTerminateModal(){
     this.terminateModal = false;
   }
-
+  //slection of row manually
+  selectTicket(ticket: Ticket) {
+    if (this.isManualSelectActive) {
+      if (this.selectedTicket?.id === ticket.id) {
+        this.selectedTicket = undefined;
+      } else {
+        this.selectedTicket = ticket;
+      }
+    }
+}
   /**
    * Selects a counter and initializes related states.
    * @param counter The counter number selected by the user.
@@ -263,78 +281,187 @@ export class DaTerminalmgmtComponent implements OnInit, OnDestroy {
     this.API.sendFeedback('warning','You have logged out from your terminal.',5000);
   }
 
-  /**
-   * Moves to the next client in the queue.
-   */
-  async nextClient() {
-    if( this.actionLoading ) return;
-    if (this.tickets.length > 0) {
-        this.actionLoading = true;
-      // if (nextTicket) {
-        this.currentTicket =  await  this.queueService.nextQueue();;
-        this.isNextClientActive = false;
-        this.isClientDoneActive = true;
-        this.isCallNumberActive = true;
-        this.isManualSelectActive = false;
-        this.isReturnTopActive = true;
-        this.isReturnBottomActive = true;
-        
-       
+  async priorityClient() {
+    if (this.actionLoading) return;
 
-        // Set current client details
+    try {
+      const priorityTickets = this.tickets.filter(
+        ticket => ticket.type === 'priority' && 
+        (ticket.status === 'waiting' || ticket.status === 'bottom')
+      );
+
+      if (priorityTickets.length === 0) {
+        this.API.sendFeedback('warning', 'No priority clients in queue.', 5000);
+        return;
+      }
+
+      this.actionLoading = true;
+
+      // If there's a current transaction, finish it first
+      if (this.currentTicket) {
+        await this.queueService.resolveAttendedQueue('finished');
+        this.resetInterface();
+      }
+
+      // Use the type-based nextQueue method
+      const nextTicket = await this.queueService.nextQueue('priority');
+
+      if (nextTicket) {
+        this.currentTicket = nextTicket;
         this.currentClientDetails = {
-          name: 'Jhielo A. Gonzales',
-          date: this.currentTicket?.timestamp!,
+          name: nextTicket.fullname || 'N/A',
+          date: nextTicket.timestamp || this.currentDate,
           services: [
             {
               name: 'Request Documents',
-              description: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.',
-            },
-            {
-              name: 'File Documents',
-              description: 'Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.',
-            },
-            {
-              name: 'Make Payment',
-              description: 'Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.',
+              description: '',
             },
           ],
+          student_id: nextTicket.student_id || 'N/A',
+          department: nextTicket.department_id || 'N/A',
         };
 
+        // Update states
+        this.isNextClientActive = false;
+        this.isClientDoneActive = true;
+        this.isCallNumberActive = true;
+        this.isManualSelectActive = true;
+        this.isReturnTopActive = true;
+        this.isReturnBottomActive = true;
+
+        // Start timer and update display
         this.startTimer();
-      // }
+        this.updateUpcomingTicket();
+        
+        this.API.sendFeedback('success', `Priority transaction started with client.`, 5000);
+      }
+    } catch (error) {
+      console.error('Priority client error:', error);
+      this.API.sendFeedback('error', 'Failed to process priority client. Please try again.', 5000);
+    } finally {
       this.actionLoading = false;
-      this.API.sendFeedback('success', `Transaction started with client.`,5000);
     }
-    
-  }
+}
 
 
-  resetInterface(){
+
+  async nextClient() {
+    if (this.actionLoading) return;
+
+    try {
+      if (this.tickets.length === 0) {
+        this.API.sendFeedback('warning', 'No clients in queue.', 5000);
+        return;
+      }
+
+      this.actionLoading = true;
+
+      // If there's a current transaction, finish it first
+      if (this.currentTicket) {
+        await this.queueService.resolveAttendedQueue('finished');
+        this.resetInterface();
+      }
+
+      // Use the selected ticket type if available
+      let nextTicket: Ticket | undefined;
+      if (this.selectedTicket && this.isManualSelectActive) {
+        // Use the existing queue type-based method
+        nextTicket = await this.queueService.nextQueue(this.selectedTicket.type);
+      } else {
+        // Get next ticket without type specification
+        nextTicket = await this.queueService.nextQueue();
+      }
+
+      if (nextTicket) {
+        this.currentTicket = nextTicket;
+        this.currentClientDetails = {
+          name: nextTicket.fullname || 'N/A',
+          date: nextTicket.timestamp || this.currentDate,
+          services: [
+            {
+              name: 'Request Documents',
+              description: '',
+            },
+          ],
+          student_id: nextTicket.student_id || 'N/A',
+          department: nextTicket.department_id || 'N/A',
+        };
+
+        // Update states
+        this.isNextClientActive = false;
+        this.isClientDoneActive = true;
+        this.isCallNumberActive = true;
+        this.isManualSelectActive = true;
+        this.isReturnTopActive = true;
+        this.isReturnBottomActive = true;
+
+        // Clear selection
+        this.selectedTicket = undefined;
+
+        // Start timer and update display
+        this.startTimer();
+        this.updateUpcomingTicket();
+        
+        this.API.sendFeedback('success', `Transaction started with client.`, 5000);
+      } else {
+        this.API.sendFeedback('warning', 'Could not get next client.', 5000);
+      }
+
+    } catch (error) {
+      console.error('Next client error:', error);
+      this.API.sendFeedback('error', 'Failed to process client. Please try again.', 5000);
+    } finally {
+      this.actionLoading = false;
+    }
+}
+
+
+  // Modified resetInterface method
+  resetInterface() {
     this.isClientDoneActive = false;
     this.isNextClientActive = true;
     this.isCallNumberActive = false;
-    this.isManualSelectActive = true;
+    this.isManualSelectActive = true;  // Keep manual selection mode active
     this.isReturnTopActive = false;
     this.isReturnBottomActive = false;
-    this.lastCalledNumber = (this.currentTicket?.type == 'priority' ? 'P' :'R') +'-' + this.currentTicket!.number.toString().padStart(3, '0');
-    this.currentTicket= undefined;
+    if (this.currentTicket) {
+      this.lastCalledNumber = (this.currentTicket.type == 'priority' ? 'P' : 'R') + '-' + 
+        this.currentTicket.number.toString().padStart(3, '0');
+    }
+    this.currentTicket = undefined;
     this.currentClientDetails = null;
+    // Don't clear selectedTicket here to maintain selection
     this.stopTimer();
   }
+
 
   /**
    * Marks the current client as done and updates states accordingly.
    */
+  
   async clientDone() {
-    if(this.actionLoading) return;
+    if (this.actionLoading) return;
     this.actionLoading = true;
-    await this.queueService.resolveAttendedQueue('finished');
-    this.resetInterface();
-    
-    this.actionLoading = false;
-    this.API.sendFeedback('success', `Transaction successful!`,5000);
+
+    try {
+      await this.queueService.resolveAttendedQueue('finished');
+      
+      // If we have a next selection and manual mode is active, process it
+      if (this.selectedTicket && this.isManualSelectActive) {
+        await this.nextClient();
+      } else {
+        this.resetInterface();
+      }
+      
+      this.API.sendFeedback('success', `Transaction successful!`, 5000);
+    } catch (error) {
+      this.API.sendFeedback('error', 'Failed to complete transaction', 5000);
+    } finally {
+      this.actionLoading = false;
+    }
   }
+
+
 
   /**
    * Simulates calling the current number.
@@ -342,11 +469,13 @@ export class DaTerminalmgmtComponent implements OnInit, OnDestroy {
   callNumber(): void {
     console.log(`Calling number ${this.currentTicket?.number}`);
     this.API.sendFeedback('neutral', `Calling number ${this.currentTicket?.type =='priority' ? 'P':'R'}-${this.currentTicket?.number.toString().padStart(3, '0')}`,5000)
+    
     this.API.socketSend({
       event: 'number-calling',
-      message: `Calling  ${this.currentTicket?.type =='priority' ? 'priority':''} number ${this.currentTicket?.number} on Counter ${this.selectedCounter?.number}`,
-      division: this.division?.id
+      division: this.division?.id,
+      message: `Calling ${this.currentTicket?.type =='priority' ? 'Priority':''} number ${this.currentTicket?.number} at counter ${this.selectedCounter?.number}`
     })
+    // this.isCallNumberActive = false;
   }
 
   /**
@@ -381,18 +510,35 @@ export class DaTerminalmgmtComponent implements OnInit, OnDestroy {
    * Handles the "No Show" action by moving to the next client.
    */
   async noShow() {
-    if(this.actionLoading) return;
-    this.actionLoading =true;
+    if (this.actionLoading) return;
+    this.actionLoading = true;
+  
+    // Mark the current ticket as skipped
     await this.queueService.resolveAttendedQueue('skipped');
+  
+    // Reset the current client details
     this.currentClientDetails = null;
     this.resetInterface();
+  
+    // Update the upcoming ticket
+    this.updateUpcomingTicket();
+  
     this.actionLoading = false;
-    this.API.sendFeedback('error', `Client has been removed from queue.`,5000);
+    this.API.sendFeedback('error', `Client has been removed from queue.`, 5000);
   }
+  
 
   /**
    * Starts the timer to track the elapsed time for the current client.
    */
+  calculateTimerProgress(): number {
+    if (!this.timerStartTime) return 0;
+    const elapsedTime = Date.now() - this.timerStartTime;
+    const maxTime = 15 * 60 * 1000; // 15 minutes in milliseconds
+    return Math.max(0, 100 - (elapsedTime / maxTime * 100));
+  }
+
+  // Update startTimer method to include progress calculation
   private startTimer(): void {
     this.timerStartTime = Date.now();
     this.timerInterval = setInterval(() => {
@@ -402,10 +548,12 @@ export class DaTerminalmgmtComponent implements OnInit, OnDestroy {
         const minutes = Math.floor((elapsedTime % 3600000) / 60000);
         const seconds = Math.floor((elapsedTime % 60000) / 1000);
         this.timer = `${this.padZero(hours)}:${this.padZero(minutes)}:${this.padZero(seconds)}`;
+        this.timerProgress = this.calculateTimerProgress();
       }
     }, 1000);
   }
 
+  
   /**
    * Stops the timer and resets the timer state.
    */
@@ -417,6 +565,7 @@ export class DaTerminalmgmtComponent implements OnInit, OnDestroy {
     this.timer = '00:00:00';
     this.timerStartTime = null;
   }
+  
 
   /**
    * Pads a number with a leading zero if it's less than 10.

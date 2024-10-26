@@ -199,10 +199,12 @@ export class QueueDisplayComponent implements OnInit, AfterViewInit, OnChanges, 
     
     this.API.addSocketListener('number-calling', (data:any)=>{
       if(data.event == 'number-calling' && data.division == this.division?.id){
+       
         const voices = speechSynthesis.getVoices();
           // Find a female voice (you may need to check which voices are available)
         const femaleVoice = voices.find(voice => voice.name.includes('Zira'));
         const utterance = new SpeechSynthesisUtterance(data.message);
+        utterance.volume = 3;
         if (femaleVoice) {
           utterance.voice = femaleVoice;
       }
@@ -453,7 +455,7 @@ export class QueueDisplayComponent implements OnInit, AfterViewInit, OnChanges, 
     this.subscription = this.queueService.queue$.subscribe((queueItems: any[]) => {
       this.upNextItems = queueItems.reduce((prev: UpNextItem[], item: any) => {
         return [...prev, {
-          avatar: item.gender === 'male' ? '/assets/queue-display/Male_2.png' : '/assets/queue-display/Female_2.png',
+          avatar: item.gender === 'male' ? '/assets/queue-display/Male_2.png' : item.gender =='female' ? '/assets/queue-display/Female_2.png' :'/assets/default.jpg',
           ticketNumber: `${item.type === 'regular' ? 'R' : 'P'}-${item.number.toString().padStart(3, '0')}`,
           personName: item.fullname
         }];

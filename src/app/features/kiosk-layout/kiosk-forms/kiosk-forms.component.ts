@@ -101,8 +101,8 @@ export class KioskFormsComponent implements OnInit, OnDestroy {
 
     if (this.kioskService.kiosk != undefined) {
       this.divisionService.setDivision({
-        id: this.kioskService.kiosk.division_id,
-        name: this.kioskService.kiosk.division,
+        id: this.kioskService.kiosk.division_id!,
+        name: this.kioskService.kiosk.division!,
       });
       this.division = this.divisionService.selectedDivision;
       this.queueService.getTodayQueues(true);
@@ -207,6 +207,9 @@ export class KioskFormsComponent implements OnInit, OnDestroy {
       student_id: this.studentNumber.trim() == '' ? undefined : this.studentNumber.trim(),
       department_id: this.department.trim() == '' ? undefined : this.department.trim(),
     });
+ 
+    this.successDescription = `Your current position is <span class='font-medium'>${this.selectedType === 'regular' ? 'R' : 'P'}-${number.toString().padStart(3,'0')}</span>`
+    await this.printImage(`${this.selectedType === 'regular' ? 'R' : 'P'}-${number.toString().padStart(3,'0')}`);
     this.selectedServices = this.services
     .filter(item => item.selected)
     this.isChecklistVisible = true;
@@ -214,8 +217,6 @@ export class KioskFormsComponent implements OnInit, OnDestroy {
     this.gender = '';
     this.customerName = '';
     this.studentNumber = '';
-    this.successDescription = `Your current position is <span class='font-medium'>${this.selectedType === 'regular' ? 'R' : 'P'}-${number.toString().padStart(3,'0')}</span>`
-    await this.printPDF(`${this.selectedType === 'regular' ? 'R' : 'P'}-${number.toString().padStart(3,'0')}`);
     this.isLoading =false;
     this.openFeedback( this.selectedType === 'regular' ? 'success':'priority');
    }catch(e){
@@ -258,108 +259,129 @@ export class KioskFormsComponent implements OnInit, OnDestroy {
     }
   }
 
-  async printPDF(code:string): Promise<void> {
-    const ticketWidth = 483;  // 483 pixels wide
-    const ticketHeight = 371; // 371 pixels tall
-    const contentWidth = 80;  // Keep content width as before (in mm)
+  async printImage(code: string) {
+    const ticketWidth = 500;  // 483 pixels wide
+    const ticketHeight = 690; // 371 pixels tall
     const margin = 20; // Add margin in pixels
-    const scaleFactor = ticketWidth / contentWidth; // Scale factor to convert mm to pixels
 
-    let yPosition = 0;
-    const marginLeft = (ticketWidth - (contentWidth * scaleFactor)) / 2; // Center the content
+    // Create a temporary container for the content
+    const container = document.createElement('div');
+    container.style.width = `${ticketWidth}px`;
+    container.style.height = `${ticketHeight}px`;
+    container.style.position = 'absolute';
+    container.style.visibility = 'hidden';
 
-    const doc = new jsPDF({
-      orientation: 'landscape',
-      unit: 'px',
-      format: [ticketWidth, ticketHeight]
-    });
+    document.body.appendChild(container);
 
     try {
-      // Background Logo
-      const logoUrl = './assets/logo/vsu.png';
-      const logoData = await this.getBase64Image(logoUrl);
-      const transparentLogoData = await this.makeImageTransparent(logoData, 0.1);
+        // Background Logo
+        const logoUrl = './assets/logo/vsu.png';
+        const logoData = await this.getBase64Image(logoUrl);
+        const transparentLogoData = await this.makeImageTransparent(logoData, 0.7);
 
-      const logoWidth = 300;
-      const logoHeight = 300;
-      const logoX = (ticketWidth - logoWidth) / 2;
-      const logoY = 50;
-      doc.addImage(transparentLogoData, 'PNG', logoX, logoY, logoWidth, logoHeight);
 
-      // Header with Queue Number - Adjusted to respect margins
-      doc.setFillColor(95, 141, 78); // #5F8D4E
-      const headerWidth = 400; // Fixed header width
-      const headerX = (ticketWidth - headerWidth) / 2; // Center the header
-      doc.roundedRect(headerX, margin, headerWidth, 50, 10, 10, 'F');
-      doc.setTextColor(255, 255, 255);
-      doc.setFontSize(48);
-      doc.setFont('helvetica', 'bold');
-      doc.text(code, ticketWidth / 2, margin + 35, { align: 'center' });
+        // Drawing content into the canvas
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        if (ctx) {
+            canvas.width = ticketWidth;
+            canvas.height = ticketHeight;
 
-      // Reset text color to black for the rest of the content
-      doc.setTextColor(0, 0, 0);
+            // Set background color
+            ctx.fillStyle = '#FFFFFF';
+            ctx.fillRect(0, 0, ticketWidth, ticketHeight);
 
-      yPosition = margin + 80;
+          
 
-      // Welcome text
-      doc.setFontSize(24);
-      doc.setFont('helvetica', 'normal');
-      doc.text("Welcome, you're currently in the queue", ticketWidth / 2, yPosition, { align: 'center' });
-      yPosition += 40;
+            // Header with Queue Number
+            ctx.fillStyle = 'rgb(95, 141, 78)'; // #5F8D4E
+            const headerWidth = 450; // Fixed header width
+            const headerX = (ticketWidth - headerWidth) / 2; // Center the header
+            // ctx.fillRect(headerX, margin, headerWidth, 50);
+            ctx.fillStyle = '#000000';
+            ctx.font = 'bold 82px helvetica';
+            ctx.textAlign = 'center';
+            ctx.fillText(code, ticketWidth / 2, margin + 40);
 
-      // Horizontal line
-      doc.setDrawColor(200, 200, 200);
-      doc.line(margin + 20, yPosition, ticketWidth - (margin + 20), yPosition);
-      yPosition += 30;
+            // Welcome text
+            ctx.fillStyle = '#000000';
+            ctx.font = '28px helvetica';
+            ctx.fillText("Welcome! You're currently in the queue", ticketWidth / 2, margin + 80);
 
-      // Customer details
-      doc.setFontSize(20);
-      const contentStartX = margin + 40; // Add extra space from margin
-      const valueStartX = contentStartX + 100; // Adjust value position
+            // Horizontal line
+            ctx.strokeStyle = 'rgb(200, 200, 200)';
+            ctx.beginPath();
+            ctx.moveTo(margin + 20, margin + 110);
+            ctx.lineTo(ticketWidth - (margin + 20), margin + 110);
+            ctx.stroke();
 
-      const details = [
-        { label: 'Name:', value: this.customerName || 'John Doe' },
-        { label: 'Services:', value: this.showServiceNames() || 'No services selected' },
-        { label: 'Time:', value: this.currentTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) },
-        { label: 'Date:', value: this.currentDate.toLocaleDateString() }
-      ];
+            // Customer details
+            ctx.textAlign ='left';
+            const contentStartX = margin;
 
-      details.forEach(detail => {
-        doc.setFont('helvetica', 'bold');
-        doc.text(`${detail.label}`, contentStartX, yPosition);
-        doc.setFont('helvetica', 'normal');
-        const wrappedValue = doc.splitTextToSize(detail.value, ticketWidth - valueStartX - margin - 40);
-        doc.text(wrappedValue, valueStartX, yPosition);
-        yPosition += 30 * (wrappedValue.length);
-      });
 
-      yPosition += 30;
+            const details = [
+                { label: 'Name:', value: this.customerName },
+                { label: 'Gender:', value: this.gender},
+                { label: 'Student ID:', value: this.studentNumber || 'No ID specified.'},
+                { label: 'Department:', value: this.department || 'No department selected.'},
+                { label: 'Date:', value: this.currentDate.toLocaleDateString() },
+                { label: 'Time:', value: this.currentTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) },
+            ];
 
-      // Footer text
-      doc.setFontSize(16);
-      doc.text('Your number will be called shortly.', ticketWidth / 2, ticketHeight - margin - 20, { align: 'center' });
+            let yPosition = margin + 140;
+            
+            details.forEach(detail => {
+                ctx.fillStyle = '#000000';
+                ctx.font = 'bold 30px helvetica';
+                ctx.fillText(detail.label, contentStartX, yPosition);
+                const textWidth = ctx.measureText(detail.label).width;
+                ctx.font = '30px helvetica';
+                ctx.fillText(detail.value, contentStartX + 10 + textWidth, yPosition);
+                yPosition += 35;
+            });
+            
+            ctx.fillStyle = '#000000';
+            ctx.font = 'bold 30px helvetica';
+            ctx.fillText('Services:', contentStartX , yPosition, 200);
+            yPosition += 35;
+            ctx.font = '30px helvetica';
+            for(let service of this.selectedServices){
+              ctx.fillText( '• '+service.name, contentStartX, yPosition, 200);
+              yPosition += 30;
+            }
 
-      // Generate PDF as Blob
-      const pdfBlob = doc.output('blob');
+            yPosition += 30;
+            // Footer text
+            ctx.textAlign = 'center';
+            ctx.font = '24px helvetica';
+            ctx.fillText('Your number will be called shortly.', ticketWidth / 2, yPosition);
+            yPosition += 30;
+            const logoWidth = 150;
+            const logoHeight = 150;
+            const logoX = (ticketWidth - logoWidth) / 2;
+            // Draw logo
+            const logoImg = new Image();
+            logoImg.src = transparentLogoData;
+            await new Promise((resolve) => {
+                logoImg.onload = () => {
+                    ctx.drawImage(logoImg, logoX, yPosition, logoWidth, logoHeight);
+                    resolve(null);
+                };
+            });
+        }
 
-      // Create a temporary URL for the Blob
-      const pdfUrl = URL.createObjectURL(pdfBlob);
-
-      // Create a temporary anchor element and trigger download
-      const downloadLink = document.createElement('a');
-      downloadLink.href = pdfUrl;
-      downloadLink.download = `queue_ticket_${this.queueNumber}.pdf`;
-      document.body.appendChild(downloadLink);
-      downloadLink.click();
-      document.body.removeChild(downloadLink);
-
-      // Clean up the temporary URL
-      URL.revokeObjectURL(pdfUrl);
-
+        // Convert canvas to Base64
+        const base64Image = canvas.toDataURL('image/png');
+        const base64String = base64Image.split(',')[1];
+        this.kioskService.thermalPrint((Date.now().toString()+code+'.png'),base64String)
     } catch (error) {
-      console.error('Error generating PDF:', error);
+        console.error('Error generating image:', error);
+    } finally {
+        // Clean up the temporary container
+        document.body.removeChild(container);
     }
-  }
+}
 // Helper function to convert image to base64
 
   private getBase64Image(url: string): Promise<string> {

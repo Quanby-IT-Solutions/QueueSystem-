@@ -28,7 +28,8 @@
               "src/custom-theme.scss",
               "src/styles.scss"
             ],
-            "scripts": []
+            "scripts": [
+            ]
           },
           "configurations": {
             "production": {
@@ -56,6 +57,7 @@
         },
         "serve": {
           "builder": "@angular-devkit/build-angular:dev-server",
+    
           "configurations": {
             "production": {
               "buildTarget": "VSUQSM:build:production"

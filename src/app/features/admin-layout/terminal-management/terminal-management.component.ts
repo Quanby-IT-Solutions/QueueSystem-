@@ -50,7 +50,10 @@ export class TerminalManagementComponent implements OnInit, OnDestroy {
   constructor( 
     private divisionService:DivisionService,
     private auth:UswagonAuthService,private API:UswagonCoreService,
-    private terminalService:TerminalService, private contentService:ContentService) {}
+    private terminalService:TerminalService) {}
+
+
+  
   ngOnInit(): void {
     this.loadContent();
   }

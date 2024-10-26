@@ -229,7 +229,6 @@ export class CreateAccountModalComponent {
         fullname: this.newUser.fullname,
         profile: this.newUser.profile || '',
         division_id: this.newUser.division_id,
-        role: this.newUser.role,
       };
 
       if (this.showPasswordField && this.newUser.password) {

@@ -1,3 +1,4 @@
+
 import { Injectable, OnInit } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
 import { UswagonAuthService } from 'uswagon-auth';
@@ -288,17 +289,75 @@ export class QueueService  {
       throw new Error('Something went wrong. Please try again');
     }
   }
+  async getNextPriorityQueue(): Promise<Queue | undefined> {
+    try {
+      // Get priority tickets that are waiting or at bottom
+      const priorityTickets = this.queue.filter(
+        ticket => ticket.type === 'priority' && 
+        (ticket.status === 'waiting' || ticket.status === 'bottom')
+      );
 
-  async nextQueue(){
-    try{
-      // this.API.setLoading(true);
-      if(this.queue.length <= 0) return;
-      const queue =  this.takeFromQueue();
-      await this.addQueueToAttended(queue);
-      this.resolveTakenQueue(queue.id);
+      if (priorityTickets.length === 0) return undefined;
+
+      const nextPriorityTicket = priorityTickets[0];
+      // Move this priority ticket to front of queue
+      this.queue = [
+        nextPriorityTicket,
+        ...this.queue.filter(t => t.id !== nextPriorityTicket.id)
+      ];
+
+      return this.nextQueue();
+    } catch (error) {
+      console.error('Error getting priority queue:', error);
+      return undefined;
+    }
+  }
+
+  async takeFromQueueByType(type: 'priority' | 'regular'): Promise<Queue | undefined> {
+    const targetQueue = this.queue.find(q => 
+      q.type === type && 
+      (q.status === 'waiting' || q.status === 'bottom')
+    );
+
+    if (!targetQueue) return undefined;
+
+    // Remove the target queue from the main queue
+    this.queue = this.queue.filter(q => q.id !== targetQueue.id);
+    this.takenQueue.push(targetQueue.id);
+    
+    // Send socket event
+    this.API.socketSend({
+      event: 'take-from-queue',
+      division: targetQueue.division_id,
+      queue_id: targetQueue.id,
+    });
+
+    return targetQueue;
+  }
+
+  
+
+  // Modify your nextQueue method to accept a type parameter
+  async nextQueue(type?: 'priority' | 'regular'): Promise<Queue | undefined> {
+    try {
+      if (this.queue.length <= 0) return;
+
+      let nextQueue: Queue | undefined;
+      
+      if (type) {
+        nextQueue = await this.takeFromQueueByType(type);
+      } else {
+        nextQueue = this.takeFromQueue();
+      }
+
+      if (!nextQueue) return undefined;
+
+      await this.addQueueToAttended(nextQueue);
+      this.resolveTakenQueue(nextQueue.id);
       await this.getTodayQueues();
-      return queue;
-    }catch(e){
+      
+      return nextQueue;
+    } catch (e) {
       throw new Error('Something went wrong.');
     }
   }

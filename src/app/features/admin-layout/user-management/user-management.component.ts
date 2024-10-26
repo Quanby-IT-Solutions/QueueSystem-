@@ -50,11 +50,11 @@ export class UserManagementComponent implements OnInit {
   totalPages: number = 1;
   searchQuery = '';
     performanceMetrics: PerformanceMetrics = {
-    totalCheckIns: 43212,
-    averageCheckInTime: 43212,
-    totalCheckInsToday: 1345,
-    totalCheckInsThisWeek: 12124,
-    averageTimeService: '7:30 mins',
+    totalCheckIns: 0,
+    averageCheckInTime: 0,
+    totalCheckInsToday: 0,
+    totalCheckInsThisWeek: 0,
+    averageTimeService: 'Not Available',
     rating: 4
   };
   currentUser: User | null = null;
@@ -76,8 +76,12 @@ export class UserManagementComponent implements OnInit {
     this.users = users;
     this.filteredUsers = [...this.users];
     this.updatePagination();
+    if (this.users.length > 0) {
+      this.setCurrentUser(this.users[0]);
+    }
     this.API.setLoading(false);
   }
+  
 
   updatePagination() {
     this.totalPages = Math.ceil(this.filteredUsers.length / this.pageSize);
@@ -108,7 +112,7 @@ export class UserManagementComponent implements OnInit {
       user.fullname.toLowerCase().includes(query) ||
       user.division.toLowerCase().includes(query)
     );
-    this.currentPage = 1; // Reset to the first page after searching
+    this.currentPage = 1; 
     this.updatePagination();
   }
 
@@ -138,7 +142,6 @@ export class UserManagementComponent implements OnInit {
       ? 'WHERE divisions.id = desk_attendants.division_id'
       : `WHERE divisions.id = desk_attendants.division_id AND divisions.id = '${this.auth.getUser().division_id}'`;
 
-    // Fetch users from both desk attendants and administrators in parallel
     const [deskAttendantData, adminData] = await Promise.all([
       this.API.read({
         selectors: ['desk_attendants.*, divisions.name as division'],
@@ -154,7 +157,6 @@ export class UserManagementComponent implements OnInit {
 
     let users: User[] = [];
 
-    // Combine and process users concurrently using map and async functions.
     if (deskAttendantData.success) {
       const deskAttendants = deskAttendantData.output.map((user: any) => this.processUser(user, 'Desk attendant'));
       users.push(...await Promise.all(deskAttendants));
@@ -181,9 +183,10 @@ export class UserManagementComponent implements OnInit {
       division: user.division || 'Not Available',
       is_online: user.is_online,
       role: role,
-      number: user.number || '' // Defaulting to an empty string if 'number' is not available.
+      number: user.number || '' 
     };
   }
+
   
 
   getImageURL(file: string): string | undefined {
@@ -194,7 +197,13 @@ export class UserManagementComponent implements OnInit {
 
   setCurrentUser(user: User) {
     this.currentUser = user;
+    if (user) {
+      this.fetchTerminalSessions(user.id);
+    } else {
+      this.resetMetrics();
+    }
   }
+  
 
   createNewAccount() {
     this.selectedUser = null;
@@ -251,4 +260,110 @@ export class UserManagementComponent implements OnInit {
     this.selectedUser = user;
     this.showModal = true;
   }
+
+
+  async fetchTerminalSessions(userId: string) {
+    try {
+      const response = await this.API.read({
+        selectors: ['*'],
+        tables: 'terminal_sessions',
+        conditions: `WHERE attendant_id = '${userId}'`,
+      });
+  
+      if (response.success && response.output.length > 0) {
+        const sessions = response.output;
+        this.performanceMetrics = this.calculateMetrics(sessions);
+      } else {
+        this.resetMetrics(); 
+        console.error('No terminal sessions found for this user:', response.output);
+      }
+    } catch (error) {
+      console.error('Error fetching terminal sessions for user:', error);
+    }
+  }
+
+  formatTime(minutes: number): string {
+    if (!minutes || isNaN(minutes)) {
+      return '0';
+    }
+  
+    const totalMinutes = Math.round(minutes);
+    const hours = Math.floor(totalMinutes / 60);
+    const mins = totalMinutes % 60;
+    const period = hours >= 12 ? 'PM' : 'AM';
+    const formattedHours = hours % 12 || 12; 
+  
+    return `${formattedHours}:${mins.toString().padStart(2, '0')} ${period}`;
+  }
+  
+
+ 
+  calculateMetrics(sessions: any[]): PerformanceMetrics {
+    const totalCheckIns = sessions.length;
+    const checkInTimesByDate: Record<string, number[]> = {};
+
+    sessions.forEach((session) => {
+      const startTime = new Date(session.start_time);
+      const dateKey = startTime.toISOString().split('T')[0]; 
+      const checkInTimeInMinutes = startTime.getHours() * 60 + startTime.getMinutes(); 
+  
+      if (!checkInTimesByDate[dateKey]) {
+        checkInTimesByDate[dateKey] = [];
+      }
+      checkInTimesByDate[dateKey].push(checkInTimeInMinutes);
+    });
+  
+    const dailyAverages: number[] = Object.values(checkInTimesByDate).map((times) => {
+      const totalMinutes = times.reduce((sum, time) => sum + time, 0);
+      return totalMinutes / times.length;
+    });
+  
+    const overallAverageCheckInTimeInMinutes =
+      dailyAverages.reduce((sum, avg) => sum + avg, 0) / dailyAverages.length;
+  
+    const totalDuration = sessions.reduce((acc, session) => {
+      const startTime = new Date(session.start_time).getTime();
+      const lastActive = new Date(session.last_active).getTime();
+      const sessionDuration = lastActive - startTime; 
+      return acc + sessionDuration;
+    }, 0);
+  
+    const averageDurationMs = totalDuration / totalCheckIns;
+    const averageServiceMinutes = Math.floor(averageDurationMs / 60000);
+    const averageServiceSeconds = Math.floor((averageDurationMs % 60000) / 1000);
+    const averageTimeService = `${averageServiceMinutes}:${averageServiceSeconds.toString().padStart(2, '0')} mins`;
+  
+    const totalCheckInsToday = sessions.filter(session =>
+      new Date(session.start_time).toDateString() === new Date().toDateString()).length;
+  
+    const totalCheckInsThisWeek = sessions.filter(session => {
+      const sessionDate = new Date(session.start_time);
+      const currentDate = new Date();
+      const weekStart = new Date(currentDate.setDate(currentDate.getDate() - currentDate.getDay()));
+      const weekEnd = new Date(weekStart);
+      weekEnd.setDate(weekEnd.getDate() + 6);
+      return sessionDate >= weekStart && sessionDate <= weekEnd;
+    }).length;
+  
+    return {
+      totalCheckIns,
+      averageCheckInTime: overallAverageCheckInTimeInMinutes, 
+      totalCheckInsToday,
+      totalCheckInsThisWeek,
+      averageTimeService,
+      rating: 4,
+    };
+  }
+  
+  resetMetrics() {
+    this.performanceMetrics = {
+      totalCheckIns: 0,
+      averageCheckInTime: 0,
+      totalCheckInsToday: 0,
+      totalCheckInsThisWeek: 0,
+      averageTimeService: '0',
+      rating: 0,
+    };
+  }
+
 }
