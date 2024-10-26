@@ -327,7 +327,7 @@ export class QueueDisplayComponent implements OnInit, AfterViewInit, OnChanges, 
   getSafeYoutubeUrl(url?:string) {
     if (this.isValidYouTubeUrl(url ??'')) {
       const videoId = this.getYouTubeVideoId(url!);
-      const embedUrl = `https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1&loop=1&controls=0&playlist=${videoId}`;
+      const embedUrl = `https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1&controls=0&playlist=${videoId}`;
       this.safeYoutubeUrl = this.sanitizer.bypassSecurityTrustResourceUrl(embedUrl);
     } else{
       this.safeYoutubeUrl = undefined;
