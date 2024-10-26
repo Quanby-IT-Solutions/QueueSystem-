@@ -29,8 +29,10 @@ export class DivisionService {
     try{
       const response = await this.API.read({
         selectors: ['contents.*, divisions.*'],
-        tables: 'divisions, contents',
-        conditions: `WHERE divisions.id != '${this.adminID}' AND divisions.id = contents.division_id`,
+        tables: 'divisions',
+        conditions: `
+        LEFT JOIN contents  ON divisions.id = contents.division_id
+        WHERE divisions.id != '${this.adminID}' `,
       });
   
       if(response.success){
@@ -61,8 +63,10 @@ export class DivisionService {
     try{
       const response = await this.API.read({
         selectors: ['contents.*, divisions.*'],
-        tables: 'divisions, contents',
-        conditions: `WHERE divisions.id = '${ id ? id: this.auth.getUser().division_id}' AND divisions.id = contents.division_id `,
+        tables: 'divisions',
+        conditions: `
+         LEFT JOIN contents  ON divisions.id = contents.division_id
+        WHERE divisions.id = '${ id ? id: this.auth.getUser().division_id}' `,
       });
       if(response.success){
         if(response.output.length <= 0) return undefined;
