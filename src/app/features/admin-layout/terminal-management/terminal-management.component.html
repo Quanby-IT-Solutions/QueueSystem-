@@ -61,7 +61,7 @@
             </div>
             <div class="flex w-full  mt-2">
               <div class="w-full flex justify-between">
-                <button *ngIf="terminal.status != 'In Use)'" (click)="selectTerminal(terminal);openDialog('delete')" class="rounded-lg px-2 flex items-center justify-center py-1 text-white bg-red-500 hover:bg-red-600 ">
+                <button *ngIf="terminal.status != 'In Use'" (click)="selectTerminal(terminal);openDialog('delete')" class="rounded-lg px-2 flex items-center justify-center py-1 text-white bg-red-500 hover:bg-red-600 ">
                   <span  class="material-icons"> delete </span>
                 </button>
                 <div *ngIf="terminal.status == 'online'"></div>
