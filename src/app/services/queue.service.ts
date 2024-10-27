@@ -1,6 +1,6 @@
 
 import { Injectable, OnInit } from '@angular/core';
-import { BehaviorSubject } from 'rxjs';
+import { BehaviorSubject, last } from 'rxjs';
 import { UswagonAuthService } from 'uswagon-auth';
 import { UswagonCoreService } from 'uswagon-core';
 import { KioskService } from './kiosk.service';
@@ -64,20 +64,6 @@ export class QueueService  {
   listenToQueue(){
     this.API.addSocketListener('live-queue-events-listener', (message)=>{
       if(message.division!= this.divisionService.selectedDivision!.id) return;
-
-      if(message.event =='take-priority-number' ){
-        this.takenPriorityNumbers.push(message.number);
-      }
-      if(message.event =='take-regular-number' ){
-        this.takenRegularNumbers.push(message.number);
-      }
-
-      if(message.event =='return-priority-number' ){
-        this.takenPriorityNumbers=  this.takenPriorityNumbers.filter(number => number != message.number);
-      }
-      if(message.event =='return-regular-number' ){
-        this.takenRegularNumbers = this.takenRegularNumbers.filter(number => number != message.number);
-      }
       if(message.event =='take-from-queue'){
         this.takenQueue.push(message.queue_id);
         this.getTodayQueues();
@@ -92,48 +78,17 @@ export class QueueService  {
     });
   }
 
-  private numberCollision(type:'regular'|'priority',){
-    if(type=='regular'){
-      return this.takenRegularNumbers.includes(this.regularQueueNumber);
-    }else{
-      return this.takenPriorityNumbers.includes(this.priorityQueueNumber);
-    }
-  }
 
-  private takeQueueNumber(type:'regular'|'priority',division:string){
-    if(type == 'regular'){
-      this.regularQueueNumber += 1;
-    }else{
-      this.priorityQueueNumber += 1;
-    }
-    this.API.socketSend({
-      event: `take-${type}-number`,
-      division:division,
-      number:  type == 'regular' ? this.regularQueueNumber : this.priorityQueueNumber
-    });
-
-  }
-
-  private returnQueueNumber(type:'regular'|'priority',division:string){
-    if(type == 'regular'){
-      this.regularQueueNumber -= 1;
-    }else{
-      this.priorityQueueNumber -= 1;
-    }
-    this.API.socketSend({
-      event: `return-${type}-number`,
-      division:division,
-      number:  type == 'regular' ? this.regularQueueNumber : this.priorityQueueNumber
-    });
-
-  }
-
-
-  private updateQueue(division:string){
+  private updateQueue(type:'regular'|'priority' , division:string){
     this.API.socketSend({
       event: 'update-queue',
       division:division
     });
+    if(type == 'priority'){
+      this.priorityQueueNumber +=1;
+    }else{
+      this.regularQueueNumber +=1;
+    }
   }
 
   private takeFromQueue(){
@@ -169,12 +124,29 @@ export class QueueService  {
         })
   {
     const id = this.API.createUniqueID32();
-    const  now=  new Date();
-    this.takeQueueNumber(info.type,this.kioskService.kiosk?.division_id!);
-    while(this.numberCollision(info.type)){
-      this.takeQueueNumber(info.type,this.kioskService.kiosk?.division_id!);
-
+    const  now =  new Date();
+    this.lastTimestamp = now.getTime();
+    // this.takeQueueNumber(info.type,this.kioskService.kiosk?.division_id!);
+    let collision = true;
+    while(collision){
+      try{
+        const collisionResponse = await this.API.create({
+          tables: 'queue_collisions',
+          values:{
+            code: `${this.kioskService.kiosk?.id}:${info.type == 'priority'?'P':'R'}-${info.type == 'priority'? this.priorityQueueNumber : this.regularQueueNumber}` ,
+          }
+        });
+        if(!collisionResponse.success)throw new Error();
+        collision = false;
+      }catch(e){
+        if(info.type == 'priority'){
+          this.priorityQueueNumber +=1;
+        }else{
+          this.regularQueueNumber +=1;
+        }
+      }
     }
+    
     const response = await this.API.create({
       tables: 'queue',
       values:{
@@ -183,7 +155,7 @@ export class QueueService  {
         kiosk_id:this.kioskService.kiosk?.id,
         department_id: info.department_id,
         fullname: info.fullname,
-        number: info.type == 'regular' ? this.regularQueueNumber: this.priorityQueueNumber,
+        number: info.type == 'priority' ? this.priorityQueueNumber : this.regularQueueNumber,
         type: info.type,
         gender: info.gender,
         services:  info.services.join(', '),
@@ -192,31 +164,22 @@ export class QueueService  {
         student_id: info.student_id
       }
     });
-  //  for(let service_id of info.services){
-  //   const intent_id = this.API.createUniqueID32();
-  //   // Add services
-  //   const servicesResponse = await this.API.create({
-  //     tables: 'client_intents',
-  //     values:{
-  //       id: intent_id,
-  //       queue_id: id,
-  //       service_id: service_id
-  //     }
-  //   });
-  //   if(!servicesResponse.success){
-  //     this.decrementQueueNumber(info.type,this.kioskService.kiosk?.division_id!);
-  //     throw new Error('Something went wrong.')
-  //   }
-  //  }
-    
+
+    //delete collision detection id
+    const collisionResponse = await this.API.delete({
+      tables: 'queue_collisions',
+      conditions: `WHERE code = '${this.kioskService.kiosk?.id + '-' + info.type == 'priority'? this.priorityQueueNumber : this.regularQueueNumber}'`
+    });
+
 
     
-    if(!response.success){
-      this.returnQueueNumber(info.type,this.kioskService.kiosk?.division_id!);
+    if(!response.success || !collisionResponse.success){
+      // this.returnQueueNumber(info.type,this.kioskService.kiosk?.division_id!);
       throw new Error('Something went wrong.');
     }else{
-      this.updateQueue(this.kioskService.kiosk?.division_id!);
-      return info.type == 'regular' ?  this.regularQueueNumber:this.priorityQueueNumber;
+      const lastNumber = info.type == 'priority' ? this.priorityQueueNumber : this.regularQueueNumber;
+      this.updateQueue(info.type,this.kioskService.kiosk?.division_id!);
+      return lastNumber;
     }
     
   }
@@ -432,8 +395,8 @@ export class QueueService  {
     });
     if(response.success){
       const queue = response.output as Queue[];
-      this.priorityQueueNumber =queue.filter(queue=> queue.type == 'priority').length;
-      this.regularQueueNumber =queue.filter(queue=> queue.type == 'regular').length;
+      this.priorityQueueNumber =queue.filter(queue=> queue.type == 'priority').length + 1;
+      this.regularQueueNumber =queue.filter(queue=> queue.type == 'regular').length + 1;
 
       // const sortedQueue = queue.sort((a,b)=>{ 
 
@@ -474,8 +437,8 @@ export class QueueService  {
     });
     if(response.success){
       const queue = response.output as Queue[];
-      this.priorityQueueNumber =queue.filter(queue=> queue.type == 'priority').length;
-      this.regularQueueNumber =queue.filter(queue=> queue.type == 'regular').length;
+      this.priorityQueueNumber =queue.filter(queue=> queue.type == 'priority').length + 1 ;
+      this.regularQueueNumber =queue.filter(queue=> queue.type == 'regular').length + 1;
 
       // const sortedQueue = queue.sort((a,b)=>{ 
 
