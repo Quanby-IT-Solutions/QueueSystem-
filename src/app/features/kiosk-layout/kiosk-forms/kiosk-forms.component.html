@@ -94,7 +94,7 @@
           <form class="p-2 space-y-4">
             <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div>
-                <label for="services" class="block mb-1 text-sm font-medium text-gray-600">Services</label>
+                <label for="services" class="block mb-1 text-sm font-medium text-gray-600">Services <span class="text-red-500">*</span></label>
                 <div class="relative">
                   <div
                     class="w-full px-3 py-2 text-sm bg-white border border-gray-300 rounded-md cursor-pointer"
@@ -140,7 +140,7 @@
 
               <!-- Other Form Fields -->
               <div>
-                <label for="gender" class="block mb-1 text-sm font-medium text-gray-600">Gender</label>
+                <label for="gender" class="block mb-1 text-sm font-medium text-gray-600">Gender <span class="text-red-500">*</span></label>
                 <select [(ngModel)]="gender" name="gender" id="gender" class="w-full px-3 py-2 text-sm bg-white border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-green-500">
                   <option value="">Select gender</option>
                   <option value="Male">Male</option>
@@ -149,7 +149,7 @@
                 </select>
               </div>
               <div>
-                <label for="name" class="block mb-1 text-sm font-medium text-gray-600">Name</label>
+                <label for="name" class="block mb-1 text-sm font-medium text-gray-600">Name <span class="text-red-500">*</span></label>
                 <input maxlength="20" [(ngModel)]="customerName" id="name" type="text" placeholder="Type your name (eg. Juan Cruz)" name="name" class="w-full px-3 py-2 text-sm bg-white border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-green-500">
               </div>
               <div>
