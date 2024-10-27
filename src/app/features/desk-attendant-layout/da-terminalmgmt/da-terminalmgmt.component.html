@@ -60,7 +60,7 @@
   <div *ngIf="selectedCounter && !actionLoading" class="min-w-screen-lg mx-auto  space-y-6">
     <!-- Header -->
     <header class="flex justify-between items-center">
-      <h1 class="text-2xl font-medium text-gray-800">You are currently on <span class="font-semibold text-[var(--primary)]">TERMINAL {{this.selectedCounter.number}}</span></h1>
+      <h1 class="text-2xl font-medium text-gray-800"><span class="portrait:hidden landscape:block">You are currently on </span> <span class="font-semibold text-[var(--primary)]">TERMINAL {{this.selectedCounter.number}}</span></h1>
       <button 
         (click)="openTerminateModal()" 
         class="bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600 transition-colors duration-200 flex items-center space-x-2">
@@ -238,7 +238,12 @@
         <span class="material-icons text-sm">
           {{currentTicket?.type == 'regular' ? 'check_circle' : 'arrow_forward' }}
         </span>
-        {{ currentTicket?.type == 'regular' ? 'Done' : 'Next Client' }}
+        <span class="landscape:block portrait:hidden">
+          {{ currentTicket?.type == 'regular' ? 'Done' : 'Next Client' }}
+        </span>
+        <span class="landscape:hidden portrait:block">
+          {{ currentTicket?.type == 'regular' ? 'Done' : 'Next' }}
+        </span>
       </button>
       <button 
         (click)="priorityClient()" 
@@ -247,28 +252,48 @@
         <span class="material-icons text-sm">
           {{ currentTicket?.type === 'priority' ? 'check_circle' : 'stars' }}
         </span>
-        {{ currentTicket?.type === 'priority' ?  'Done' : 'Priority Client' }}
+        <span class="landscape:block portrait:hidden">
+          {{ currentTicket?.type == 'priority' ? 'Done' : 'Priority Client' }}
+        </span>
+        <span class="landscape:hidden portrait:block">
+          {{ currentTicket?.type == 'priority' ? 'Done' : 'Priority' }}
+        </span>
       </button>
       <button 
         (click)="noShow()" 
         [disabled]="actionLoading"
         class="bg-red-600 text-white py-2 rounded-md font-medium shadow-md hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed w-full flex items-center justify-center gap-2">
         <span class="material-icons text-sm">person_off</span>
-        No Show
+        <span class="landscape:block portrait:hidden">
+          No Show
+        </span>
+        <span class="landscape:hidden portrait:block">
+          None
+        </span>
       </button>
       <button 
         (click)="returnBottom()" 
         [disabled]="actionLoading || !isReturnBottomActive"
         class="bg-gray-600 text-white py-2 rounded-md font-medium shadow-md hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed w-full flex items-center justify-center gap-2">
         <span class="material-icons text-sm">vertical_align_bottom</span>
-        Bring to Bottom
+        <span class="landscape:block portrait:hidden">
+          Bring to Bottom
+        </span>
+        <span class="landscape:hidden portrait:block">
+          Bottom
+        </span>
       </button>
       <button 
         (click)="callNumber()" 
         [disabled]="actionLoading || !isCallNumberActive"
         class="bg-blue-600 text-white py-2 rounded-md font-medium shadow-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed w-full flex items-center justify-center gap-2">
         <span class="material-icons text-sm">call</span>
-        Call Number
+        <span class="landscape:block portrait:hidden">
+          Call Number
+        </span>
+        <span class="landscape:hidden portrait:block">
+          Call
+        </span>
       </button>
     </section>
   </div>
