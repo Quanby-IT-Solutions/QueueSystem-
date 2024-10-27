@@ -17,6 +17,7 @@ interface Terminal{
   number:string;
   get status():string;  
   _status:string;  
+  session_status?:string;
   last_active?:string;
   attendant?:string;
 }
@@ -49,6 +50,7 @@ export class TerminalManagementComponent implements OnInit, OnDestroy {
   dataLoaded:boolean = false;
 
   constructor( 
+    private cdr:ChangeDetectorRef,
     private divisionService:DivisionService,
     private auth:UswagonAuthService,private API:UswagonCoreService,
     private terminalService:TerminalService) {}
@@ -64,6 +66,21 @@ export class TerminalManagementComponent implements OnInit, OnDestroy {
     }
   }
 
+  checkIfOnline(terminal:Terminal){
+ 
+    const now = new Date(); 
+      const lastActive = new Date(terminal.last_active!);
+      const diffInMinutes = (now.getTime() - lastActive.getTime()) / 60000; 
+
+      if (diffInMinutes < 1.5 && terminal._status !== 'maintenance' && terminal.session_status !== 'closed') {
+
+          return 'online';
+      } else {
+      
+          return terminal._status; 
+      }
+  }
+
   async loadContent(){
     this.API.setLoading(true);
     this.selectedDivision = (await this.divisionService.getDivision())?.id;
@@ -75,6 +92,9 @@ export class TerminalManagementComponent implements OnInit, OnDestroy {
         await this.updateTerminalData();
       }
     })
+    this.statusInterval = setInterval(()=>{
+      this.cdr.detectChanges();
+    },1500)
   }
 
   async updateTerminalData(){

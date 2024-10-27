@@ -1,7 +1,7 @@
 
 
 
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -25,6 +25,7 @@ interface Terminal{
   get status():string;  
   _status:string;  
   last_active?:string;
+  session_status?:string;
   attendant?:string;
 }
 
@@ -123,6 +124,7 @@ timerProgress: any;
     private dvisionService:DivisionService,
     private API:UswagonCoreService,
     private queueService:QueueService,
+    private cdr:ChangeDetectorRef,
     private serviceService:ServiceService,
     private terminalService:TerminalService) {}
 
@@ -138,6 +140,9 @@ timerProgress: any;
         this.selectedTicket = undefined;
       }
     });
+    this.statusInterval = setInterval(()=>{
+      this.cdr.detectChanges();
+    },1500)
   }
 
   ngOnDestroy(): void {
@@ -608,6 +613,17 @@ timerProgress: any;
     this.API.sendFeedback('warning', `Client has been put to bottom of queue.`,5000);
   }
 
+  checkIfOnline(terminal:Terminal){
+    const now = new Date(); 
+    const lastActive = new Date(terminal.last_active!);
+    const diffInMinutes = (now.getTime() - lastActive.getTime()) / 60000; 
+
+    if (diffInMinutes < 1.5 && terminal._status !== 'maintenance' && terminal.session_status !== 'closed') {
+        return 'online';
+    } else {
+        return terminal._status; 
+    }
+}
   /**
    * Handles the "No Show" action by moving to the next client.
    */
