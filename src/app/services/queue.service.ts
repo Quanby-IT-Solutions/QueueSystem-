@@ -45,13 +45,16 @@ export class QueueService  {
     private kioskService:KioskService) {}
 
 
-  private lastRegularQueueNumber:number = 0;
-  private lastPriorityQueueNumber:number = 0;
+  private regularQueueNumber:number = 0;
+  private priorityQueueNumber:number = 0;
   public queue:Queue[]=[];
   public allQueue:Queue[]= [];
   public allTodayQueue:Queue[]= [];
   public attendedQueues:AttendedQueue[]= [];
   private takenQueue:string[]= [];
+  private takenPriorityNumbers:number[]= [];
+  private takenRegularNumbers:number[]= [];
+  private lastTimestamp:number = new Date().getTime();
   public attendedQueue?:AttendedQueue;
   private queueSubject = new BehaviorSubject<Queue[]>([]);
   public queue$ = this.queueSubject.asObservable();
@@ -62,9 +65,18 @@ export class QueueService  {
     this.API.addSocketListener('live-queue-events-listener', (message)=>{
       if(message.division!= this.divisionService.selectedDivision!.id) return;
 
-      if(message.event =='queue-counter' ){
-        this.lastRegularQueueNumber = message.lastRegularQueueNumber as number;
-        this.lastPriorityQueueNumber = message.lastPriorityQueueNumber as number;
+      if(message.event =='take-priority-number' ){
+        this.takenPriorityNumbers.push(message.number);
+      }
+      if(message.event =='take-regular-number' ){
+        this.takenRegularNumbers.push(message.number);
+      }
+
+      if(message.event =='return-priority-number' ){
+        this.takenPriorityNumbers=  this.takenPriorityNumbers.filter(number => number != message.number);
+      }
+      if(message.event =='return-regular-number' ){
+        this.takenRegularNumbers = this.takenRegularNumbers.filter(number => number != message.number);
       }
       if(message.event =='take-from-queue'){
         this.takenQueue.push(message.queue_id);
@@ -80,33 +92,42 @@ export class QueueService  {
     });
   }
 
-  private incrementQueueNumber(type:'regular'|'priority',division:string){
-    if(type == 'regular'){
-      this.lastRegularQueueNumber += 1;
+  private numberCollision(type:'regular'|'priority',){
+    if(type=='regular'){
+      return this.takenRegularNumbers.includes(this.regularQueueNumber);
     }else{
-      this.lastPriorityQueueNumber += 1;
+      return this.takenPriorityNumbers.includes(this.priorityQueueNumber);
     }
-    this.API.socketSend({
-      event: 'queue-counter',
-      division:division,
-      lastRegularQueueNumber: this.lastRegularQueueNumber,
-      lastPriorityQueueNumber: this.lastPriorityQueueNumber
-    });
   }
 
-  private decrementQueueNumber(type:'regular'|'priority',division:string){
+  private takeQueueNumber(type:'regular'|'priority',division:string){
     if(type == 'regular'){
-      this.lastRegularQueueNumber -= 1;
+      this.regularQueueNumber += 1;
     }else{
-      this.lastPriorityQueueNumber -= 1;
+      this.priorityQueueNumber += 1;
     }
     this.API.socketSend({
-      event: 'queue-counter',
+      event: `take-${type}-number`,
       division:division,
-      lastRegularQueueNumber: this.lastRegularQueueNumber,
-      lastPriorityQueueNumber: this.lastPriorityQueueNumber
+      number:  type == 'regular' ? this.regularQueueNumber : this.priorityQueueNumber
     });
+
   }
+
+  private returnQueueNumber(type:'regular'|'priority',division:string){
+    if(type == 'regular'){
+      this.regularQueueNumber -= 1;
+    }else{
+      this.priorityQueueNumber -= 1;
+    }
+    this.API.socketSend({
+      event: `return-${type}-number`,
+      division:division,
+      number:  type == 'regular' ? this.regularQueueNumber : this.priorityQueueNumber
+    });
+
+  }
+
 
   private updateQueue(division:string){
     this.API.socketSend({
@@ -149,7 +170,11 @@ export class QueueService  {
   {
     const id = this.API.createUniqueID32();
     const  now=  new Date();
-    this.incrementQueueNumber(info.type,this.kioskService.kiosk?.division_id!);
+    this.takeQueueNumber(info.type,this.kioskService.kiosk?.division_id!);
+    while(this.numberCollision(info.type)){
+      this.takeQueueNumber(info.type,this.kioskService.kiosk?.division_id!);
+
+    }
     const response = await this.API.create({
       tables: 'queue',
       values:{
@@ -158,7 +183,7 @@ export class QueueService  {
         kiosk_id:this.kioskService.kiosk?.id,
         department_id: info.department_id,
         fullname: info.fullname,
-        number: info.type == 'regular' ? this.lastRegularQueueNumber: this.lastPriorityQueueNumber,
+        number: info.type == 'regular' ? this.regularQueueNumber: this.priorityQueueNumber,
         type: info.type,
         gender: info.gender,
         services:  info.services.join(', '),
@@ -187,11 +212,11 @@ export class QueueService  {
 
     
     if(!response.success){
-      this.decrementQueueNumber(info.type,this.kioskService.kiosk?.division_id!);
+      this.returnQueueNumber(info.type,this.kioskService.kiosk?.division_id!);
       throw new Error('Something went wrong.');
     }else{
       this.updateQueue(this.kioskService.kiosk?.division_id!);
-      return info.type == 'regular' ?  this.lastRegularQueueNumber:this.lastPriorityQueueNumber;
+      return info.type == 'regular' ?  this.regularQueueNumber:this.priorityQueueNumber;
     }
     
   }
@@ -407,8 +432,8 @@ export class QueueService  {
     });
     if(response.success){
       const queue = response.output as Queue[];
-      this.lastPriorityQueueNumber =queue.filter(queue=> queue.type == 'priority').length;
-      this.lastRegularQueueNumber =queue.filter(queue=> queue.type == 'regular').length;
+      this.priorityQueueNumber =queue.filter(queue=> queue.type == 'priority').length;
+      this.regularQueueNumber =queue.filter(queue=> queue.type == 'regular').length;
 
       // const sortedQueue = queue.sort((a,b)=>{ 
 
@@ -449,8 +474,8 @@ export class QueueService  {
     });
     if(response.success){
       const queue = response.output as Queue[];
-      this.lastPriorityQueueNumber =queue.filter(queue=> queue.type == 'priority').length;
-      this.lastRegularQueueNumber =queue.filter(queue=> queue.type == 'regular').length;
+      this.priorityQueueNumber =queue.filter(queue=> queue.type == 'priority').length;
+      this.regularQueueNumber =queue.filter(queue=> queue.type == 'regular').length;
 
       // const sortedQueue = queue.sort((a,b)=>{ 
 

@@ -18,7 +18,7 @@
     <div class="flex items-center gap-2 text-[var(--primary)] sm:gap-4">
       <div class="flex flex-col items-end">
         <time class="text-3xl font-semibold sm:text-4xl">{{ currentTime | date:'h:mm' }}</time>
-        <span class="text-sm font-medium sm:text-md">{{ currentPeriod }}</span>
+        <span class="text-sm font-medium sm:text-md">{{ currentTime | date:'a'  }}</span>
       </div>
       <div class="h-[30px] w-[2px] text-[var(--primary)] sm:h-[40px]"></div>
       <div class="flex flex-col text-left uppercase">

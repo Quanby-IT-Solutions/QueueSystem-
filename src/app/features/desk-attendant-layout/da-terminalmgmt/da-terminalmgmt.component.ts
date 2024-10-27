@@ -380,6 +380,11 @@ timerProgress: any;
         this.startTimer();
         this.updateUpcomingTicket();
         
+        this.API.socketSend({
+          event: 'number-calling',
+          division: this.division?.id,
+          message: `${this.currentTicket?.type =='priority' ? 'Priority':''} number ${this.currentTicket?.number} at counter ${this.selectedCounter?.number}`
+        })
         this.API.sendFeedback('success', `Priority transaction started with client.`, 5000);
       }
     } catch (error) {
@@ -455,6 +460,11 @@ timerProgress: any;
         this.updateUpcomingTicket();
         
         this.API.sendFeedback('success', `Transaction started with client.`, 5000);
+        this.API.socketSend({
+          event: 'number-calling',
+          division: this.division?.id,
+          message: `${this.currentTicket?.type =='priority' ? 'Priority':''} number ${this.currentTicket?.number} at counter ${this.selectedCounter?.number}`
+        })
       } else {
         this.API.sendFeedback('warning', 'Could not get next client.', 5000);
       }
@@ -525,7 +535,7 @@ timerProgress: any;
     this.API.socketSend({
       event: 'number-calling',
       division: this.division?.id,
-      message: `Calling ${this.currentTicket?.type =='priority' ? 'Priority':''} number ${this.currentTicket?.number} at counter ${this.selectedCounter?.number}`
+      message: `${this.currentTicket?.type =='priority' ? 'Priority':''} number ${this.currentTicket?.number} at counter ${this.selectedCounter?.number}`
     })
     // this.isCallNumberActive = false;
   }

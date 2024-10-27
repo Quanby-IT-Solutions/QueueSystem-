@@ -195,7 +195,32 @@ export class QueueDisplayComponent implements OnInit, AfterViewInit, OnChanges, 
     this.API.addSocketListener('queue-events',(data)=>{})
   }
 
+  playNote(frequency:number) {
+    const audioCtx = new (window.AudioContext)();
+    const oscillator = audioCtx.createOscillator();
+    oscillator.type = 'sine'; // You can change to 'square' or 'triangle' for different sounds
+    oscillator.frequency.setValueAtTime(frequency, audioCtx.currentTime);
+    const gainNode = audioCtx.createGain();
+    gainNode.gain.setValueAtTime(-0.5, audioCtx.currentTime); // Set volume level
+    oscillator.connect(gainNode)
+    oscillator.connect(audioCtx.destination);
+    oscillator.start();
+    oscillator.stop(audioCtx.currentTime + 0.6); // Play for 300 ms
+  }
+
+   playNotes() {
+    // setTimeout(() => this.playNote(783.99), 0); // Play G
+    // setTimeout(() => this.playNote(587.33), 600); // Play B after 400 ms
+    // setTimeout(() => this.playNote( 587.33), 800); // Play D after 800 ms
+    // setTimeout(() => this.playNote(783.99), 1200); // Play G again after 1200 ms
+    setTimeout(() => this.playNote(783.99), 0); // Play G again after 1200 ms
+    setTimeout(() => this.playNote( 587.33), 500); // Play D after 800 ms
+    // setTimeout(() => this.playNote(493.88), 1000); // Play B after 400 ms
+    // setTimeout(() => this.playNote(392), 1000); // Play G
+  }
+
   ngOnInit(): void {
+    // this.playNotes();
     const init = speechSynthesis.getVoices()
     
     this.API.addSocketListener('number-calling', (data:any)=>{
@@ -207,8 +232,10 @@ export class QueueDisplayComponent implements OnInit, AfterViewInit, OnChanges, 
         utterance.volume = 3;
         if (femaleVoice) {
           utterance.voice = femaleVoice;
-      }
-        speechSynthesis.speak(utterance);
+        }
+        // this.playNotes();
+         speechSynthesis.speak(utterance)
+      
       }
     });
     this.getSafeYoutubeUrl(this.videoUrl);
@@ -454,7 +481,6 @@ export class QueueDisplayComponent implements OnInit, AfterViewInit, OnChanges, 
 
 
     this.divisionService.setDivision(this.division);
-    this.queueService.listenToQueue();
     
     this.subscription = this.queueService.queue$.subscribe((queueItems: any[]) => {
       this.upNextItems = queueItems.reduce((prev: UpNextItem[], item: any) => {
@@ -467,7 +493,7 @@ export class QueueDisplayComponent implements OnInit, AfterViewInit, OnChanges, 
       }, []);
       
     });
-
+     this.queueService.listenToQueue();
     await this.queueService.getTodayQueues();
     await this.loadTerminalData();
     this.API.addSocketListener('queue-events',async(data:any)=>{

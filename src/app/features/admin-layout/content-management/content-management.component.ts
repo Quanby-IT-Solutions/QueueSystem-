@@ -70,7 +70,7 @@ export class ContentManagementComponent implements OnInit {
 
   isSuperAdmin:boolean = this.auth.getUser().role == 'superadmin';
 
-  showEditSection:boolean = true;
+  showEditSection:boolean = false;
 
   toggles:ContentToggles= {
     announcements:false,

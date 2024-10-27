@@ -121,6 +121,7 @@ export class KioskFormsComponent implements OnInit, OnDestroy {
       this.services = await this.serviceService.getAllServices(this.divisionService.selectedDivision?.id!);
       this.departments = await this.departmentService.getAllDepartments();
     },2000)
+    this.queueService.listenToQueue();
     this.resetQueueNumberIfNewDay();
   }
 
@@ -212,6 +213,7 @@ export class KioskFormsComponent implements OnInit, OnDestroy {
     this.API.socketSend({event:'admin-dashboard-events'})
     this.successDescription = `Your current position is <span class='font-medium'>${this.selectedType === 'regular' ? 'R' : 'P'}-${number.toString().padStart(3,'0')}</span>`
     await this.printImage(`${this.selectedType === 'regular' ? 'R' : 'P'}-${number.toString().padStart(3,'0')}`);
+    // Reset
     this.selectedServices = this.services
     .filter(item => item.selected)
     this.isChecklistVisible = true;
@@ -219,7 +221,9 @@ export class KioskFormsComponent implements OnInit, OnDestroy {
     this.gender = '';
     this.customerName = '';
     this.studentNumber = '';
+    // Loading to false
     this.isLoading =false;
+    // Send feedback
     this.openFeedback( this.selectedType === 'regular' ? 'success':'priority');
    }catch(e){
     this.isLoading =false;
