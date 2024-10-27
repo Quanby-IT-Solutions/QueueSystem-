@@ -50,6 +50,7 @@ export class KioskFormsComponent implements OnInit, OnDestroy {
   division?:Division;
 
   departments:Department[] = [];
+  divisions:Division[] = [];
   serviceInterval:any;
   successDescription = '';
   priorityDetails = `<div class='flex flex-col leading-none py-2 gap-2'>
@@ -114,6 +115,7 @@ export class KioskFormsComponent implements OnInit, OnDestroy {
 
     this.services = await this.serviceService.getAllServices(this.divisionService.selectedDivision?.id!);
     this.departments = await this.departmentService.getAllDepartments();
+    this.divisions = await this.divisionService.getDivisions();
     if(this.serviceInterval){
       clearInterval(this.serviceInterval)
     }
@@ -219,6 +221,7 @@ export class KioskFormsComponent implements OnInit, OnDestroy {
     this.isChecklistVisible = true;
     this.isFormVisible = false;
     this.gender = '';
+    this.department = '';
     this.customerName = '';
     this.studentNumber = '';
     // Loading to false

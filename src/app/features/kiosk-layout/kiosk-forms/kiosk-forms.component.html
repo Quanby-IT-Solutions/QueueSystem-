@@ -156,7 +156,7 @@
                 <label for="department" class="block mb-1 text-sm font-medium text-gray-600">Branch (Optional)</label>
                 <select [(ngModel)]="department" name="department" id="department" class="w-full px-3 py-2 text-sm bg-white border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-green-500">
                   <option value="">Select Branch</option>
-                  <option *ngFor="let department of departments" [value]="department.name" >{{department.name}}</option>
+                  <option *ngFor="let department of divisions" [value]="department.name" >{{department.name}}</option>
                 </select>
               </div>
             </div>
