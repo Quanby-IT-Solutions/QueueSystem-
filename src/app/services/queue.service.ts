@@ -116,7 +116,9 @@ export class QueueService  {
   }
 
   private takeFromQueue(){
-    const queue = this.queue.shift()!;
+    const availableQueue = this.queue.filter(queue => !this.takenQueue.includes(queue.id))
+    const queue = availableQueue.shift();
+    if(queue == undefined) return undefined;
     this.takenQueue.push(queue.id);
     this.API.socketSend({
       event: 'take-from-queue',
@@ -319,7 +321,8 @@ export class QueueService  {
   }
 
   async takeFromQueueByType(type: 'priority' | 'regular'): Promise<Queue | undefined> {
-    const targetQueue = this.queue.find(q => 
+    const availableQueue = this.queue.filter(queue => !this.takenQueue.includes(queue.id))
+    const targetQueue = availableQueue.find(q => 
       q.type === type && 
       (q.status === 'waiting' || q.status === 'bottom')
     );
@@ -327,7 +330,7 @@ export class QueueService  {
     if (!targetQueue) return undefined;
 
     // Remove the target queue from the main queue
-    this.queue = this.queue.filter(q => q.id !== targetQueue.id);
+    this.queue = availableQueue.filter(q => q.id !== targetQueue.id);
     this.takenQueue.push(targetQueue.id);
     
     // Send socket event
@@ -348,18 +351,30 @@ export class QueueService  {
       if (this.queue.length <= 0) return;
 
       let nextQueue: Queue | undefined;
-      
-      if (type) {
-        nextQueue = await this.takeFromQueueByType(type);
-      } else {
-        nextQueue = this.takeFromQueue();
+    
+      let success = false;
+      while(!success){
+        if (type) {
+          nextQueue = await this.takeFromQueueByType(type);
+        } else {
+          nextQueue = this.takeFromQueue();
+        }
+
+        if (!nextQueue) {
+          success = true;
+          return undefined;
+        }
+        try{
+          await this.addQueueToAttended(nextQueue);
+          this.resolveTakenQueue(nextQueue.id);
+          await this.getTodayQueues();
+          success = true
+        }catch(e){
+
+        }
       }
-
-      if (!nextQueue) return undefined;
-
-      await this.addQueueToAttended(nextQueue);
-      this.resolveTakenQueue(nextQueue.id);
-      await this.getTodayQueues();
+      
+    
       
       return nextQueue;
     } catch (e) {
