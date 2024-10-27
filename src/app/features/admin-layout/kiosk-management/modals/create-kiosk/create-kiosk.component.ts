@@ -48,6 +48,7 @@ export class CreateKioskComponent implements OnInit, OnDestroy {
   }
 
   async submitForm(){
+    if(this.submittingForm) return;
     this.submittingForm = true;
     if(this.kiosk.code.trim() == ''){
       this.errorMessage.code = 'This field is required.';
@@ -81,8 +82,10 @@ export class CreateKioskComponent implements OnInit, OnDestroy {
           this.kiosk
         )
       }
+      this.submittingForm = false;
     }catch(e:any){
       this.API.sendFeedback('error', e.message,5000);
+      this.submittingForm = true;
       return;
     }
     this.onClose.emit(true);

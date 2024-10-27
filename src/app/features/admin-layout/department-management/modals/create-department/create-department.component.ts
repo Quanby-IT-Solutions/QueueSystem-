@@ -42,6 +42,7 @@ export class CreateDepartmentComponent {
   }
 
   async submitForm(){
+    if(this.submittingForm) return;
     this.submittingForm = true;
     if(this.item.name.trim() == ''){
       this.errorMessage = 'This field is required.';
@@ -61,7 +62,9 @@ export class CreateDepartmentComponent {
           this.item.name
         )
       }
+      this.submittingForm =false;
     }catch(e:any){
+      this.submittingForm = false;
       this.API.sendFeedback('error', e.message,5000);
       return;
     }
