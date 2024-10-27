@@ -151,7 +151,7 @@ export class DivisionService {
   }
    async deleteDivision(id:string){
      const response = await this.API.delete({
-       tables: 'divisionss',
+       tables: 'divisions',
        conditions: `WHERE id = '${id}'`
      });
    
