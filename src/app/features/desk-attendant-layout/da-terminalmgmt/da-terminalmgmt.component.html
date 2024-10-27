@@ -60,7 +60,7 @@
   <div *ngIf="selectedCounter && !actionLoading" class="min-w-screen-lg mx-auto  space-y-6">
     <!-- Header -->
     <header class="flex justify-between items-center">
-      <h1 class="text-2xl font-medium text-gray-800"><span class="portrait:hidden landscape:block">You are currently on </span> <span class="font-semibold text-[var(--primary)]">TERMINAL {{this.selectedCounter.number}}</span></h1>
+      <h1 class="text-2xl font-medium text-gray-800"><span class="portrait:hidden ">You are currently on </span> <span class="font-semibold text-[var(--primary)]">TERMINAL {{this.selectedCounter.number}}</span></h1>
       <button 
         (click)="openTerminateModal()" 
         class="bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600 transition-colors duration-200 flex items-center space-x-2">
