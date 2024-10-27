@@ -22,6 +22,7 @@ interface Queue{
   kiosk_id:string;
   gender:'male'|'female'|'other';
   student_id?:string;
+  collision?:string;
 }
 
 interface AttendedQueue{
@@ -236,6 +237,7 @@ export class QueueService  {
               status:'bottom',
               timestamp: new DatePipe('en-US').transform(now, 'yyyy-MM-dd HH:mm:ss.SSSSSS'),
               student_id:  this.attendedQueue.queue?.student_id,
+              collision: this.attendedQueue.queue?.collision?.split('>')[0] + ">"+ now.getTime(),
             }
           });
           if(!createResponse.success){
@@ -347,8 +349,8 @@ export class QueueService  {
           this.resolveTakenQueue(nextQueue.id);
           await this.getTodayQueues();
           success = true
-        }catch(e){
-
+        }catch(e:any){
+          if(e.message.includes('Server Error')) throw new Error('Something went wrong');
         }
       }
       
@@ -517,7 +519,8 @@ export class QueueService  {
         tables: 'attended_queue, queue, terminal_sessions',
         conditions: `
           WHERE attended_queue.queue_id = queue.id AND queue.division_id = '${this.divisionService.selectedDivision?.id}' 
-          AND terminal_sessions.attendant_id = '${user.id}'  AND attended_queue.status = 'ongoing'
+          AND terminal_sessions.id = attended_queue.desk_id
+          AND terminal_sessions.attendant_id = '${user.id}'  AND attended_queue.status = 'ongoing' ORDER BY attended_on DESC
         `
       });
       if(response.success){
