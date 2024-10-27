@@ -293,9 +293,26 @@
                    </span>
                 </div>
               </div>
-              <div *ngIf="upNextItems.length > 0" class="queue-list-container grid grid-cols-2 grid-rows-4 grid-flow-col gap-1 flex-1 ">
+              <div *ngIf="upNextItems.length > 0" class="queue-list-container flex grid-flow-col gap-1 flex-1 ">
 
-                <div *ngFor="let item of upNextItems | slice:0:8"
+                <div class="flex-1 grid grid-cols-1 grid-rows-4">
+                  <div *ngFor="let item of getRegularItems(upNextItems) | slice:0:4"
+                  class="border-dashed border-2  rounded-lg overflow-hidden"
+                  >
+                    <div
+                     class="queue-item-container h-full shadow-lg gap-4 flex items-center px-4 py-1
+                    min-[3500px]:border-8 min-[3500px]:rounded-3xl min-[3500px]:gap-12
+                    min-[3500px]:px-14 min-[3500px]:py-10"
+                    >
+                      <img [src]="item.avatar" class="queue-item-icon w-9 h-9 min-[3500px]:w-36 min-[3500px]:h-36">
+                      <div class="queue-item-ticket text-lg font-semibold tracking-wider min-[3500px]:text-7xl min-[3500px]:font-semibold">{{item.ticketNumber}}</div>
+                      <!-- <div class="queue-item-flex-1 text-lg font-medium flex tracking-wider justify-end min-[3500px]:text-7xl min-[3500px]:font-semibold">{{item.personName}}</div> -->
+                    </div>
+                  </div>
+                </div>
+
+                <div class="flex-1 grid grid-cols-1 grid-rows-4">
+                  <div *ngFor="let item of getPriorityItems(upNextItems) | slice:0:4"
                 [ngStyle]="{
                   'border-color': item.ticketNumber.includes('P') ? colors.tertiary_bg  + '80': colors.secondary_text + '80',
                 }"
@@ -315,6 +332,8 @@
                     <!-- <div class="queue-item-flex-1 text-lg font-medium flex tracking-wider justify-end min-[3500px]:text-7xl min-[3500px]:font-semibold">{{item.personName}}</div> -->
                   </div>
                 </div>
+                </div>
+
               </div>
             </div>
           </div>

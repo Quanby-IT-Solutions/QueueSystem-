@@ -369,7 +369,7 @@ timerProgress: any;
         this.currentClientDetails = {
           name: nextTicket.fullname || 'N/A',
           date: nextTicket.timestamp || this.currentDate,
-          services: this.services.filter(service=> nextTicket.services.split(', ').includes(service.id)).map(service=>service),
+          services: this.services.filter(service=> nextTicket.services.split(', ').includes(service.id)).map(service=>service.name),
           student_id: nextTicket.student_id || 'N/A',
           department: nextTicket.department_id || 'N/A',
         };

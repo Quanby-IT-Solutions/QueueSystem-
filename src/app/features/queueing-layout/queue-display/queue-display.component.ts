@@ -136,6 +136,14 @@ export class QueueDisplayComponent implements OnInit, AfterViewInit, OnChanges, 
     { avatar: '/assets/queue-display/Female_2.png', ticketNumber: 'R-247', personName: 'Joey Bichara' },
     { avatar: '/assets/queue-display/female_1.png', ticketNumber: 'R-217', personName: 'Kenneth Felix Belga' },
   ];
+  
+
+  getPriorityItems(items:UpNextItem[]){
+   return items.filter(next=> next.ticketNumber.includes('P'))
+  }
+  getRegularItems(items:UpNextItem[]){
+   return items.filter(next=> next.ticketNumber.includes('R'))
+  }
 
   attendedQueue:AttendedQueue[]=[];
 
