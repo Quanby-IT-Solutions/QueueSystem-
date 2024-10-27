@@ -410,6 +410,7 @@ timerProgress: any;
       if(this.currentTicket?.type == 'priority'){
         this.API.sendFeedback('warning','Finish priority transaction first.',5000);
         this.actionLoading = false;
+        return;
       }
 
       // If there's a current transaction, finish it first
@@ -612,6 +613,9 @@ timerProgress: any;
    */
   async noShow() {
     if (this.actionLoading) return;
+    if(!this.currentTicket){
+      return;
+    }
     this.actionLoading = true;
   
     // Mark the current ticket as skipped

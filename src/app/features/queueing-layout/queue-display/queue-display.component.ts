@@ -365,6 +365,7 @@ export class QueueDisplayComponent implements OnInit, AfterViewInit, OnChanges, 
   safeYoutubeUrl?:SafeResourceUrl;
   safeYoutubeUrlMute?:SafeResourceUrl;
 
+  
   getSafeYoutubeUrl(url?:string) {
     if (this.isValidYouTubeUrl(url ??'')) {
       const videoId = this.getYouTubeVideoId(url!);
