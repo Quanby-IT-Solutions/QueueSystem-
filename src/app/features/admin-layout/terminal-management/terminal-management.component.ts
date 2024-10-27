@@ -45,6 +45,7 @@ export class TerminalManagementComponent implements OnInit, OnDestroy {
 
   selectedTerminal?:Terminal;
 
+  actionLoading:boolean = false;
   dataLoaded:boolean = false;
 
   constructor( 

@@ -34,6 +34,8 @@ export class KioskManagementComponent implements OnInit {
 
   openKioskModal:boolean = false;
 
+  actionLoading:boolean = false;
+
   // Injecting ChangeDetectorRef to trigger manual change detection
   constructor(
     private divisionService:DivisionService,
@@ -85,6 +87,8 @@ export class KioskManagementComponent implements OnInit {
   }
 
   async toggleMaintenance(item:Kiosk){
+    if(this.actionLoading) return ;
+    this.actionLoading = true;
     this.API.setLoading(true);
     try{
       await this.kioskService.updateKioskStatus(item.id!,item.status == 'available' ? 'maintenance' : 'available');
@@ -93,6 +97,7 @@ export class KioskManagementComponent implements OnInit {
     }catch(e:any){
       this.API.sendFeedback('success', e.message,5000);
     }
+    this.actionLoading =false;
   }
   async deleteKiosk(item:Kiosk){
     this.API.setLoading(true);

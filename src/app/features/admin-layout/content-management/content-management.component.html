@@ -7,7 +7,7 @@
             <div class="2xl:flex-[1_1_0%] h-full 2xl:relative flex absolute w-full top-4 z-10 2xl:top-0">
                 <div class="w-full 2xl:max-w-full  max-w-md {{showEditSection? 'block':'hidden 2xl:block'}}">
                     <!-- Tabs -->
-                    <div *ngIf="isSuperAdmin" class="flex">
+                    <div *ngIf="isSuperAdmin" class="grid-cols-3 bg-white rounded-md">
                         <button  *ngFor="let division of divisions; let i = index"
                             (click)="selectDivision(division.id)"
                             class="h-10 transition-all {{division.id == selectedDivision ? 'bg-[var(--primary)] hover:bg-[var(--primary-hover)] text-white':'bg-white'}} px-4 flex-1 border-2 border-solid {{ i == 0 ? 'rounded-l-lg': i == 1 ? '':'rounded-r-lg' }} font-medium  hover:bg-[var(--primary-hover)] hover:text-white">

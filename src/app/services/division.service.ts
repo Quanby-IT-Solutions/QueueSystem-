@@ -91,4 +91,73 @@ export class DivisionService {
 
    
   }
+
+  async addDivision(name:string){
+    const checkResponse = await this.API.read({
+      selectors:['*'],
+      tables:'divisions',
+      conditions:`WHERE name = '${name}'`
+    })
+  
+    if(checkResponse.success){
+      if(checkResponse.output.length>0){
+        throw new Error('This name is already in use!');
+      }
+    }else{
+      throw new Error('Something went wrong');
+    }
+     const id = this.API.createUniqueID32();
+     const response = await this.API.create({
+       tables: 'divisions',
+       values:{
+         id:id,
+         name:name,
+       }  
+     });
+   
+     if(!response.success){
+       throw new Error('Something went wrong');
+     }
+   }
+   
+  
+   async updateDivision(id:string, name:string){
+    const checkResponse = await this.API.read({
+      selectors:['*'],
+      tables:'divisions',
+      conditions:`WHERE name = '${name}'`
+    })
+  
+    if(checkResponse.success){
+      if(checkResponse.output.length>0){
+        throw new Error('This name is already in use!');
+      }
+    }else{
+      throw new Error('Something went wrong');
+    }
+    
+  
+    const response = await this.API.update({
+      tables: 'divisions',
+      values:{
+        name:name
+      }  ,
+      conditions: `WHERE id = '${id}'`
+    });
+  
+    if(!response.success){
+      throw new Error('Something went wrong.');
+    }
+  }
+   async deleteDivision(id:string){
+     const response = await this.API.delete({
+       tables: 'divisionss',
+       conditions: `WHERE id = '${id}'`
+     });
+   
+     if(!response.success){
+       throw new Error('Unable to delete division');
+     }
+   }
+   
 }

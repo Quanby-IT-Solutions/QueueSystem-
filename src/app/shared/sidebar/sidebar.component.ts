@@ -54,7 +54,7 @@ export class SidebarComponent implements OnInit {
 
     if(this.auth.accountLoggedIn()=='superadmin'){
       this.menuItems.push(
-         { title: 'Branch Management', route: '/admin/department-management', active: false, icon: 'apartment' }
+         { title: 'Branch Management', route: '/admin/branch-management', active: false, icon: 'apartment' }
       )
     }
     this.checkScreenSize();
