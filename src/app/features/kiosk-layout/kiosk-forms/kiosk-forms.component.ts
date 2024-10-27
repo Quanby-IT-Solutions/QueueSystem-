@@ -380,8 +380,8 @@ export class KioskFormsComponent implements OnInit, OnDestroy {
           number:code,
           name: this.customerName,
           gender:this.gender,
-          id:this.studentNumber || 'No ID specified.',
-          location: this.department || 'No location specified.',
+          id:this.studentNumber.trim() == '' ? undefined : this.studentNumber.trim(),
+          location: this.department.trim() == '' ? undefined : this.department.trim(),
           date: this.currentDate.toLocaleDateString(),
           time:this.currentTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
           services: this.selectedServices.map(service=> service.name)
