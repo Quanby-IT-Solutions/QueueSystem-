@@ -36,18 +36,18 @@ interface Division{
 
 interface Ticket {
   id:string;
-  division_id?:string;
-  number: number;
-  status?:string;
-  timestamp?:string;
-  type: 'priority' | 'regular';
-  fullname?:string;
+  division_id:string;
+  number:number;
+  status:string;
+  timestamp:string;
+  type:'regular'|'priority';
+  fullname:string;
   services:string;
   department_id?:string;
-  kiosk_id?:string;
-  gender?:string;
+  kiosk_id:string;
+  gender:'male'|'female'|'other';
   student_id?:string;
-  // timestamp: string;
+  collision?:string;
 }
 
 interface ClientDetails {
@@ -265,14 +265,19 @@ timerProgress: any;
   }
   //slection of row manually
   selectTicket(ticket: Ticket) {
-    if (this.isManualSelectActive) {
-      if (this.selectedTicket?.id === ticket.id) {
-        this.selectedTicket = undefined;
-      } else {
-        this.selectedTicket = ticket;
-      }
+    if (this.currentTicket) {
+      this.API.sendFeedback('warning','Finish current transaction before selecting another ticket.',5000);
+      // this.actionLoading = false;
+      return;
     }
-}
+
+    if (this.selectedTicket?.id === ticket.id) {
+      this.selectedTicket = undefined;
+    } else {
+      this.selectedTicket = ticket;
+    }
+  }
+
   /**
    * Selects a counter and initializes related states.
    * @param counter The counter number selected by the user.
@@ -329,6 +334,7 @@ timerProgress: any;
       if(this.currentTicket?.type == 'regular'){
         this.API.sendFeedback('warning','Finish regular transaction first.',5000);
         this.actionLoading = false;
+        return;
       }
       // If there's a current transaction, finish it first
       if (this.currentTicket) {
@@ -399,7 +405,6 @@ timerProgress: any;
 
   async nextClient() {
     if (this.actionLoading) return;
-
     try {
       this.actionLoading = true;
       if(this.currentTicket?.type == 'priority'){
@@ -411,7 +416,7 @@ timerProgress: any;
       if (this.currentTicket) {
         await this.queueService.resolveAttendedQueue('finished');
         this.resetInterface();
-        this.API.sendFeedback('success','Transaction successful!');
+        this.API.sendFeedback('success','Transaction successful!',5000);
         this.actionLoading = false;
         return;
       }
@@ -543,9 +548,47 @@ timerProgress: any;
   /**
    * Toggles the manual select state.
    */
-  manualSelect(): void {
-    console.log('Manual select clicked');
-    this.isManualSelectActive = !this.isManualSelectActive;
+  async manualSelect() {
+   try{
+      const nextTicket = await this.queueService.manualSelect({...this.selectedTicket!})
+      if (nextTicket) {
+        this.currentTicket = nextTicket;
+        this.currentClientDetails = {
+          name: nextTicket.fullname || 'N/A',
+          date: nextTicket.timestamp || this.currentDate,
+          services:this.services.filter(service=> nextTicket.services.split(', ').includes(service.id)).map(service=>service.name),
+          
+          student_id: nextTicket.student_id || 'N/A',
+          department: nextTicket.department_id || 'N/A',
+        };
+
+        // Update states
+        this.isNextClientActive = false;
+        this.isClientDoneActive = true;
+        this.isCallNumberActive = true;
+        this.isManualSelectActive = true;
+        this.isReturnTopActive = true;
+        this.isReturnBottomActive = true;
+
+        // Clear selection
+        this.selectedTicket = undefined;
+
+        // Start timer and update display
+        this.startTimer();
+        this.updateUpcomingTicket();
+        
+        this.API.sendFeedback('success', `Transaction started with client.`, 5000);
+        this.API.socketSend({
+          event: 'number-calling',
+          division: this.division?.id,
+          message: `${this.currentTicket?.type =='priority' ? 'Priority':''} number ${this.currentTicket?.number} at counter ${this.selectedCounter?.number}`
+        })
+      } else {
+        this.API.sendFeedback('warning', 'Could not get next client.', 5000);
+      }
+   }catch(e){
+    this.API.sendFeedback('error', 'Unable to get next client.',5000);
+   }
   }
 
 

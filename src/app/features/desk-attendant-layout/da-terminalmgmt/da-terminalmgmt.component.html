@@ -78,7 +78,7 @@
           <div class="flex items-center">
             <div class="w-12 h-12 flex-shrink-0">
               <img 
-                [src]="currentTicket?.gender === 'female' ? 'assets/queue-display/female_1.png' : currentTicket?.gender == 'others' ? 'assets/default.jpg' :'assets/queue-display/Male_1.png'" 
+                [src]="currentTicket?.gender === 'female' ? 'assets/queue-display/female_1.png' : currentTicket?.gender == 'other' ? 'assets/default.jpg' :'assets/queue-display/Male_1.png'" 
                 alt="Avatar" 
                 class="w-12 h-12 rounded-full object-cover">
             </div>
@@ -182,7 +182,7 @@
                   <div class="flex items-center space-x-3">
                     <div class="flex-shrink-0 w-10 h-10">
                       <img 
-                        [src]="ticket.gender === 'female' ? 'assets/queue-display/female_1.png' :currentTicket?.gender == 'others' ? 'assets/default.jpg': 'assets/queue-display/Male_1.png'" 
+                        [src]="ticket.gender === 'female' ? 'assets/queue-display/female_1.png' :currentTicket?.gender == 'other' ? 'assets/default.jpg': 'assets/queue-display/Male_1.png'" 
                         alt="Avatar"
                         class="w-10 h-10 rounded-full object-cover">
                     </div>
@@ -282,6 +282,16 @@
   (onConfirm)="resetCounter()"
   title="Terminate your session?"
   description="Are you sure you want to terminate your session?"
+  animation="yellowWarning">
+</app-confirmation>
+
+<app-confirmation
+  *ngIf="selectedTicket"
+  type="custom"
+  (onCancel)="selectTicket(selectedTicket)"
+  (onConfirm)="manualSelect()"
+  title="Manual select this client?"
+  description="Are you sure you want to select this client on queue?"
   animation="yellowWarning">
 </app-confirmation>
 

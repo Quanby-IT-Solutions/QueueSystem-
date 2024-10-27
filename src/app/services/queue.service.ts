@@ -92,8 +92,19 @@ export class QueueService  {
     }
   }
 
-  private takeFromQueue(){
+  private takeFromQueue(id?:string){
     const availableQueue = this.queue.filter(queue => !this.takenQueue.includes(queue.id))
+   if(id){
+    const queue = availableQueue.find(queue=>queue.id ==id);
+    if(queue == undefined) return undefined;
+    this.takenQueue.push(queue.id);
+    this.API.socketSend({
+      event: 'take-from-queue',
+      division:queue.division_id,
+      queue_id:queue.id,
+    });
+    return queue;
+   }else{
     const queue = availableQueue.shift();
     if(queue == undefined) return undefined;
     this.takenQueue.push(queue.id);
@@ -103,6 +114,7 @@ export class QueueService  {
       queue_id:queue.id,
     });
     return queue;
+   }
   }
 
   private resolveTakenQueue(queue_id:any){
@@ -339,6 +351,38 @@ export class QueueService  {
         } else {
           nextQueue = this.takeFromQueue();
         }
+
+        if (!nextQueue) {
+          success = true;
+          return undefined;
+        }
+        try{
+          await this.addQueueToAttended(nextQueue);
+          this.resolveTakenQueue(nextQueue.id);
+          await this.getTodayQueues();
+          success = true
+        }catch(e:any){
+          if(e.message.includes('Server Error')) throw new Error('Something went wrong');
+        }
+      }
+      
+    
+      
+      return nextQueue;
+    } catch (e) {
+      throw new Error('Something went wrong.');
+    }
+  }
+
+  async manualSelect(queue:Queue): Promise<Queue | undefined> {
+    try {
+      if (this.queue.length <= 0) return;
+
+      let nextQueue: Queue | undefined;
+    
+      let success = false;
+      while(!success){
+        nextQueue = this.takeFromQueue(queue.id);
 
         if (!nextQueue) {
           success = true;
