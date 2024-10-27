@@ -125,62 +125,52 @@ export class QueueService  {
   {
     const id = this.API.createUniqueID32();
     const  now =  new Date();
+    const formattedDate = `${now.getMonth() + 1}/${now.getDate()}/${now.getFullYear()}`;
     this.lastTimestamp = now.getTime();
     // this.takeQueueNumber(info.type,this.kioskService.kiosk?.division_id!);
     let collision = true;
     while(collision){
       try{
-        const collisionResponse = await this.API.create({
-          tables: 'queue_collisions',
-          values:{
-            code: `${this.kioskService.kiosk?.id}:${info.type == 'priority'?'P':'R'}-${info.type == 'priority'? this.priorityQueueNumber : this.regularQueueNumber}` ,
+          const response = await this.API.create({
+            tables: 'queue',
+            values:{
+              id: id,
+              division_id: this.kioskService.kiosk?.division_id,
+              kiosk_id:this.kioskService.kiosk?.id,
+              department_id: info.department_id,
+              fullname: info.fullname,
+              number: info.type == 'priority' ? this.priorityQueueNumber : this.regularQueueNumber,
+              type: info.type,
+              gender: info.gender,
+              services:  info.services.join(', '),
+              status:'waiting',
+              timestamp: new DatePipe('en-US').transform(now, 'yyyy-MM-dd HH:mm:ss.SSSSSS'),
+              student_id: info.student_id,
+              collision:  `${formattedDate}:${this.kioskService.kiosk?.id}:${info.type == 'priority'?'P':'R'}-${info.type == 'priority'? this.priorityQueueNumber : this.regularQueueNumber}` ,
+            }
+          });
+          if(!response.success){
+            // this.returnQueueNumber(info.type,this.kioskService.kiosk?.division_id!);
+            throw new Error('Something went wrong.');
+          }else{
+            collision =false;
+            const lastNumber = info.type == 'priority' ? this.priorityQueueNumber : this.regularQueueNumber;
+            this.updateQueue(info.type,this.kioskService.kiosk?.division_id!);
+            return lastNumber;
           }
-        });
-        if(!collisionResponse.success)throw new Error();
-        collision = false;
-      }catch(e){
-        if(info.type == 'priority'){
-          this.priorityQueueNumber +=1;
-        }else{
-          this.regularQueueNumber +=1;
+        }catch(e:any){
+          if(e.message.includes('Server Error')){
+            throw new Error('Something went wrong')
+          }
+          if(info.type == 'priority'){
+            this.priorityQueueNumber +=1;
+          }else{
+            this.regularQueueNumber +=1;
+          }
         }
-      }
     }
-    
-    const response = await this.API.create({
-      tables: 'queue',
-      values:{
-        id: id,
-        division_id: this.kioskService.kiosk?.division_id,
-        kiosk_id:this.kioskService.kiosk?.id,
-        department_id: info.department_id,
-        fullname: info.fullname,
-        number: info.type == 'priority' ? this.priorityQueueNumber : this.regularQueueNumber,
-        type: info.type,
-        gender: info.gender,
-        services:  info.services.join(', '),
-        status:'waiting',
-        timestamp: new DatePipe('en-US').transform(now, 'yyyy-MM-dd HH:mm:ss.SSSSSS'),
-        student_id: info.student_id
-      }
-    });
-
-    //delete collision detection id
-    const collisionResponse = await this.API.delete({
-      tables: 'queue_collisions',
-      conditions: `WHERE code = '${this.kioskService.kiosk?.id + '-' + info.type == 'priority'? this.priorityQueueNumber : this.regularQueueNumber}'`
-    });
-
-
-    
-    if(!response.success || !collisionResponse.success){
-      // this.returnQueueNumber(info.type,this.kioskService.kiosk?.division_id!);
-      throw new Error('Something went wrong.');
-    }else{
-      const lastNumber = info.type == 'priority' ? this.priorityQueueNumber : this.regularQueueNumber;
-      this.updateQueue(info.type,this.kioskService.kiosk?.division_id!);
-      return lastNumber;
-    }
+    const lastNumber = info.type == 'priority' ? this.priorityQueueNumber : this.regularQueueNumber;
+    return lastNumber;
     
   }
 
