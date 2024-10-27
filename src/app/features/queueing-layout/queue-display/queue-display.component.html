@@ -1,4 +1,4 @@
-<div *ngIf="!loading && ((upNextItems.length <= 0 && countOnlineCounters() <= 0)||countOnlineCounters()<=0) && !isPreview" class="main-container flex flex-col justify-center items-center aspect-[3840/2180] relative">
+<div *ngIf="!loading && (((upNextItems.length <= 0 && countOnlineCounters() <= 0)||countOnlineCounters()<=0) && !isPreview) || view == 1" class="main-container flex flex-col justify-center items-center aspect-[3840/2180] relative">
   <iframe
   #iframePlayer
   [ngStyle]="{'border-color': colors.primary_text + '80',}"

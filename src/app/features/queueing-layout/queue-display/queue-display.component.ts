@@ -173,13 +173,17 @@ export class QueueDisplayComponent implements OnInit, AfterViewInit, OnChanges, 
 
   loading:boolean = false;
   
+
+  view:number = 0;
+  
   constructor(
     private divisionService:DivisionService,
     private queueService:QueueService,
     private terminalService:TerminalService,
     private thirdPartyService: ThirdPartyService,
     private API:UswagonCoreService,
-    private sanitizer: DomSanitizer
+    private sanitizer: DomSanitizer,
+    private route:ActivatedRoute
   ) {}
 
   // NG FUNCTIONS
@@ -220,6 +224,7 @@ export class QueueDisplayComponent implements OnInit, AfterViewInit, OnChanges, 
   }
 
   ngOnInit(): void {
+    this.view = this.route.snapshot.queryParams['view'];
     // this.playNotes();
     const init = speechSynthesis.getVoices()
     
