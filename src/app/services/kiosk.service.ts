@@ -4,7 +4,7 @@ import { UswagonCoreService } from 'uswagon-core';
 import { DivisionService } from './division.service';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../environment/environment';
-import { firstValueFrom } from 'rxjs';
+import { every, firstValueFrom } from 'rxjs';
 
 
 export interface Kiosk{
@@ -34,23 +34,20 @@ export class KioskService {
   isSuperAdmin:boolean = this.auth.accountLoggedIn() == 'superadmin';
 
 
-  thermalPrint(data:any){
-   firstValueFrom( this.http
-    .post(environment.printserver + '/print', {
-      key: environment.apiKey,
-      app: environment.app,
-      printer_ip: this.kiosk?.printer_ip,
-      // chunk: base64String,
-      // fileName:  filename,
-      number: data.number,
-      name: data.name,
-      gender:data.gender,
-      id:data.id,
-      location:data.location,
-      date:data.date,
-      time:data.time,
-      services: data.services
-    }))
+
+  async thermalPrint(data:any){
+  this.API.socketSend({
+    event: 'printing',
+    printer_ip: this.kiosk?.printer_ip,
+    number: data.number,
+    name: data.name,
+    gender:data.gender,
+    id:data.id,
+    location:data.location,
+    date:data.date,
+    time:data.time,
+    services: data.services
+  })
   }
 
   async kioskLogin(code:string){

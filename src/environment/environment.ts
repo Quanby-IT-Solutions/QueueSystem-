@@ -2,17 +2,17 @@ export const environment = {
     apiKey: '$2y$10$jDyFxPlQt0iz/JmEwFZGSOrCEwlu.GQRdTXT0gIbRlJHD6w2etZbi',
     // QUANBY LAB
     // api: 'https://quanbylab.com:85/q-api.php',
-    // socket: 'wss://quanbylab.com:3002',
-    // nodeserver: 'https://quanbylab.com:3002',
-    // server: 'https://quanbylab.com/public/',
+    socket: 'wss://quanbylab.com:3002',
+    nodeserver: 'https://quanbylab.com:3002',
+    server: 'https://quanbylab.com/public/',
     
     // PCSO 
-    api: 'https://34.84.106.114:85/apiSQL.php',
-    socket: 'wss://34.84.106.114:3000',
-    nodeserver: 'https://34.84.106.114:3000',
-    server: 'https://34.84.106.114/public/',
+    api: 'https://34.84.106.114/apiSQL.php',
+    // socket: 'wss://34.84.106.114:3000',
+    // nodeserver: 'https://34.84.106.114:3000',
+    // server: 'https://34.84.106.114/public/',
 
-    printserver: 'https://192.168.40.48:3002',
+    printserver: 'https://192.168.40.48:3000',
     // api: 'http://192.168.10.2:85/api.php',
     // socket: 'ws://192.168.10.2:3000',
     // nodeserver: 'http://192.168.10.2:3000',

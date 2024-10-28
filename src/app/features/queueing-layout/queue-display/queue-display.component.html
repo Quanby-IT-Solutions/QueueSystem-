@@ -10,15 +10,18 @@
   class="video aspect-[3840/2180] w-full h-full animate-pop  object-cover rounded-lg shadow-lg overflow-hidden border-dashed border-2 min-[3500px]:border-8 min-[3500px]:rounded-3xl min-[3500px]:shadow-2xl"
   ></iframe>
   <video
-  *ngIf="!safeYoutubeUrl"
+  *ngIf="!safeYoutubeUrl && videoUrl"
   [ngStyle]="{'border-color': colors.primary_text + '80',}"
   autoplay
   loop
   [muted]="mute"
   #videoPlayer width="100%" height="100%" class="aspect-[3840/2180] video animate-pop  object-cover rounded-lg shadow-lg overflow-hidden border-dashed border-2 min-[3500px]:border-8 min-[3500px]:rounded-3xl min-[3500px]:shadow-2xl"  controls="false">
-    <source [src]="videoUrl ?? 'assets/queue-display/vsu.mp4'" type="video/mp4">
+    <source [src]="videoUrl" type="video/mp4">
     Your browser does not support the video tag.
   </video>
+  <div class="w-full h-full flex items-center text-7xl justify-center  bg-black text-white" *ngIf="!videoUrl && !safeYoutubeUrl">
+    Video content has not been configured
+  </div>
   <!-- Announcements -->
   <div
   *ngIf="showAnnouncement"
