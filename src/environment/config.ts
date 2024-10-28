@@ -5,8 +5,8 @@ export const config = {
         location: 'Pacific Mall, Landco Business Center, F. Imperial St',
     },
     assets:{
-        logo:'./assets/specifics/pcso/lottobg.png',
-        banner:'./assets/specifics/pcso/pcso-logo.svg'
+        logo:'./assets/specifics/pcso/pcso-logo.svg',
+        banner:'./assets/specifics/pcso/lottobg.png'
     },
     // secondary_bg: '#4caf50',
     // accent_bg: '#3f51b5',
