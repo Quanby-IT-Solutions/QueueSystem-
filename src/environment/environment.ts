@@ -7,10 +7,10 @@ export const environment = {
     // server: 'https://quanbylab.com/public/',
     
     // PCSO 
-    api: 'https://35.221.86.224/apiSQL.php',
-    socket: 'wss://35.221.86.224:3000',
-    nodeserver: 'https://35.221.86.224:3000',
-    server: 'https://35.221.86.224/public/',
+    api: 'https://34.84.106.114/apiSQL.php',
+    socket: 'wss://34.84.106.114:3000',
+    nodeserver: 'https://34.84.106.114:3000',
+    server: 'https://34.84.106.114/public/',
 
     printserver: 'https://192.168.40.48:3002',
     // api: 'http://192.168.10.2:85/api.php',
