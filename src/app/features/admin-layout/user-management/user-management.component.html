@@ -1,126 +1,118 @@
 
 
+
+
+
 <main class="min-h-screen py-4">
-  <div class="w-full mx-auto space-y-8">
+  <div class="w-full mx-auto space-y-8 px-4 md:px-6">
+    <!-- Flex Container -->
+    <div class="flex flex-col lg:flex-row lg:space-x-6 space-y-6 lg:space-y-0">
+      
+      <!-- Metrics Card -->
+      <div class="w-full lg:w-1/3 bg-white shadow-lg rounded-3xl">
+        <h2 [ngClass]="{'opacity-0 translate-y-4': metricsLoading, 'opacity-100 translate-y-0': !metricsLoading}"  
+          class="mt-6 mb-2 text-xl md:text-2xl tracking-wider text-center text-[var(--primary)] uppercase duration-500 ease-in-out">
+          Performance Metrics
+        </h2>
 
-    <div class="flex space-x-8">
-     
-    <div class="w-1/3 h-full bg-white shadow-lg rounded-3xl transition-transform duration-500 ease-in-out">
+        <div [ngClass]="{'opacity-0 translate-y-4': metricsLoading, 'opacity-100 translate-y-0': !metricsLoading}"  
+          class="w-20 h-0.5 mx-auto mb-2 rounded-full bg-gradient-to-r from-green-800 to-green-900 duration-500 ease-in-out">
+        </div>
 
-       <h2 [ngClass]="{'opacity-0 translate-y-4': metricsLoading, 'opacity-100 translate-y-0': !metricsLoading}"  
-        class="mt-6 mb-2 text-2xl  tracking-wider text-center text-[var(--primary)] uppercase duration-500 ease-in-out">
-            Performance Metrics
-          </h2>
-
-          <div [ngClass]="{'opacity-0 translate-y-4': metricsLoading, 'opacity-100 translate-y-0': !metricsLoading}"  
-           class="w-20 h-0.5 mx-auto mb-2 rounded-full bg-gradient-to-r from-green-800 to-green-900 duration-500 ease-in-out"></div>
-
-       <div *ngIf="currentUser" [ngClass]="{'opacity-0 translate-y-4': metricsLoading, 'opacity-100 translate-y-0': !metricsLoading}"
-       class="  duration-500 ease-in-out px-6 pt-6 pb-4">   
-         <div class="flex flex-col items-center">
-            
-
-
+        <!-- Profile Section -->
+        <div *ngIf="currentUser" [ngClass]="{'opacity-0 translate-y-4': metricsLoading, 'opacity-100 translate-y-0': !metricsLoading}"
+          class="duration-500 ease-in-out px-4 md:px-6 pt-6 pb-4">   
+          <div class="flex flex-col items-center">
             <div class="relative">
-              
-              <div class="w-24 h-24 overflow-hidden rounded-full shadow-lg ring-4 ring-green-50">
-
+              <div class="w-20 h-20 md:w-24 md:h-24 overflow-hidden rounded-full shadow-lg ring-4 ring-green-50">
                 <img [src]="currentUser.profile || 'assets/images/noprofile.png'"
                      alt="{{ currentUser.fullname }}"
                      class="object-cover w-full h-full">
               </div>
               <div class="absolute bottom-1 right-1">
                 <div [ngClass]="{'bg-green-500': currentUser.is_online, 'bg-red-500': !currentUser.is_online}"
-                     class="w-5 h-5 rounded-full ring-2 ring-white"></div>
+                     class="w-4 h-4 md:w-5 md:h-5 rounded-full ring-2 ring-white">
+                </div>
               </div>
             </div>
-            <h3 class="mt-3 text-xl font-medium text-gray-800">{{ currentUser.fullname }}</h3>
-             <div class="px-3  rounded-full">
+            <h3 class="mt-3 text-lg md:text-xl font-medium text-gray-800">{{ currentUser.fullname }}</h3>
+            <div class="px-3 rounded-full">
               <span class="text-sm text-[var(--primary)] opacity-85">
                 {{ currentUser.role === 'superadmin' ? 'Super Admin' : currentUser.role !== 'Desk attendant' ? 'Admin' : 'Desk Attendant' }}
-
               </span>
-              
             </div>
-           
           </div>
         </div>
 
-      <!-- Metrics Grid -->
-<div class="px-6 pb-6 space-y-4">
+        <!-- Metrics Grid -->
+        <div class="px-4 md:px-6 pb-6 space-y-4">
+          <div class="grid grid-cols-2 gap-3 duration-300 ease-in"           
+               [ngClass]="{'opacity-0 translate-y-4': metricsLoading, 'opacity-100 translate-y-0': !metricsLoading}">
 
-  <!-- Stats Grid 2x2 -->
-  <div class="grid grid-cols-2 gap-4 duration-300 ease-in"           
-  [ngClass]="{'opacity-0 translate-y-4': metricsLoading, 'opacity-100 translate-y-0': !metricsLoading}" 
-  >
+            <!-- Today's Check-ins -->
+            <div class="p-3 border border-transparent shadow-lg bg-gradient-to-br from-white to-sky-50 rounded-2xl">
+              <div class="flex items-start justify-between">
+                <div>
+                  <span class="text-xs md:text-sm font-medium text-sky-600">Today's Check-ins</span>
+                  <p class="mt-1 text-lg md:text-xl font-semibold text-gray-800">{{ performanceMetrics.totalCheckInsToday }}</p>
+                </div>
+                <app-lottie-animation class="w-10 h-10 md:w-12 md:h-12" animation="today"></app-lottie-animation>
+              </div>
+            </div>
 
-    <div class="px-2 py-4 border border-transparent shadow-lg bg-gradient-to-br from-white to-sky-50 rounded-3xl">
-      <div class="flex items-start justify-between">
-        <div>
-          <span class="text-sm font-medium text-sky-600">Today's Check-ins</span>
-          <p class="mt-1 text-xl font-semibold text-gray-800">{{ performanceMetrics.totalCheckInsToday }}</p>
+            <!-- Average Service -->
+            <div class="p-3 border border-transparent shadow-lg bg-gradient-to-br from-white to-violet-50 rounded-2xl">
+              <div class="flex items-start justify-between">
+                <div>
+                  <span class="text-xs md:text-sm font-medium text-violet-600">Average Service</span>
+                  <p class="mt-1 text-lg md:text-xl font-semibold text-gray-800">{{ performanceMetrics.averageTimeService }}</p>
+                </div>
+                <app-lottie-animation class="w-10 h-10 md:w-12 md:h-12" animation="time1"></app-lottie-animation>
+              </div>
+            </div>
+
+            <!-- Weekly Check-ins -->
+            <div class="p-3 border border-transparent shadow-lg bg-gradient-to-br from-white to-blue-50 rounded-2xl">
+              <div class="flex items-start justify-between">
+                <div>
+                  <span class="text-xs md:text-sm font-medium text-blue-600">Weekly Check-ins</span>
+                  <p class="mt-1 text-lg md:text-xl font-semibold text-gray-800">{{ performanceMetrics.totalCheckInsThisWeek }}</p>
+                </div>
+                <app-lottie-animation class="w-10 h-10 md:w-12 md:h-12" animation="3"></app-lottie-animation>
+              </div>
+            </div>
+
+            <!-- Average Check-in -->
+            <div class="p-3 border border-transparent shadow-lg bg-gradient-to-br from-white to-pink-50 rounded-2xl">
+              <div class="flex items-start justify-between">
+                <div>
+                  <span class="text-xs md:text-sm font-medium text-pink-400">Average Check-in</span>
+                  <p class="mt-1 text-lg md:text-xl font-semibold text-gray-800">{{ formatTime(performanceMetrics.averageCheckInTime) }}</p>
+                </div>
+                <app-lottie-animation class="w-10 h-10 md:w-12 md:h-12" animation="time2"></app-lottie-animation>
+              </div>
+            </div>
+
+            <div class="p-3 border border-transparent shadow-lg bg-gradient-to-br from-white to-pink-50 rounded-2xl">
+              <div class="flex items-start justify-between">
+                <div>
+                  <span class="text-xs md:text-sm font-medium text-indigo-600">Total Check-ins</span>
+                  <p class="mt-1 text-lg md:text-xl font-semibold text-gray-800">{{ performanceMetrics.totalCheckIns }}</p>
+                </div>
+                <app-lottie-animation class="w-10 h-10 md:w-12 md:h-12 " animation="average"></app-lottie-animation>
+        
+              </div>
+            </div>
+
+          </div>
         </div>
-          <app-lottie-animation class="w-12 h-12 " animation="today"></app-lottie-animation>
 
-
-      </div>
-    </div>
-
-    <div class="px-2 py-4 border border-transparent shadow-lg bg-gradient-to-br from-white to-violet-50 rounded-3xl">
-      <div class="flex items-start justify-between">
-        <div>
-          <span class="text-sm font-medium text-violet-600">Average Service</span>
-          <p class="mt-1 text-xl font-semibold text-gray-800">{{ performanceMetrics.averageTimeService }}</p>
-        </div>
-        <app-lottie-animation class="w-12 h-12 " animation="time1"></app-lottie-animation>
-
-      </div>
-    </div>
-
-    <div class="px-2 py-4 border border-transparent shadow-lg bg-gradient-to-br from-white to-blue-50 rounded-3xl">
-      <div class="flex items-start justify-between">
-        <div>
-          <span class="text-sm font-medium text-blue-600">Weekly Check-ins</span>
-          <p class="mt-1 text-xl font-semibold text-gray-800">{{ performanceMetrics.totalCheckInsThisWeek }}</p>
-        </div>
-        <app-lottie-animation class="w-12 h-12 " animation="3"></app-lottie-animation>
-
-      </div>
-    </div>
-
-    <div class="px-2 py-4 border border-transparent shadow-lg bg-gradient-to-br from-white to-pink-50 rounded-3xl">
-      <div class="flex items-start justify-between">
-        <div>
-          <span class="text-sm font-medium text-pink-400">Average Check-in</span>
-          <p class="mt-1 text-xl font-semibold text-gray-800">{{ formatTime(performanceMetrics.averageCheckInTime) }}</p>
-        </div>
-        <app-lottie-animation class="w-12 h-12 " animation="time2"></app-lottie-animation>
-
-      </div>
-    </div>
-
-    <div class="px-2 py-4 border border-transparent shadow-lg bg-gradient-to-br from-white to-indigo-50 rounded-3xl">
-      <div class="flex items-start justify-between">
-        <div>
-          <span class="text-sm font-medium text-indigo-600">Total Check-ins</span>
-          <p class="mt-1 text-xl font-semibold text-gray-800">{{ performanceMetrics.totalCheckIns }}</p>
-        </div>
-        <app-lottie-animation class="w-12 h-12 " animation="average"></app-lottie-animation>
-
-      </div>
-    </div>
-
-  </div>
-</div>
-
-        <!-- Footer -->
+        <!-- Location Footer -->
         <div *ngIf="currentUser" class="px-6 mb-4">
           <div class="flex flex-col items-center space-y-1">
-            <div class="flex items-center  text-green-800 duration-500 ease-in-out"
-            [ngClass]="{'opacity-0 translate-y-4': metricsLoading, 'opacity-100 translate-y-0': !metricsLoading}"  
-            >
-              <app-lottie-animation class="w-12 h-12 " animation="location"></app-lottie-animation>
-
+            <div class="flex items-center text-green-800 duration-500 ease-in-out"
+                 [ngClass]="{'opacity-0 translate-y-4': metricsLoading, 'opacity-100 translate-y-0': !metricsLoading}">
+              <app-lottie-animation class="w-10 h-10 md:w-12 md:h-12" animation="location"></app-lottie-animation>
               <span class="text-sm text-[var(--primary)]">{{ currentUser.division }}</span>
             </div>
           </div>
@@ -128,123 +120,113 @@
       </div>
 
       <!-- Users List Card -->
-      <div class="w-2/3 p-6 transition-all duration-500 transform bg-white border border-gray-100 shadow-md rounded-3xl hover:shadow-2xl">
+      <div class="w-full lg:w-2/3 p-4 md:p-6 bg-white shadow-lg rounded-3xl">
         <!-- Search and Create Section -->
-          <div class="flex items-center justify-between mb-6">
-            <div class="relative w-96">
-              <input
-                type="text"
-                [(ngModel)]="searchQuery"
-                (input)="searchUsers()"
-                placeholder="Search a user..."
-                class="w-full py-2.5 pl-12 pr-4 text-sm text-gray-700 placeholder-gray-500 bg-white border border-[var(--primary)] rounded-xl shadow-md focus:outline-none focus:ring-1 focus:ring-[var(--primary)] focus:border-[var(--primary)] transition duration-300 ease-in-out"
-              >
-              <svg xmlns="http://www.w3.org/2000/svg"
-                   class="absolute w-8 h-8 text-[var(--primary)]  left-3 top-1/2 transform -translate-y-1/2"
-                   viewBox="0 0 20 20" fill="currentColor">
-                <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd" />
-              </svg>
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+          <div class="relative w-full md:w-72">
+            <input
+              type="text"
+              [(ngModel)]="searchQuery"
+              (input)="searchUsers()"
+              placeholder="Search a user..."
+              class="w-full py-2.5 pl-12 pr-4 text-sm text-gray-700 placeholder-gray-500 bg-white border border-[var(--primary)] rounded-xl shadow-md focus:outline-none focus:ring-1 focus:ring-[var(--primary)]">
+            <svg xmlns="http://www.w3.org/2000/svg"
+                 class="absolute w-6 h-6 text-[var(--primary)] left-3 top-1/2 transform -translate-y-1/2"
+                 viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd" />
+            </svg>
+          </div>
+
+          <button (click)="createNewAccount()" 
+          class="w-full md:w-auto flex items-center justify-center px-2 md:px-4 py-2.5 text-sm  text-white bg-[var(--primary)] rounded-xl hover:bg-hover-green transition-colors duration-200 shadow-sm hover:shadow-md">
+    <svg xmlns="http://www.w3.org/2000/svg" 
+         class="w-4 h-4 md:w-5 md:h-5 mr-1.5 md:mr-2" 
+         viewBox="0 0 20 20" 
+         fill="currentColor">
+      <path fill-rule="evenodd" 
+            d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" 
+            clip-rule="evenodd" />
+    </svg>
+    Create Account
+  </button>
+        </div>
+
+        <!-- Users Table -->
+        <div class="overflow-x-auto">
+          <table class="w-full">
+            <thead>
+              <tr class="bg-[var(--primary)] text-white">
+                <th class="px-4 py-3 text-left text-sm font-semibold">Name</th>
+                <th class="px-4 py-3 text-left text-sm font-semibold hidden md:table-cell">Location</th>
+                <th class="px-4 py-3 text-left text-sm font-semibold">Type</th>
+                <th class="px-4 py-3 text-left text-sm font-semibold">Status</th>
+                <th class="px-4 py-3 text-left text-sm font-semibold">Action</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-200">
+              <tr *ngFor="let user of paginatedUsers"
+                  (click)="viewUserDetails(user)"
+                  [ngClass]="{'bg-gray-100': currentUser?.id === user.id, 'hover:bg-gray-50/50': currentUser?.id !== user.id}"
+                  class="transition-all duration-300">
+                <td class="px-4 py-3 text-sm text-gray-700">{{ user.fullname }}</td>
+                <td class="px-4 py-3 text-sm text-gray-600 hidden md:table-cell">{{ user.division }}</td>
+                <td class="px-4 py-3 text-sm text-gray-600">
+                  {{ user.role === 'superadmin' ? 'Super Admin' : user.role !== 'Desk attendant' ? 'Admin' : 'Desk Attendant' }}
+                </td>
+                <td class="px-4 py-3">
+                  <span [ngClass]="{'bg-green-100 text-green-800': user.is_online, 'bg-red-100 text-red-800': !user.is_online}"
+                        class="px-3 py-1 text-xs font-medium rounded-full">
+                    {{ user.is_online ? 'Active' : 'Inactive' }}
+                  </span>
+                </td>
+                <td class="px-4 py-3">
+                  <div class="flex space-x-3">
+                    <button (click)="editUser(user)" class="text-[var(--primary)] hover:text-hover-green">
+                      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                      </svg>
+                    </button>
+                    <button (click)="confirmDeleteUser(user)" class="text-red-400 hover:text-red-600">
+                      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                      </svg>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+
+              <!-- Empty State -->
+              <tr *ngIf="paginatedUsers.length === 0">
+                <td colspan="6" class="p-8 text-center text-gray-500">
+                  <app-lottie-animation class="w-40 h-40 md:w-56 md:h-56 mx-auto" animation="noUsers"></app-lottie-animation>
+                  <div class="text-lg font-medium text-gray-600">No users available</div>
+                  <div class="mb-4 text-base text-gray-500">
+                    Click <span class="font-medium text-green-600">Create Account</span> to add a user
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Pagination -->
+        <div class="flex flex-col md:flex-row md:items-center justify-between mt-6 gap-4">
+          <button (click)="previousPage()"
+                  [disabled]="currentPage === 1"
+                  class="px-4 py-2 text-sm md:text-base text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-50">
+            Previous
+          </button>
+          <span class="text-sm md:text-base text-gray-600">Page {{ currentPage }} of {{ totalPages }}</span>
+          <button (click)="nextPage()"
+                  [disabled]="currentPage === totalPages"
+                  class="px-4 py-2 text-sm md:text-base text-white bg-[var(--primary)] rounded-lg hover:bg-hover-green disabled:opacity-50">
+                  Next
+                </button>
+              </div>
             </div>
-            
-
-            <button (click)="createNewAccount()"
-                    class="flex items-center px-6 py-2 text-white  bg-[var(--primary)] shadow-md hover:bg-hover-green rounded-xl hover:shadow-lg">
-              <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
-                <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
-              </svg>
-              Create Account
-            </button>
-          </div>
-
-        <div >
-          <div class="overflow-hidden border border-gray-200 rounded-xl">
-            <table  class="w-full">
-              <thead>
-                <tr class=" bg-[var(--primary)] text-base text-white">
-                  <th class="px-6 py-4  font-semibold text-left ">Name</th>
-                  <th class="px-6 py-4  font-semibold text-left ">Location</th>
-                  <th class="px-6 py-4  font-semibold text-left ">Type</th>
-                  <th class="px-6 py-4  font-semibold text-left ">Status</th>
-                  <th class="px-6 py-4  font-semibold text-left ">Action</th>
-                </tr>
-              </thead>
-              <tbody class="divide-y divide-gray-200">
-
-
-                 <!-- Empty State -->
-      <tr *ngIf="paginatedUsers.length === 0">
-        <td colspan="6" class="p-8 text-center text-gray-500">
-          <app-lottie-animation class="w-56 h-56 mx-auto" animation="noUsers"></app-lottie-animation>
-          <div class="text-lg font-medium text-gray-600">No users available</div>
-          <div class="mb-4 text-base text-gray-500">
-            Click <span class="font-medium text-green-600">Create Account</span> to add a user
-          </div>
-        </td>
-      </tr>
-
-
-      <tr *ngFor="let user of paginatedUsers; let even = even"
-      (click)="viewUserDetails(user)"
-      [ngClass]="{'bg-gray-100': currentUser?.id === user.id, 'hover:bg-gray-50/50': currentUser?.id !== user.id}"
-      class="transition-all duration-300">
-  
-
-
-
-                  <td class="px-6 py-4">
-                    <div class="flex items-center space-x-3">
-                      <span class="text-base text-gray-700">{{ user.fullname }}</span>
-                    </div>
-                  </td>
-                  <td class="px-6 py-4 text-base text-gray-600">{{ user.division }}</td>
-                  <td class="px-6 py-4 text-base text-gray-600">
-                    {{ user.role === 'superadmin' ? 'Super Admin' : user.role !== 'Desk attendant' ? 'Admin' : 'Desk Attendant' }}
-                  </td>
-                  <td class="px-6 py-4">
-                    <span [ngClass]="{'bg-green-100 text-green-800': user.is_online, 'bg-red-100 text-red-800': !user.is_online}"
-                          class="px-3 py-1 text-xs font-medium rounded-full">
-                      {{ user.is_online ? 'Active' : 'Inactive' }}
-                    </span>
-                  </td>
-                  <td class="px-6 py-4">
-                    <div class="flex space-x-3">
-                      <button (click)="editUser(user)" class=" text-[var(--primary)] hover:text-hover-green">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-                        </svg>
-                      </button>
-                      <button (click)="confirmDeleteUser(user)" class="text-red-400 hover:text-red-600">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                        </svg>
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-
-          <!-- Pagination -->
-          <div class="flex items-center justify-between mt-6">
-            <button (click)="previousPage()"
-                    [disabled]="currentPage === 1"
-                    class="px-4 py-2 text-base text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-50">
-              Previous
-            </button>
-            <span class="text-base text-gray-600">Page {{ currentPage }} of {{ totalPages }}</span>
-            <button (click)="nextPage()"
-                    [disabled]="currentPage === totalPages"
-                    class="px-4 py-2 text-base text-white  bg-[var(--primary)] rounded-lg hover:bg-hover-green disabled:opacity-50">
-              Next
-            </button>
           </div>
         </div>
-      </div>
-    </div>
-  </div>
-</main>
-
+      </main>
 
 <app-create-account-modal
   *ngIf="showModal"
