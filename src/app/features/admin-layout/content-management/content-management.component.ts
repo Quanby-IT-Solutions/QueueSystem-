@@ -427,6 +427,7 @@ export class ContentManagementComponent implements OnInit {
       this.API.setLoading(false);
       this.API.sendFeedback('success','Content has been updated successfully!', 5000)
     }catch(e:any){
+      console.log(e.message)
       this.API.sendFeedback('error','Something went wrong.', 5000)
     }
     

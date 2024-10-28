@@ -163,7 +163,7 @@ export class ContentService {
           conditions: `WHERE division_id  = '${division_id}'`
         });
         if(!updateResponse.success){
-          throw new Error('Something went wrong.');
+          throw new Error(updateResponse.output);
         }
       }else{
         const id = this.API.createUniqueID32();
@@ -181,11 +181,12 @@ export class ContentService {
           },
         });
         if(!createResponse.success){
-          throw new Error('Something went wrong.');
+          
+          throw new Error(createResponse.output);
         }
       }
     }else{
-      throw new Error('Something went wrong.');
+      throw new Error(response.output);
     }
   }
 

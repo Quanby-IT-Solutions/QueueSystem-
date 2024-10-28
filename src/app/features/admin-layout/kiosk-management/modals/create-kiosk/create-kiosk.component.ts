@@ -58,6 +58,7 @@ export class CreateKioskComponent implements OnInit, OnDestroy {
       this.errorMessageTimeout = setTimeout(()=>{
         this.errorMessage.code = undefined;
       },5000)
+      this.submittingForm = false;
       return;
     }
     if(this.kiosk.printer_ip.trim() == ''){

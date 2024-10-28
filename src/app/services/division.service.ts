@@ -86,7 +86,7 @@ export class DivisionService {
         throw new Error(response.output);
       }
     }catch(e:any){
-      throw new Error('Something went wrong');
+      throw new Error(e.message);
     }
 
    

@@ -20,19 +20,7 @@ export class ServiceService {
 
 
  async addService(name:string){
-  const checkResponse = await this.API.read({
-    selectors:['*'],
-    tables:'services',
-    conditions:`WHERE name = '${name}'`
-  })
 
-  if(checkResponse.success){
-    if(checkResponse.output.length>0){
-      throw new Error('This name is already in use!');
-    }
-  }else{
-    throw new Error('Something went wrong');
-  }
    const id = this.API.createUniqueID32();
    const currentDivision = await this.divisionService.getDivision();
    const response = await this.API.create({

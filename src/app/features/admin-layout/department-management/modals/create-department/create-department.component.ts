@@ -52,6 +52,7 @@ export class CreateDepartmentComponent {
       this.errorMessageTimeout = setTimeout(()=>{
         this.errorMessage = undefined;
       },5000)
+      this.submittingForm = false;
       return;
     }
     try{
