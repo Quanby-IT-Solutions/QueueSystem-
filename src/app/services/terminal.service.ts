@@ -96,24 +96,21 @@ async deleteTerminal(id:string){
 }
 
  async getAllTerminals() : Promise<Terminal[]>{
-     const response = await this.API.read({
-    selectors: ['divisions.name as division, latest_session.last_active as last_active, latest_session.status as session_status, desk_attendants.fullname as attendant, terminals.*'],
-    tables: 'terminals',
-    conditions: `
-      LEFT JOIN divisions ON divisions.id = terminals.division_id
-      LEFT JOIN terminal_sessions ON terminal_sessions.terminal_id = terminals.id 
-      LEFT JOIN (
-        SELECT id, terminal_id, status, last_active, 
-               ROW_NUMBER() OVER (PARTITION BY terminal_id ORDER BY last_active DESC) AS index 
-        FROM terminal_sessions
-      ) AS latest_session ON terminal_sessions.id = latest_session.id 
-      LEFT JOIN desk_attendants ON terminal_sessions.attendant_id = desk_attendants.id
-      WHERE terminals.division_id = ${this.divisionService.selectedDivision?.id}
-      AND (latest_session.index = 1 OR latest_session.index IS NULL)
-      GROUP BY terminals.id, divisions.id, terminal_sessions.terminal_id, desk_attendants.id, latest_session.last_active, latest_session.status
-      ORDER BY terminals.number ASC 
-    `
-});
+       const response = await this.API.read({
+        selectors: ['divisions.name as division,latest_session.last_active as last_active ,latest_session.status as session_status, desk_attendants.fullname as attendant, terminals.*'],
+        tables: 'terminals',
+        conditions: `
+          LEFT JOIN divisions ON divisions.id = terminals.division_id
+          LEFT JOIN terminal_sessions ON terminal_sessions.terminal_id = terminals.id 
+          LEFT JOIN (
+            SELECT id, status,last_active ,ROW_NUMBER() OVER (PARTITION BY terminal_id ORDER BY last_active DESC) AS index FROM terminal_sessions
+          ) AS latest_session ON terminal_sessions.id = latest_session.id 
+          LEFT JOIN desk_attendants ON terminal_sessions.attendant_id = desk_attendants.id
+          WHERE terminals.division_id = '${this.divisionService.selectedDivision?.id}' 
+          AND (index =1 OR index IS NULL)
+          GROUP BY terminals.id, divisions.id, terminal_sessions.terminal_id,desk_attendants.id, latest_session.last_active, latest_session.status
+          ORDER BY terminals.number ASC 
+          `});
    
     if(response.success){
       
