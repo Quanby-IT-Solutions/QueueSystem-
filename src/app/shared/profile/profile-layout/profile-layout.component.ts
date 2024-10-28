@@ -39,7 +39,7 @@ export class ProfileLayoutComponent {
   newPassword = '';
   confirmNewPassword = '';
   userLogs = [
-    { date: '2024-10-21 14:00', activity: 'Logged in from New York' },
+    { date: '2024-10-21 14:00', activity: 'Logged in from Philippines' },
     { date: '2024-10-20 09:30', activity: 'Changed profile picture' },
     { date: '2024-10-19 16:15', activity: 'Updated email address' }
   ];

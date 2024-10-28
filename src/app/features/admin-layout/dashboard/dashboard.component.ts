@@ -61,13 +61,29 @@ interface StaffPerformance {
   }[];
 }
 
+
+interface DeskAttendantPerformanceMetrics {
+  fullname: string,
+  division_name: string,
+  attendantId: string;
+  totalCheckIns: number;
+  averageCheckInTime: number;
+  totalCheckInsToday: number;
+  totalCheckInsThisWeek: number;
+  averageTimeService: string;
+}
+
 interface KioskStatus {
   id: string;
   location: string;
   status: string;
-  ticketsIssued: number;
-  lastMaintenance: string;
+  ticketCount: number;
+  type: 'kiosk' | 'terminal';
+  kioskName?: string;
+  terminalNumber?: string;
 }
+
+
 
 @Component({
   selector: 'app-admin-dashboard',
@@ -119,6 +135,16 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
   updateTimeInterval: any;
   isRefreshing: boolean = false;
 
+  deskAttendantMetrics: DeskAttendantPerformanceMetrics[] = [];
+  metricsLoading: boolean = false;
+
+      
+  paginatedStaffPerformance: any[] = [];
+  deskAttendantCurrentPage: number = 1; 
+  deskAttendantTotalPages: number = 1; 
+
+
+
   constructor(
     private API: UswagonCoreService,
     private divisionService: DivisionService,
@@ -140,11 +166,247 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
       }
     });
 
+    this.loadTerminalsAndKiosks();
+    this.loadDeskAttendants();
     this.startRealtimeUpdates();
     this.updateLastUpdatedTime();
     this.refreshData();
   }
 
+
+
+
+
+private async loadTerminalsAndKiosks() {
+  const kioskData = await this.API.read({
+      selectors: [
+          'k.id',
+          'k.number as kioskName',
+          'd.name as location',
+          'k.status'
+      ],
+      tables: 'kiosks k LEFT JOIN divisions d ON k.division_id = d.id',
+      conditions: ''
+  });
+
+  const terminalData = await this.API.read({
+      selectors: [
+          't.id',
+          't.number as terminalNumber',
+          'd.name as location',
+          't.status'
+      ],
+      tables: 'terminals t LEFT JOIN divisions d ON t.division_id = d.id',
+      conditions: ''
+  });
+
+  const kioskTicketCounts = await Promise.all(
+      kioskData.output.map(async (kiosk: any) => {
+          const ticketData = await this.API.read({
+              selectors: ['COUNT(id) as ticketCount'],
+              tables: 'queue',
+              conditions: `WHERE kiosk_id = '${kiosk.id}'`
+          });
+
+          const ticketCount = ticketData.success && ticketData.output.length > 0
+              ? parseInt(ticketData.output[0].ticketCount, 10)
+              : 0;
+
+          return {
+              id: kiosk.id,
+              location: kiosk.location,
+              status: kiosk.status === 'available' ? 'Operational' : 'Out of Service',
+              ticketCount,
+              type: 'kiosk' as const,
+              kioskName: kiosk.kioskName
+          };
+      })
+  );
+
+  const terminalTicketCounts = await Promise.all(
+      terminalData.output.map(async (terminal: any) => {
+          const sessionData = await this.API.read({
+              selectors: ['COUNT(id) as sessionCount'],
+              tables: 'terminal_sessions',
+              conditions: `WHERE terminal_id = '${terminal.id}'`
+          });
+
+          const ticketCount = sessionData.success && sessionData.output.length > 0
+              ? parseInt(sessionData.output[0].sessionCount, 10)
+              : 0;
+
+          return {
+              id: terminal.id,
+              location: terminal.location,
+              status: terminal.status === 'available' ? 'Operational' : 'Out of Service',
+              ticketCount,
+              type: 'terminal' as const,
+              terminalNumber: terminal.terminalNumber
+          };
+      })
+  );
+
+  const allData: KioskStatus[] = [...kioskTicketCounts, ...terminalTicketCounts];
+
+  this.kioskStatus$ = of(allData);
+  this.updateKioskPagination();
+}
+
+
+
+  
+
+  private async loadDeskAttendants() {
+    const deskAttendantData = await this.API.read({
+      selectors: [
+        'da.id as attendantId',  
+        'da.username',           
+        'da.fullname',           
+        'd.name as division_name' 
+      ],
+      tables: 'desk_attendants da LEFT JOIN divisions d ON da.division_id = d.id',
+      conditions: ''
+    });
+  
+    console.log('API response for desk attendants:', deskAttendantData);
+  
+    if (deskAttendantData.success && deskAttendantData.output.length > 0) {
+      this.staffPerformance$ = of(
+        deskAttendantData.output.map((item: any) => ({
+          id: item.attendantId,
+          name: item.fullname,          
+          office: item.division_name,     
+          ticketsServed: 0,               
+          totalCheckins: 0,               
+          avgServiceTime: 'N/A'           
+        }))
+      );
+  
+      console.log('Mapped desk attendants:', deskAttendantData.output);
+  
+      this.staffTotalPages = Math.ceil(deskAttendantData.output.length / 5);
+      this.updateDeskAttendantPage();
+  
+      for (const attendant of deskAttendantData.output) {
+        console.log(`Fetching terminal sessions for attendantId: ${attendant.attendantId}`);
+        await this.fetchTerminalSessions(attendant.attendantId, attendant.fullname, attendant.division_name);
+      }
+  
+      console.log('Final desk attendant metrics:', this.deskAttendantMetrics);
+    } else {
+      console.warn('No desk attendants found or API response unsuccessful.');
+    }
+  }
+  
+  
+  
+  
+  async fetchTerminalSessions(attendantId: string, fullName: string, division_name: string) {
+    try {
+      const response = await this.API.read({
+        selectors: ['*'],
+        tables: 'terminal_sessions',
+        conditions: `WHERE attendant_id = '${attendantId}'`,
+      });
+  
+      console.log(`API response for terminal sessions (attendantId: ${attendantId}):`, response);
+  
+      if (response.success && response.output.length > 0) {
+        const sessions = response.output;
+        const metrics = this.calculateMetrics(sessions, fullName, division_name, attendantId);
+        this.deskAttendantMetrics.push(metrics);
+        console.log(`Calculated metrics for attendantId ${attendantId}:`, metrics);
+      } else {
+        console.warn(`No terminal sessions found for attendantId: ${attendantId}`);
+      }
+    } catch (error) {
+      console.error(`Error fetching terminal sessions for attendantId: ${attendantId}`, error);
+    }
+  }
+
+  
+  calculateMetrics(sessions: any[], fullname: string, division_name: string, attendantId: string): DeskAttendantPerformanceMetrics {
+    const totalCheckIns = sessions.length;
+    const checkInTimesByDate: Record<string, number[]> = {};
+  
+    sessions.forEach((session) => {
+      const startTime = new Date(session.start_time);
+      const dateKey = startTime.toISOString().split('T')[0];
+      const checkInTimeInMinutes = startTime.getHours() * 60 + startTime.getMinutes();
+  
+      if (!checkInTimesByDate[dateKey]) {
+        checkInTimesByDate[dateKey] = [];
+      }
+      checkInTimesByDate[dateKey].push(checkInTimeInMinutes);
+    });
+  
+    const dailyAverages: number[] = Object.values(checkInTimesByDate).map((times) => {
+      const totalMinutes = times.reduce((sum, time) => sum + time, 0);
+      return totalMinutes / times.length;
+    });
+  
+    const overallAverageCheckInTimeInMinutes =
+      dailyAverages.reduce((sum, avg) => sum + avg, 0) / dailyAverages.length;
+  
+    const totalDuration = sessions.reduce((acc, session) => {
+      const startTime = new Date(session.start_time).getTime();
+      const lastActive = new Date(session.last_active).getTime();
+      return acc + (lastActive - startTime);
+    }, 0);
+  
+    const averageDurationMs = totalDuration / totalCheckIns;
+    const averageServiceMinutes = Math.floor(averageDurationMs / 60000);
+    const averageServiceSeconds = Math.floor((averageDurationMs % 60000) / 1000);
+    const averageTimeService = `${averageServiceMinutes}:${averageServiceSeconds.toString().padStart(2, '0')} mins`;
+  
+    const totalCheckInsToday = sessions.filter(session =>
+      new Date(session.start_time).toDateString() === new Date().toDateString()).length;
+  
+    const totalCheckInsThisWeek = sessions.filter(session => {
+      const sessionDate = new Date(session.start_time);
+      const currentDate = new Date();
+      const weekStart = new Date(currentDate.setDate(currentDate.getDate() - currentDate.getDay()));
+      const weekEnd = new Date(weekStart);
+      weekEnd.setDate(weekEnd.getDate() + 6);
+      return sessionDate >= weekStart && sessionDate <= weekEnd;
+    }).length;
+  
+    const metrics = {
+      attendantId,
+      fullname,
+      division_name,
+      totalCheckIns,
+      averageCheckInTime: overallAverageCheckInTimeInMinutes,
+      totalCheckInsToday,
+      totalCheckInsThisWeek,
+      averageTimeService
+    };
+  
+    console.log(`Metrics for attendantId ${attendantId}:`, metrics);
+    return metrics;
+  }
+  
+  
+  
+
+
+  updateDeskAttendantPage() {
+    this.staffPerformance$.pipe(take(1)).subscribe(staffData => {
+      const start = (this.staffCurrentPage - 1) * 5;
+      const end = start + 5;
+      this.paginatedStaffPerformance = staffData.slice(start, end);
+    });
+  }
+  
+  onDeskAttendantPageChange(direction: 'prev' | 'next') {
+    if (direction === 'prev' && this.staffCurrentPage > 1) {
+      this.deskAttendantCurrentPage--;
+    } else if (direction === 'next' && this.deskAttendantCurrentPage < this.deskAttendantTotalPages) {
+      this.deskAttendantCurrentPage++;
+    }
+    this.updateDeskAttendantPage();
+  }
+  
 
 
   ngAfterViewInit() {
@@ -183,8 +445,8 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
 
       // Update all observables and states
       this.queueAnalytics$ = this.getMockQueueAnalytics();
-      this.staffPerformance$ = this.getMockStaffPerformance();
-      this.kioskStatus$ = this.getMockKioskStatus();
+      // this.staffPerformance$ = this.getMockStaffPerformance();
+      // this.kioskStatus$ = this.getMockKioskStatus();
       this.updateOverallMetrics();
       this.updateKioskPagination();
 
@@ -346,8 +608,7 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
             k.id,
             k.location,
             k.status,
-            k.ticketsIssued.toString(),
-            k.lastMaintenance
+          
           ]),
           theme: 'striped',
           styles: {
@@ -541,31 +802,33 @@ const datasets = filteredMetrics.map((metric) => {
     ]);
   }
 
-  getMockStaffPerformance(): Observable<StaffPerformance[]> {
-    return of([
-      { name: 'Jon Doe', office: 'Cashier', ticketsServed: 20, avgServiceTime: '10 mins', customerRating: 4.8, status: 'Active', isExpanded: false, dailyPerformance: [] },
-      { name: 'Jane Doe', office: 'Registrar', ticketsServed: 25, avgServiceTime: '8 mins', customerRating: 4.9, status: 'Active', isExpanded: false, dailyPerformance: [] },
-      { name: 'Alice Smith', office: 'Accounting', ticketsServed: 18, avgServiceTime: '12 mins', customerRating: 4.7, status: 'Active', isExpanded: false, dailyPerformance: [] },
-      { name: 'Bob Johnson', office: 'Cashier', ticketsServed: 22, avgServiceTime: '9 mins', customerRating: 4.6, status: 'Active', isExpanded: false, dailyPerformance: [] },
-      { name: 'Charlie Brown', office: 'Registrar', ticketsServed: 23, avgServiceTime: '11 mins', customerRating: 4.5, status: 'Active', isExpanded: false, dailyPerformance: [] },
-    ]);
-  }
+  // getMockStaffPerformance(): Observable<StaffPerformance[]> {
+  //   return of([
+  //     { name: 'Jon Doe', office: 'Cashier', ticketsServed: 20, avgServiceTime: '10 mins', customerRating: 4.8, status: 'Active', isExpanded: false, dailyPerformance: [] },
+  //     { name: 'Jane Doe', office: 'Registrar', ticketsServed: 25, avgServiceTime: '8 mins', customerRating: 4.9, status: 'Active', isExpanded: false, dailyPerformance: [] },
+  //     { name: 'Alice Smith', office: 'Accounting', ticketsServed: 18, avgServiceTime: '12 mins', customerRating: 4.7, status: 'Active', isExpanded: false, dailyPerformance: [] },
+  //     { name: 'Bob Johnson', office: 'Cashier', ticketsServed: 22, avgServiceTime: '9 mins', customerRating: 4.6, status: 'Active', isExpanded: false, dailyPerformance: [] },
+  //     { name: 'Charlie Brown', office: 'Registrar', ticketsServed: 23, avgServiceTime: '11 mins', customerRating: 4.5, status: 'Active', isExpanded: false, dailyPerformance: [] },
+      
+  
+  //   ]);
+  // }
 
-  getMockKioskStatus(): Observable<KioskStatus[]> {
-    return of([
-      { id: 'K01', location: 'Main Hall', status: 'Operational', ticketsIssued: 500, lastMaintenance: '2023-09-20' },
-      { id: 'K02', location: 'Branch A', status: 'Low Paper', ticketsIssued: 300, lastMaintenance: '2023-09-25' },
-      { id: 'K03', location: 'Branch B', status: 'Out of Service', ticketsIssued: 0, lastMaintenance: '2023-09-10' },
-      { id: 'K04', location: 'Branch C', status: 'Operational', ticketsIssued: 700, lastMaintenance: '2023-10-01' },
-      { id: 'K05', location: 'Branch D', status: 'Operational', ticketsIssued: 650, lastMaintenance: '2023-10-05' },
-      { id: 'K06', location: 'Branch E', status: 'Out of Service', ticketsIssued: 0, lastMaintenance: '2023-10-15' },
-      { id: 'K07', location: 'Branch F', status: 'Operational', ticketsIssued: 450, lastMaintenance: '2023-10-20' },
-      { id: 'K08', location: 'Branch G', status: 'Low Paper', ticketsIssued: 200, lastMaintenance: '2023-10-22' },
-      { id: 'K09', location: 'Branch H', status: 'Operational', ticketsIssued: 550, lastMaintenance: '2023-10-25' },
-      { id: 'K10', location: 'Branch I', status: 'Operational', ticketsIssued: 400, lastMaintenance: '2023-10-28' },
+  // getMockKioskStatus(): Observable<KioskStatus[]> {
+  //   return of([
+  //     { id: 'K01', location: 'Main Hall', status: 'Operational', ticketsIssued: 500, lastMaintenance: '2023-09-20' },
+  //     { id: 'K02', location: 'Branch A', status: 'Low Paper', ticketsIssued: 300, lastMaintenance: '2023-09-25' },
+  //     { id: 'K03', location: 'Branch B', status: 'Out of Service', ticketsIssued: 0, lastMaintenance: '2023-09-10' },
+  //     { id: 'K04', location: 'Branch C', status: 'Operational', ticketsIssued: 700, lastMaintenance: '2023-10-01' },
+  //     { id: 'K05', location: 'Branch D', status: 'Operational', ticketsIssued: 650, lastMaintenance: '2023-10-05' },
+  //     { id: 'K06', location: 'Branch E', status: 'Out of Service', ticketsIssued: 0, lastMaintenance: '2023-10-15' },
+  //     { id: 'K07', location: 'Branch F', status: 'Operational', ticketsIssued: 450, lastMaintenance: '2023-10-20' },
+  //     { id: 'K08', location: 'Branch G', status: 'Low Paper', ticketsIssued: 200, lastMaintenance: '2023-10-22' },
+  //     { id: 'K09', location: 'Branch H', status: 'Operational', ticketsIssued: 550, lastMaintenance: '2023-10-25' },
+  //     { id: 'K10', location: 'Branch I', status: 'Operational', ticketsIssued: 400, lastMaintenance: '2023-10-28' },
 
-    ]);
-  }
+  //   ]);
+  // }
 
   // async updateOverallMetrics() {
 
@@ -799,99 +1062,7 @@ const datasets = filteredMetrics.map((metric) => {
     }
   }
 
-  // initializeCharts(metrics: any[]) {
 
-  //   this.destroyCharts();
-
-  //   this.canvasElements.forEach((canvasElement, index) => {
-  //     const ctx = canvasElement.nativeElement.getContext('2d');
-  //     const metric = metrics[index];
-  //     const labels = this.getFilteredLabels();
-
-  //     if (!metric || !metric.data) {
-  //       console.warn('Metric data is missing:', metric);
-  //       return;
-  //     }
-
-  //     const gradient = ctx.createLinearGradient(0, 0, 0, 200);
-  //     gradient.addColorStop(0, 'rgba(34, 193, 195, 0.3)');
-  //     gradient.addColorStop(1, 'rgba(253, 187, 45, 0.1)');
-
-  //     const chart = new Chart(ctx, {
-  //       type: 'line',
-  //       data: {
-  //         labels: labels,
-  //         datasets: [{
-  //           label: metric.title,
-  //           data: this.getFilteredData(metric.data),
-  //           fill: true,
-  //           backgroundColor: gradient,
-  //           borderColor: '#22C1C3',
-  //           borderWidth: 3,
-  //           pointBackgroundColor: '#22C1C3',
-  //           pointRadius: 4,
-  //           pointHoverRadius: 6,
-  //           tension: 0.4,
-  //         }],
-  //       },
-  //       options: {
-  //         responsive: true,
-  //         maintainAspectRatio: false,
-  //         animation: {
-  //           duration: 1000, // Smooth 1-second transition for updates
-  //         },
-  //         plugins: {
-  //           legend: {
-  //             display: true,
-  //             position: 'top',
-  //             labels: {
-  //               color: '#333',
-  //               font: {
-  //                 size: 14,
-  //               },
-  //             },
-  //           },
-  //           tooltip: {
-  //             backgroundColor: '#f5f5f5',
-  //             bodyColor: '#333',
-  //             borderColor: '#ddd',
-  //             borderWidth: 1,
-  //             titleColor: '#666',
-  //           },
-  //         },
-  //         scales: {
-  //           x: {
-  //             display: true,
-  //             ticks: {
-  //               color: '#555',
-  //               font: {
-  //                 size: 12,
-  //               },
-  //             },
-  //             grid: {
-  //               color: 'rgba(200, 200, 200, 0.2)',
-  //             },
-  //           },
-  //           y: {
-  //             display: true,
-  //             ticks: {
-  //               color: '#555',
-  //               font: {
-  //                 size: 12,
-  //               },
-  //             },
-  //             grid: {
-  //               color: 'rgba(200, 200, 200, 0.2)',
-  //             },
-  //           },
-  //         },
-  //       },
-  //     });
-
-
-  //     this.charts.push(chart);
-  //   });
-  // }
 
   initializeCharts(metrics: any[]) {
     this.destroyCharts();
@@ -1040,8 +1211,8 @@ const datasets = filteredMetrics.map((metric) => {
     await this.queueService.getAllTodayQueues();
     await this.queueService.geAllAttendedQueues();
     this.queueAnalytics$ = this.getMockQueueAnalytics();
-    this.staffPerformance$ = this.getMockStaffPerformance();
-    this.kioskStatus$ = this.getMockKioskStatus();
+    // this.staffPerformance$ = this.getMockStaffPerformance();
+    // this.kioskStatus$ = this.getMockKioskStatus();
     this.updateOverallMetrics();
     this.updateKioskPagination();
     this.API.setLoading(false);
@@ -1074,11 +1245,11 @@ const datasets = filteredMetrics.map((metric) => {
   }
 
   updateKioskPagination() {
-    this.kioskStatus$.pipe(take(1)).subscribe(kioskData => {
-      const start = (this.kioskCurrentPage - 1) * 5;
-      const end = start + 5;
+    this.kioskStatus$.subscribe(kioskData => {
+      const start = (this.kioskCurrentPage - 1) * this.kioskItemsPerPage;
+      const end = start + this.kioskItemsPerPage;
       this.paginatedKioskStatus = kioskData.slice(start, end);
-      this.totalKioskPages = Math.ceil(kioskData.length / 5);
+      this.totalKioskPages = Math.ceil(kioskData.length / this.kioskItemsPerPage);
     });
   }
 
