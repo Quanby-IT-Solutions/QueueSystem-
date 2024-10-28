@@ -55,7 +55,7 @@ export class DivisionService {
         return this.selectedDivision;
       }else{
         this.divisions =  await  this.getDivisions();
-        if(this.divisions.length<=0) throw new Error('Error fetching divisions');
+        // if(this.divisions.length<=0) throw new Error('Error fetching divisions');
         this.selectedDivision = this.divisions[0];
         return this.selectedDivision;
       }

@@ -418,6 +418,7 @@ export class QueueService  {
       this.allQueue = response.output;
       return response.output;
     }else{
+      
       throw new Error('Unable to fetch queue');
     }
   }
@@ -427,7 +428,7 @@ export class QueueService  {
     const response = await this.API.read({
       selectors: ['*'],
       tables: 'queue',
-      conditions: `WHERE division_id = '${this.divisionService.selectedDivision!.id}' AND timestamp::date = CURRENT_DATE ${filter} ORDER BY timestamp ASC` 
+      conditions: `WHERE division_id = '${this.divisionService.selectedDivision!.id}' AND CAST(timestamp AS DATE) = CAST(GETDATE() AS DATE) ${filter} ORDER BY timestamp ASC` 
     });
     if(response.success){
       const queue = response.output as Queue[];
@@ -469,7 +470,7 @@ export class QueueService  {
     const response = await this.API.read({
       selectors: ['*'],
       tables: 'queue',
-      conditions: `WHERE timestamp::date = CURRENT_DATE ${filter} ORDER BY timestamp ASC` 
+      conditions: `WHERE  CAST(timestamp AS DATE) = CAST(GETDATE() AS DATE) ${filter} ORDER BY timestamp ASC` 
     });
     if(response.success){
       const queue = response.output as Queue[];

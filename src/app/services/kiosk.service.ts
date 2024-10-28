@@ -74,7 +74,7 @@ export class KioskService {
         throw new Error('Invalid kiosk code.');
       }
     }else{
-      throw new Error('Something went wrong.');
+      throw new Error(response.output);
     }
   }
 
