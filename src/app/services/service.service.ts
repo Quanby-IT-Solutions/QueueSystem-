@@ -117,6 +117,22 @@ async deleteSubService(id:string){
         throw new Error('Unable to fetch services');
       }
  }
+
+ async getAllSubServices(){
+  const response = await this.API.read({
+      selectors: ['*'],
+      tables: 'sub_services',
+      conditions: `
+         ORDER BY sub_services.name`
+    });
+
+  if(response.success){
+    return response.output;
+  }else{
+    throw new Error('Unable to fetch services');
+  }
+}
+
  
   async getAllServices(division_id:string){
    

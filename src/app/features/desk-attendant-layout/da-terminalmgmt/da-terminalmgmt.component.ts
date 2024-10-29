@@ -163,7 +163,7 @@ timerProgress: any;
     this.content = await this.contentService.getContentSetting();
     
     this.lastSession = await this.terminalService.getActiveSession()
-    this.services = await this.serviceService.getServices();
+    this.services = await this.serviceService.getAllSubServices();
     if(this.lastSession){
       this.selectedCounter = this.terminals.find(terminal=>terminal.id == this.lastSession.terminal_id);
       this.terminalService.refreshTerminalStatus(this.lastSession.id);
@@ -254,7 +254,7 @@ timerProgress: any;
         this.API.sendFeedback('error','Your terminal is for maintenance. You have been logout!',5000)
       }
     }
-    this.services = await this.serviceService.getServices();
+    this.services = await this.serviceService.getAllSubServices();
   }
   private updateUpcomingTicket() {
     // Find the next 'waiting' ticket in the queue
