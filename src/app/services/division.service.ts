@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { UswagonAuthService } from 'uswagon-auth';
 import { UswagonCoreService } from 'uswagon-core';
 import { environment } from '../../environment/environment';
+import { LogsService } from './logs.service';
 
 interface Division{
   id:string;
@@ -14,7 +15,9 @@ interface Division{
 })
 export class DivisionService {
 
-  constructor(private auth:UswagonAuthService, private API:UswagonCoreService) {}
+  constructor(
+    private logService:LogsService,
+    private auth:UswagonAuthService, private API:UswagonCoreService) {}
 
   private isSuperAdmin:boolean = this.auth.accountLoggedIn()=='superadmin';
   private adminID:string = environment.administrators;
@@ -118,6 +121,7 @@ export class DivisionService {
      if(!response.success){
        throw new Error('Something went wrong');
      }
+     this.logService.pushLog('new-division', 'created a new division');
    }
    
   
@@ -148,6 +152,7 @@ export class DivisionService {
     if(!response.success){
       throw new Error('Something went wrong.');
     }
+    this.logService.pushLog('new-division', 'updated a  division');
   }
    async deleteDivision(id:string){
      const response = await this.API.delete({
@@ -158,6 +163,7 @@ export class DivisionService {
      if(!response.success){
        throw new Error('Unable to delete division');
      }
+     this.logService.pushLog('new-division', 'deleted a  division');
    }
    
 }

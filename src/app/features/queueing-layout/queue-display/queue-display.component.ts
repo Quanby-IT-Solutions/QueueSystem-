@@ -34,6 +34,7 @@ interface UpNextItem {
   avatar: string;
   ticketNumber: string;
   personName: string;
+  type:string;
 }
 
 interface WeatherItem {
@@ -73,6 +74,8 @@ export class QueueDisplayComponent implements OnInit, AfterViewInit, OnChanges, 
  
   // VARIABLES
   
+  @Input() priority: string = 'P';
+  @Input() regular: string = 'R';
  
   @Input() division?:Division;
  
@@ -131,18 +134,18 @@ export class QueueDisplayComponent implements OnInit, AfterViewInit, OnChanges, 
 
   // Control flags: 1 is "on", 0 is "off"
   upNextItems: UpNextItem[] = [
-    { avatar: '/assets/queue-display/Male_2.png', ticketNumber: 'P-217', personName: 'Kristin Watson' },
-    { avatar: '/assets/queue-display/Male_1.png', ticketNumber: 'P-218', personName: 'Al Francis Salceda' },
-    { avatar: '/assets/queue-display/Female_2.png', ticketNumber: 'R-247', personName: 'Joey Bichara' },
-    { avatar: '/assets/queue-display/female_1.png', ticketNumber: 'R-217', personName: 'Kenneth Felix Belga' },
+    { avatar: '/assets/queue-display/Male_2.png', ticketNumber: 'P-217', personName: 'Kristin Watson' ,type:'priority'},
+    { avatar: '/assets/queue-display/Male_1.png', ticketNumber: 'P-218', personName: 'Al Francis Salceda',type:'priority' },
+    { avatar: '/assets/queue-display/Female_2.png', ticketNumber: 'R-247', personName: 'Joey Bichara' ,type:'regular'},
+    { avatar: '/assets/queue-display/female_1.png', ticketNumber: 'R-217', personName: 'Kenneth Felix Belga',type:'regular' },
   ];
   
 
   getPriorityItems(items:UpNextItem[]){
-   return items.filter(next=> next.ticketNumber.includes('P'))
+   return items.filter(next=> next.type == 'priority')
   }
   getRegularItems(items:UpNextItem[]){
-   return items.filter(next=> next.ticketNumber.includes('R'))
+   return items.filter(next=> next.type == 'regular')
   }
 
   attendedQueue:AttendedQueue[]=[];
@@ -411,6 +414,23 @@ export class QueueDisplayComponent implements OnInit, AfterViewInit, OnChanges, 
   ngOnChanges(changes: SimpleChanges): void {
     if(!this.isPreview)  this.loadQueue();  
     this.getSafeYoutubeUrl(this.videoUrl);
+    if(this.isPreview){
+      this.counters = [
+        { number: 1, ticketNumber: `${this.priority}-32`, personName: 'Domeng Valdez',id:'',status:'online' },
+        { number : 1, ticketNumber: `${this.priority}-31`, personName: 'Maria Clara',id:'',status:'online' },
+        { number : 1, ticketNumber: `${this.priority}-34`, personName: 'Domeng Cruz',id:'',status:'online' },
+        { number : 1, ticketNumber: `${this.priority}-30`, personName: 'Juan Valdez',id:'',status:'online' },
+        { number : 1, ticketNumber: `${this.priority}-49`, personName: 'Marga Madrid',id:'',status:'online' },
+        { number : 1, ticketNumber: `${this.priority}-50`, personName: 'Jo Ann',id:'',status:'online' },
+        { number : 1, ticketNumber: `${this.priority}-20`, personName: 'John Mark',id:'',status:'online' },
+      ];
+      this.upNextItems =[
+        { avatar: '/assets/queue-display/Male_2.png', ticketNumber: `${this.priority}-217`, personName: 'Kristin Watson', type:'priority'},
+        { avatar: '/assets/queue-display/Male_1.png', ticketNumber: `${this.priority}-218`, personName: 'Al Francis Salceda', type:'priority' },
+        { avatar: '/assets/queue-display/Female_2.png', ticketNumber: `${this.regular}-247`, personName: 'Joey Bichara', type:'regular' },
+        { avatar: '/assets/queue-display/female_1.png', ticketNumber: `${this.regular}-217`, personName: 'Kenneth Felix Belga' , type:'regular'},
+      ];
+    }
     // if(this.videoPlayer != null)
     // this.videoPlayer.nativeElement.src=this.videoUrl??'assets/queue-display/vsu.mp4';
   
@@ -484,6 +504,8 @@ export class QueueDisplayComponent implements OnInit, AfterViewInit, OnChanges, 
       return;
     }
 
+
+
     this.loading= true;
     this.dataLoaded = false;
     if(this.subscription){
@@ -500,8 +522,9 @@ export class QueueDisplayComponent implements OnInit, AfterViewInit, OnChanges, 
       this.upNextItems = queueItems.reduce((prev: UpNextItem[], item: any) => {
         return [...prev, {
           avatar: item.gender === 'male' ? '/assets/queue-display/Male_2.png' : item.gender =='female' ? '/assets/queue-display/Female_2.png' :'/assets/default.jpg',
-          ticketNumber: `${item.type === 'regular' ? 'R' : 'P'}-${item.number.toString().padStart(3, '0')}`,
-          personName: item.fullname
+          ticketNumber: `${item.type === 'regular' ? this.regular : this.priority}-${item.number.toString().padStart(3, '0')}`,
+          personName: item.fullname,
+          type : item.type,
         }];
 
       }, []);
@@ -534,7 +557,7 @@ export class QueueDisplayComponent implements OnInit, AfterViewInit, OnChanges, 
             Object.assign(existingTerminal, {
               id: updatedTerminal.id,
               status: updatedTerminal.status,
-              ticketNumber: ticket ==undefined ? undefined : (ticket.type=='priority'?'P':'R') + '-'+ ticket.number!.toString().padStart(3, '0'),
+              ticketNumber: ticket ==undefined ? undefined : (ticket.type=='priority'?this.priority:this.regular) + '-'+ ticket.number!.toString().padStart(3, '0'),
               personName: updatedTerminal.fullname,
               number:updatedTerminal.number
             });
@@ -543,7 +566,7 @@ export class QueueDisplayComponent implements OnInit, AfterViewInit, OnChanges, 
             this.counters.push({
               id: updatedTerminal.id,
               status: updatedTerminal.status,
-              ticketNumber: ticket ==undefined ? undefined : (ticket.type=='priority'?'P':'R') + '-'+ ticket.number!.toString().padStart(3, '0'),
+              ticketNumber: ticket ==undefined ? undefined : (ticket.type=='priority'?this.priority:this.regular) + '-'+ ticket.number!.toString().padStart(3, '0'),
               personName: updatedTerminal.fullname,
               number:updatedTerminal.number
             });

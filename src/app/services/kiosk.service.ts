@@ -5,6 +5,7 @@ import { DivisionService } from './division.service';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../environment/environment';
 import { every, firstValueFrom } from 'rxjs';
+import { LogsService } from './logs.service';
 
 
 export interface Kiosk{
@@ -23,6 +24,7 @@ export interface Kiosk{
 export class KioskService {
 
   constructor(
+    private logService:LogsService,
     private http:HttpClient,
     private divisionService: DivisionService,
     private API:UswagonCoreService, private auth:UswagonAuthService) { }
@@ -106,6 +108,7 @@ export class KioskService {
    if(!response.success){
      throw new Error('Something went wrong');
    }
+   this.logService.pushLog('new-kiosk', 'added a kiosk');
  }
 
  async updateKioskStatus(id:string, status: 'available'|'maintenance'){
@@ -120,6 +123,7 @@ export class KioskService {
    if(!response.success){
      throw new Error('Unable to add terminal');
    }
+
  }
 
  async updateKiosk(kiosk:Kiosk, touched:boolean){
@@ -152,6 +156,7 @@ export class KioskService {
   if(!response.success){
     throw new Error('Something went wrong.');
   }
+  this.logService.pushLog('update-kiosk', 'updated a kiosk');
 }
  async deleteKiosk(id:string){
    const response = await this.API.delete({
@@ -162,6 +167,7 @@ export class KioskService {
    if(!response.success){
      throw new Error('Unable to delete kiosk');
    }
+   this.logService.pushLog('delete-kiosk', 'deleted a kiosk');
  }
 
   async getAllKiosks(division_id:string){

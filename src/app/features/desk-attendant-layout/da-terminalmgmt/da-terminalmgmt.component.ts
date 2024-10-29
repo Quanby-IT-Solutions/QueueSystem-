@@ -16,6 +16,7 @@ import { ConfirmationComponent } from '../../../shared/modals/confirmation/confi
 import { Subscription } from 'rxjs';
 import { QueueService } from '../../../services/queue.service';
 import { ServiceService } from '../../../services/service.service';
+import { LogsService } from '../../../services/logs.service';
 
 
 interface Terminal{
@@ -118,6 +119,7 @@ export class DaTerminalmgmtComponent implements OnInit, OnDestroy {
   }
 timerProgress: any;
 
+  content:any;
 
 
   constructor( 
@@ -125,6 +127,8 @@ timerProgress: any;
     private API:UswagonCoreService,
     private queueService:QueueService,
     private cdr:ChangeDetectorRef,
+    private contentService:ContentService,
+    private logService:LogsService,
     private serviceService:ServiceService,
     private terminalService:TerminalService) {}
 
@@ -156,6 +160,7 @@ timerProgress: any;
     this.API.setLoading(true);
     this.division = await this.dvisionService.getDivision() ;
     this.terminals = await this.terminalService.getAllTerminals();
+    this.content = await this.contentService.getContentSetting();
     
     this.lastSession = await this.terminalService.getActiveSession()
     this.services = await this.serviceService.getServices();
@@ -178,7 +183,7 @@ timerProgress: any;
       const lastQueue = await this.queueService.getLastQueueOnDesk();
   
       if(lastQueue)[
-        this.lastCalledNumber = (lastQueue.type=='priority' ? 'P' : 'R') +'-' + lastQueue.number.toString().padStart(3, '0')
+        this.lastCalledNumber = (lastQueue.type=='priority' ? this.content.priority_prefix : this.content.regular_prefix) +'-' + lastQueue.number.toString().padStart(3, '0')
       ]
       if(this.currentTicket){
         this.startTimer();
@@ -257,7 +262,7 @@ timerProgress: any;
   
     // Update the lastCalledNumber with the next ticket's number or 'N/A' if not available
     this.lastCalledNumber = nextTicket
-      ? `${nextTicket.type === 'priority' ? 'P-' : 'R-'}${nextTicket.number.toString().padStart(3, '0')}`
+      ? `${nextTicket.type === 'priority' ?this.content.priority_prefix : this.content.regular_prefix}-${nextTicket.number.toString().padStart(3, '0')}`
       : 'N/A';
   }  
 
@@ -370,6 +375,7 @@ timerProgress: any;
       this.API.socketSend({event:'queue-events'})
       this.API.socketSend({event:'admin-dashboard-events'})
       if (nextTicket) {
+        this.logService.pushLog('transaction-start',`started a transaction (priority).`);
         this.currentTicket = nextTicket;
         this.currentClientDetails = {
           name: nextTicket.fullname || 'N/A',
@@ -445,6 +451,7 @@ timerProgress: any;
       }
 
       if (nextTicket) {
+        this.logService.pushLog('transaction-start',`started a transaction (regular).`);
         this.currentTicket = nextTicket;
         this.currentClientDetails = {
           name: nextTicket.fullname || 'N/A',
@@ -498,7 +505,7 @@ timerProgress: any;
     this.isReturnTopActive = false;
     this.isReturnBottomActive = false;
     if (this.currentTicket) {
-      this.lastCalledNumber = (this.currentTicket.type == 'priority' ? 'P' : 'R') + '-' + 
+      this.lastCalledNumber = (this.currentTicket.type == 'priority' ? this.content.priority_prefix : this.content.regular_prefix ) + '-' + 
         this.currentTicket.number.toString().padStart(3, '0');
     }
     this.currentTicket = undefined;
@@ -527,6 +534,7 @@ timerProgress: any;
       }
       
       this.API.sendFeedback('success', `Transaction successful!`, 5000);
+      this.logService.pushLog('transaction-end',`completed a transaction.`);
     } catch (error) {
       this.API.sendFeedback('error', 'Failed to complete transaction', 5000);
     } finally {
@@ -541,7 +549,7 @@ timerProgress: any;
    */
   callNumber(): void {
     console.log(`Calling number ${this.currentTicket?.number}`);
-    this.API.sendFeedback('neutral', `Calling number ${this.currentTicket?.type =='priority' ? 'P':'R'}-${this.currentTicket?.number.toString().padStart(3, '0')}`,5000)
+    this.API.sendFeedback('neutral', `Calling number ${this.currentTicket?.type =='priority' ? this.content.priority_prefix : this.content.regular_prefix}-${this.currentTicket?.number.toString().padStart(3, '0')}`,5000)
     
     this.API.socketSend({
       event: 'number-calling',
@@ -584,6 +592,7 @@ timerProgress: any;
         this.updateUpcomingTicket();
         
         this.API.sendFeedback('success', `Transaction started with client.`, 5000);
+        this.logService.pushLog('transaction-manual',`started a manual select transaction.`);
         this.API.socketSend({
           event: 'number-calling',
           division: this.division?.id,

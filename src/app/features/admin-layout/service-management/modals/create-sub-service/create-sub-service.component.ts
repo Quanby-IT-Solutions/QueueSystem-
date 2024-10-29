@@ -1,36 +1,34 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
-import { Department } from '../../types/department.types';
-import { DepartmentService } from '../../../../../services/department.service';
+import { SubService } from '../../types/service.types';
 import { UswagonCoreService } from 'uswagon-core';
+import { ServiceService } from '../../../../../services/service.service';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
-import { LogsService } from '../../../../../services/logs.service';
 
 @Component({
-  selector: 'app-create-department',
+  selector: 'app-create-sub-service',
   standalone: true,
-  imports: [FormsModule ,CommonModule],
-  templateUrl: './create-department.component.html',
-  styleUrl: './create-department.component.css'
+  imports: [FormsModule, CommonModule],
+  templateUrl: './create-sub-service.component.html',
+  styleUrl: './create-sub-service.component.css'
 })
-export class CreateDepartmentComponent {
-  @Input() existingitem?:Department;
+export class CreateSubServiceComponent {
+  @Input() exisitingservice?:SubService;
   @Output() onClose = new EventEmitter<boolean>();
   errorMessageTimeout:any;
   errorMessage?:string;
   submittingForm:boolean = false;
+  actionLoading:boolean = false;
 
-  constructor(private API:UswagonCoreService,
-    private logService: LogsService,
-    private departmentService:DepartmentService){}
+  constructor(private API:UswagonCoreService, private serviceService:ServiceService){}
 
-  item:Department =  {
+  service:SubService =  {
     name:'',
   } 
 
   ngOnInit(): void {
-    if(this.existingitem){
-      this.item = {...this.existingitem}
+    if(this.exisitingservice){
+      this.service = {...this.exisitingservice}
     }
   }
 
@@ -47,7 +45,7 @@ export class CreateDepartmentComponent {
   async submitForm(){
     if(this.submittingForm) return;
     this.submittingForm = true;
-    if(this.item.name.trim() == ''){
+    if(this.service.name.trim() == ''){
       this.errorMessage = 'This field is required.';
       if(this.errorMessageTimeout){
         clearTimeout(this.errorMessageTimeout)
@@ -59,18 +57,18 @@ export class CreateDepartmentComponent {
       return;
     }
     try{
-      if(this.item.id){
-        await this.departmentService.updateDepartment(this.item.id,this.item.name);
-        
+      if(this.service.id){
+        await this.serviceService.updateSubService(this.service.id,this.service.name);
       }else{
-        await this.departmentService.addDepartment(
-          this.item.name
+        await this.serviceService.addSubService(
+          this.service.service_id!,
+          this.service.name
         )
       }
-      this.submittingForm =false;
+      this.submittingForm =false
     }catch(e:any){
-      this.submittingForm = false;
       this.API.sendFeedback('error', e.message,5000);
+      this.submittingForm =false
       return;
     }
     this.onClose.emit(true);

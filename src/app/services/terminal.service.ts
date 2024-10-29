@@ -5,6 +5,7 @@ import { UswagonCoreService } from 'uswagon-core';
 import { DivisionService } from './division.service';
 import { BehaviorSubject } from 'rxjs';
 import { QueueService } from './queue.service';
+import { LogsService } from './logs.service';
 
 
 interface Terminal{
@@ -22,6 +23,7 @@ interface Terminal{
 export class TerminalService {
 
  constructor(
+  private logService:LogsService,
   private queueService:QueueService,
   private API:UswagonCoreService,private auth:UswagonAuthService, private divisionService:DivisionService) { }
 
@@ -63,6 +65,7 @@ async addTerminal(division_id:string){
   this.API.socketSend({event:'queue-events'})
   this.API.socketSend({event:'terminal-events'})
   this.API.socketSend({event:'admin-dashboard-events'})
+  this.logService.pushLog('new-terminal', 'added a terminal');
 }
 
 async updateTerminalStatus(id:string, status: 'available'|'maintenance'){
@@ -80,6 +83,7 @@ async updateTerminalStatus(id:string, status: 'available'|'maintenance'){
   this.API.socketSend({event:'queue-events'})
   this.API.socketSend({event:'terminal-events'})
   this.API.socketSend({event:'admin-dashboard-events'})
+  this.logService.pushLog('update-terminal', 'updated a terminal');
 }
 async deleteTerminal(id:string){
   const response = await this.API.delete({
@@ -93,6 +97,7 @@ async deleteTerminal(id:string){
   this.API.socketSend({event:'queue-events'})
   this.API.socketSend({event:'terminal-events'})
   this.API.socketSend({event:'admin-dashboard-events'})
+  this.logService.pushLog('delete-terminal', 'deleted a terminal');
 }
 
  async getAllTerminals() : Promise<Terminal[]>{
@@ -190,6 +195,7 @@ async deleteTerminal(id:string){
     if(!response.success){
       throw new Error('Unable to start terminal session');
     }else{
+      this.logService.pushLog('opened-terminal', `started a terminal session.`)
       this.API.socketSend({event:'queue-events'})
       this.API.socketSend({event:'terminal-events'})
       this.API.socketSend({event:'admin-dashboard-events'})
@@ -246,7 +252,7 @@ async deleteTerminal(id:string){
       }
       this.API.socketSend({event:'queue-events'})
       this.API.socketSend({event:'terminal-events'})
-      this.API.socketSend({event:'admin-dashboard-events'})
+      // this.API.socketSend({event:'admin-dashboard-events'})
     },1000)
   }
 
@@ -264,6 +270,7 @@ async deleteTerminal(id:string){
       if(!closeResponse.success){
         throw new Error('Unable to update terminal session');
       }
+      this.logService.pushLog('closed-terminal', `terminated a terminal session.`)
     }
     this.queueService.resolveAttendedQueue('return');
     clearInterval(this.statusInterval);

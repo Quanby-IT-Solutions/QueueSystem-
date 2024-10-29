@@ -48,7 +48,7 @@
   </div>
 
   <!-- Right Side: Password Edit and Activity Logs -->
-  <div class="flex-1 space-y-6" #formContainer>
+  <div class="flex-1 flex flex-col h-full space-y-6" #formContainer>
     <!-- Security Settings Card -->
     <div class="p-6 bg-white rounded-lg shadow-lg">
       <div class="flex items-center justify-between mb-4">
@@ -81,21 +81,21 @@
     </div>
 
     <!-- Activity Logs -->
-    <div class="p-6 bg-white rounded-lg shadow-lg">
+    <div class="p-6 bg-white rounded-lg shadow-lg flex-1">
       <div class="flex items-center justify-between mb-4">
-        <h2 class="text-lg font-bold text-[--primary]">User Activity Logs</h2>
-        <div class="text-sm text-gray-500">
+        <h2 class="text-lg font-bold text-[--primary]">Activity Logs</h2>
+        <!-- <div class="text-sm text-gray-500">
           Last 7 days
-        </div>
+        </div> -->
       </div>
 
-      <div class="divide-y divide-gray-200">
+      <div class="divide-y divide-gray-200 h-96 overflow-scroll ">
         <div *ngFor="let log of userLogs" class="flex items-center justify-between py-3">
           <div class="flex items-center space-x-4">
             <div class="w-2 h-2 bg-[--primary] rounded-full"></div>
-            <span class="text-sm text-gray-800">{{ log.activity }}</span>
+            <span class="text-sm text-gray-800">{{ log.log }}</span>
           </div>
-          <span class="text-sm text-gray-500">{{ log.date }}</span>
+          <span class="text-sm text-gray-500">{{ log.timestamp | date :'MM-dd-yyyy h:mm a' }}</span>
         </div>
       </div>
     </div>

@@ -10,12 +10,14 @@ import { KioskService } from '../../../services/kiosk.service';
 import { DivisionService } from '../../../services/division.service';
 import { FeedbackComponent } from '../../../shared/modals/feedback/feedback.component';
 import { ServiceService } from '../../../services/service.service';
-import { Department, Division, Service } from '../types/kiosk-layout.types';
+import { Department, Division, Service, SubService } from '../types/kiosk-layout.types';
 import { DepartmentService } from '../../../services/department.service';
 import { SnackbarComponent } from '../../../shared/snackbar/snackbar.component';
 import { LottieAnimationComponent } from '../../../shared/components/lottie-animation/lottie-animation.component';
 import { ConfirmationComponent } from '../../../shared/modals/confirmation/confirmation.component';
 import { config } from '../../../../environment/config';
+import { ContentService } from '../../../services/content.service';
+
 
 @Component({
   selector: 'app-kiosk-forms',
@@ -39,12 +41,14 @@ export class KioskFormsComponent implements OnInit, OnDestroy {
   selectedServices: Service[] = [];
   selectedType: 'regular' | 'priority' = 'regular';
   customerName: string = '';
+  group: string = '';
   gender: string = '';
   department: string = '';
   studentNumber: string = '';
 
   services:Service[]= [];
-  filteredServiceChecklist:Service[] = [...this.services];
+  subServices:SubService[]= [];
+  filteredServiceChecklist:SubService[] = [...this.subServices];
   searchTerm: string = '';
   isDropdownOpen: boolean = false;
   division?:Division;
@@ -65,11 +69,13 @@ export class KioskFormsComponent implements OnInit, OnDestroy {
     private divisionService: DivisionService,
     private serviceService:ServiceService,
     private departmentService:DepartmentService,
+    private contentService:ContentService, 
     private API: UswagonCoreService) {}
 
  
   config = config
   modal?:'priority'|'success';
+  content:any;
 
   openFeedback(type:'priority'|'success'){
     this.modal = type;
@@ -84,6 +90,10 @@ export class KioskFormsComponent implements OnInit, OnDestroy {
     if (this.isDropdownOpen) {
       this.filterChecklist(); // Ensure all items are shown when opened
     }
+  }
+
+  async updateSubServices(){
+    this.subServices = await this.serviceService.getSubServices(this.group);
   }
 
 
@@ -108,6 +118,7 @@ export class KioskFormsComponent implements OnInit, OnDestroy {
       this.division =await  this.divisionService.getDivision(this.kioskService.kiosk.division_id)
       this.divisionService.setDivision(this.division!);
       this.queueService.getTodayQueues(true);
+      this.content = await this.contentService.getContentSetting(this.division!.id);
     } else {
       throw new Error('Invalid method');
     }
@@ -133,7 +144,7 @@ export class KioskFormsComponent implements OnInit, OnDestroy {
   }
 
   async toggleSelection(service_id: string) {
-    const service = this.services.find(item => item.id === service_id);
+    const service = this.subServices.find(item => item.id === service_id);
     if (service) {
 
       if (!this.selectedServices.find(item=>item.id == service_id)) {
@@ -145,7 +156,7 @@ export class KioskFormsComponent implements OnInit, OnDestroy {
   }
 
   filterChecklist() {
-    this.filteredServiceChecklist = this.services.filter(item =>
+    this.filteredServiceChecklist = this.subServices.filter(item =>
       item.name.toLowerCase().includes(this.searchTerm.toLowerCase())
     );
   }
@@ -216,7 +227,7 @@ export class KioskFormsComponent implements OnInit, OnDestroy {
     this.successDescription = `Your current position is <span class='font-medium'>${this.selectedType === 'regular' ? 'R' : 'P'}-${number.toString().padStart(3,'0')}</span>`
     await this.printImage(`${this.selectedType === 'regular' ? 'R' : 'P'}-${number.toString().padStart(3,'0')}`);
     // Reset
-    this.selectedServices = this.services
+    this.selectedServices = this.subServices
     .filter(item => item.selected)
     this.isChecklistVisible = true;
     this.isFormVisible = false;

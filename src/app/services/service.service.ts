@@ -18,6 +18,22 @@ export class ServiceService {
   isSuperAdmin:boolean = this.auth.accountLoggedIn() == 'superadmin';
 
 
+async addSubService(service_id:string,name:string){
+
+  const id = this.API.createUniqueID32();
+  const response = await this.API.create({
+    tables: 'sub_services',
+    values:{
+      id:id,
+      service_id: service_id,
+      name:name,
+    }  
+  });
+
+  if(!response.success){
+    throw new Error('Something went wrong');
+  }
+}
 
  async addService(name:string){
 
@@ -36,23 +52,22 @@ export class ServiceService {
      throw new Error('Something went wrong');
    }
  }
- 
+
+ async updateSubService(id:string, name:string){
+  const response = await this.API.update({
+    tables: 'sub_services',
+    values:{
+      name:name
+    }  ,
+    conditions: `WHERE id = '${id}'`
+  });
+
+  if(!response.success){
+    throw new Error('Something went wrong.');
+  }  
+}
 
  async updateService(id:string, name:string){
-  const checkResponse = await this.API.read({
-    selectors:['*'],
-    tables:'services',
-    conditions:`WHERE name = '${name}'`
-  })
-
-  if(checkResponse.success){
-    if(checkResponse.output.length>0){
-      throw new Error('This code is already in use!');
-    }
-  }else{
-    throw new Error('Something went wrong');
-  }
-  
 
   const response = await this.API.update({
     tables: 'services',
@@ -66,6 +81,17 @@ export class ServiceService {
     throw new Error('Something went wrong.');
   }
 }
+
+async deleteSubService(id:string){
+  const response = await this.API.delete({
+    tables: 'sub_services',
+    conditions: `WHERE id = '${id}'`
+  });
+
+  if(!response.success){
+    throw new Error('Unable to delete service');
+  }
+}
  async deleteService(id:string){
    const response = await this.API.delete({
      tables: 'services',
@@ -75,6 +101,21 @@ export class ServiceService {
    if(!response.success){
      throw new Error('Unable to delete service');
    }
+ }
+
+ async getSubServices(service_id:string){
+      const response = await this.API.read({
+          selectors: ['*'],
+          tables: 'sub_services',
+          conditions: `
+            WHERE sub_services.service_id = '${service_id}'  ORDER BY sub_services.name`
+        });
+
+      if(response.success){
+        return response.output;
+      }else{
+        throw new Error('Unable to fetch services');
+      }
  }
  
   async getAllServices(division_id:string){
@@ -117,6 +158,9 @@ export class ServiceService {
        throw new Error('Unable to fetch services');
      }
    }
+
+
+
 
   
 }

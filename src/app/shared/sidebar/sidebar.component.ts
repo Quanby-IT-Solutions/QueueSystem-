@@ -6,6 +6,7 @@ import { UswagonAuthModule, UswagonAuthService } from 'uswagon-auth';
 import { ConfirmationComponent } from '../modals/confirmation/confirmation.component';
 import { TerminalService } from '../../services/terminal.service';
 import { config } from '../../../environment/config';
+import { LogsService } from '../../services/logs.service';
 
 interface MenuItem {
   title: string;
@@ -27,6 +28,8 @@ export class SidebarComponent implements OnInit {
   isExpanded = true;
   logoutOpen = false;
   isMobile = false;
+
+  constructor(private logService:LogsService){}
 
 
   @Input() role: string = 'admin';
@@ -90,6 +93,7 @@ export class SidebarComponent implements OnInit {
   }
 
   logout(){
+    this.logService.pushLog('user-logout', 'logged out.');
     this.terminalService.terminateTerminalSession();
     this.auth.logout();
   }
