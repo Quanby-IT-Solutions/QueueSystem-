@@ -8,6 +8,7 @@ import { UswagonCoreService } from 'uswagon-core';
 import { Subscription } from 'rxjs';
 import { SnackbarComponent } from '../../shared/snackbar/snackbar.component';
 import { UswagonAuthService } from 'uswagon-auth';
+import { LogsService } from '../../services/logs.service';
 
 @Component({
   selector: 'app-desk-attendant-layout',
@@ -19,11 +20,13 @@ import { UswagonAuthService } from 'uswagon-auth';
 export class DeskAttendantLayoutComponent {
   constructor(private route: ActivatedRoute, 
     private auth:UswagonAuthService,
+    private logService:LogsService,
     private API:UswagonCoreService,private cdr: ChangeDetectorRef){}
   role = this.route.snapshot.data['requiredRole'];
   isLoading:boolean= false;
   loading$?:Subscription;
   ngOnInit(): void {
+    this.logService.pushLog('da-visit', `visited desk portal.`)
      this.loading$ = this.API.isLoading$.subscribe(loading=>{
       this.isLoading=loading;
       this.cdr.detectChanges();

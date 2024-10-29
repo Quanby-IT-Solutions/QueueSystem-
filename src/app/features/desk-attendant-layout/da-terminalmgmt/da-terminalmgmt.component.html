@@ -195,7 +195,7 @@
                 </td>
                 <td class="p-3 text-sm w-1/6">
                   <span class="font-medium">
-                    {{ ticket.type === 'priority' ? 'P-' : 'R-' }}{{ ticket.number.toString().padStart(3, '0') }}
+                    {{ ticket.type === 'priority' ? content.priority_prefix+'-' : content.regular_prefix+'-' }}{{ ticket.number.toString().padStart(3, '0') }}
                   </span>
                 </td>
                 <td class="p-3 text-sm w-1/6 truncate">

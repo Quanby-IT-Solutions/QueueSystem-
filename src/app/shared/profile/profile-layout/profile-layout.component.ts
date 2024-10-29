@@ -6,6 +6,7 @@ import { UswagonCoreService } from 'uswagon-core';
 import { gsap } from 'gsap';
 import { EditProfileModalComponent } from './edit-profile-modal/edit-profile-modal.component';
 import { ChangePasswordModalComponent } from './change-password-modal/change-password-modal.component';
+import { LogsService } from '../../../services/logs.service';
 
 interface User {
   id: string;
@@ -15,6 +16,13 @@ interface User {
   role: string;
   profile?: string;
   division_name?: string;
+}
+
+interface Logs {
+  id:string;
+  event:string;
+  log:string;
+  timestamp:string;
 }
 
 interface Divisions {
@@ -38,17 +46,17 @@ export class ProfileLayoutComponent {
   currentPassword = '';
   newPassword = '';
   confirmNewPassword = '';
-  userLogs = [
-    { date: '2024-10-21 14:00', activity: 'Logged in from Philippines' },
-    { date: '2024-10-20 09:30', activity: 'Changed profile picture' },
-    { date: '2024-10-19 16:15', activity: 'Updated email address' }
+  userLogs:Logs[] = [
+
   ];
 
   @ViewChild('contentContainer') contentContainer!: ElementRef;
   @ViewChild('profilePhoto') profilePhoto!: ElementRef;
   @ViewChild('formContainer') formContainer!: ElementRef;
 
-  constructor(private auth: UswagonAuthService, public API: UswagonCoreService) {
+  constructor(
+    private logService:LogsService,
+    private auth: UswagonAuthService, public API: UswagonCoreService) {
     this.user = this.auth.getUser();
   }
 
@@ -82,9 +90,10 @@ export class ProfileLayoutComponent {
   }
 
 
-loadUserData() {
+async loadUserData() {
   const userId = this.auth.getUser().id;
   const userRole = this.auth.getUser().role || 'desk_attendant'; 
+  this.userLogs = await this.logService.getAllLogs();
 
   const targetTable = (userRole === 'superadmin' || ['admin', 'cashier', 'registrar', 'accountant'].includes(userRole))
     ? 'administrators'

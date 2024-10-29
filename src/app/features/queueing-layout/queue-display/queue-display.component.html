@@ -10,15 +10,18 @@
   class="video aspect-[3840/2180] w-full h-full animate-pop  object-cover rounded-lg shadow-lg overflow-hidden border-dashed border-2 min-[3500px]:border-8 min-[3500px]:rounded-3xl min-[3500px]:shadow-2xl"
   ></iframe>
   <video
-  *ngIf="!safeYoutubeUrl"
+  *ngIf="!safeYoutubeUrl && videoUrl"
   [ngStyle]="{'border-color': colors.primary_text + '80',}"
   autoplay
   loop
   [muted]="mute"
   #videoPlayer width="100%" height="100%" class="aspect-[3840/2180] video animate-pop  object-cover rounded-lg shadow-lg overflow-hidden border-dashed border-2 min-[3500px]:border-8 min-[3500px]:rounded-3xl min-[3500px]:shadow-2xl"  controls="false">
-    <source [src]="videoUrl ?? 'assets/queue-display/vsu.mp4'" type="video/mp4">
+    <source [src]="videoUrl" type="video/mp4">
     Your browser does not support the video tag.
   </video>
+  <div class="w-full h-full flex items-center text-7xl justify-center  bg-black text-white" *ngIf="!videoUrl && !safeYoutubeUrl">
+    Video content has not been configured
+  </div>
   <!-- Announcements -->
   <div
   *ngIf="showAnnouncement"
@@ -317,7 +320,7 @@
                 <div class="flex-1 grid grid-cols-1 grid-rows-4">
                   <div *ngFor="let item of getPriorityItems(upNextItems) | slice:0:4"
                 [ngStyle]="{
-                  'border-color': item.ticketNumber.includes('P') ? colors.tertiary_bg  + '80': colors.secondary_text + '80',
+                  'border-color': item.type=='priority'? colors.tertiary_bg  + '80': colors.secondary_text + '80',
                 }"
                 class="border-dashed border-2  rounded-lg overflow-hidden"
                 >
@@ -326,8 +329,8 @@
                   min-[3500px]:border-8 min-[3500px]:rounded-3xl min-[3500px]:gap-12
                   min-[3500px]:px-14 min-[3500px]:py-10"
                   [ngStyle]="{
-                    'backgroundColor': item.ticketNumber.includes('P') ? colors.tertiary_bg +'10' :'transparent',
-                    'color': item.ticketNumber.includes('P') ? colors.tertiary_bg  :colors.secondary_text,
+                    'backgroundColor': item.ticketNumber? colors.tertiary_bg +'10' :'transparent',
+                    'color': item.type=='priority' ? colors.tertiary_bg  :colors.secondary_text,
                   }"
                   >
                     <img [src]="item.avatar" class="queue-item-icon w-9 h-9 min-[3500px]:w-36 min-[3500px]:h-36">
@@ -351,7 +354,7 @@
     [ngStyle]="{ 'border-color': colors.primary_text + '30',}"
     class="announcement-banner absolute bottom-2 min-[3500px]:bottom-8 h-7 flex items-center w-full z-50  overflow-hidden text-red-600 bg-white border-dashed border-y-2 min-[3500px]:border-y-8 shadow-sm
       min-[3500px]:h-28
-    ">
+    ">.includes('P') 
       <div class="w-full h-full relative">
         <div  class="announcement-text absolute inline-flex min-w-[200%] animate-scroll-tailing h-full tracking-widest font-semibold min-[3500px]:text-6xl items-center  whitespace-nowrap">
           <span class="flex-1 whitespace-nowrap  px-2 min-[3500px]:px-6 inline-block ">{{announcements}} </span>

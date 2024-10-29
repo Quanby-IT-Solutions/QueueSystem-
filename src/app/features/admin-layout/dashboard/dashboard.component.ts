@@ -428,6 +428,7 @@ private async loadTerminalsAndKiosks() {
         this.refreshData();
       }
    })
+   
   }
 
   async refreshData() {
@@ -673,10 +674,7 @@ private async loadTerminalsAndKiosks() {
     if (this.autoRefreshEnabled) {
       this.startRealtimeUpdates();
     } else {
-      if (this.refreshInterval) {
-        clearInterval(this.refreshInterval);
-        this.refreshInterval = null;
-      }
+      this.API.addSocketListener('admin-dashboard-events', ()=>{});
     }
   }
 
@@ -977,24 +975,29 @@ const datasets = filteredMetrics.map((metric) => {
   }
 
   countItemsPerMonth(division_id?:string) {
-    let items = this.queueService.allQueue;
-    if(division_id){
-      items = items.filter(item=> item.division_id == division_id);
-    }
-    const countByWeek = [0, 0, 0, 0]; // Initialize an array for the 4 weeks of the month
+      let items = this.queueService.allQueue;
+
+      if (division_id) {
+          items = items.filter(item => item.division_id === division_id);
+      }
+
+      const countByWeek = [0, 0, 0, 0, 0]; // Initialize an array for the 5 weeks of the month
       const now = new Date();
+      const currentYear = now.getFullYear();
+      const currentMonth = now.getMonth(); // getMonth() returns 0-11
 
       items.forEach((item) => {
-        const date = new Date(item.timestamp);
-        const year = date.getFullYear();
-        const month = String(date.getMonth() + 1).padStart(2, '0'); // Get the month and pad with zero
+          const date = new Date(item.timestamp);
+          const year = date.getFullYear();
+          const month = date.getMonth(); // 0-11
 
-        if (year === now.getFullYear() && month === String(now.getMonth() + 1).padStart(2, '0')) {
-          // Get the week number of the month (1-4)
-          const week = Math.ceil((date.getDate() + 6) / 7) - 1; // Zero-based index for array
-          countByWeek[week] += 1; // Increment the count for that week
-        }
+          if (year === currentYear && month === currentMonth) {
+              // Calculate the week number of the month (0-4)
+              const week = Math.floor(date.getDate() / 7); // Calculate week (0-4)
+              countByWeek[week] += 1; // Increment the count for that week
+          }
       });
+
       return countByWeek;
   }
   countItemsPerYear(division_id?:string) {
@@ -1160,7 +1163,7 @@ const datasets = filteredMetrics.map((metric) => {
     } else if (this.selectedFilter === 'week') {
       return this.getLast7Days();
     } else if (this.selectedFilter === 'month') {
-      return ['Week 1', 'Week 2', 'Week 3', 'Week 4'];
+      return ['Week 1', 'Week 2', 'Week 3', 'Week 4','Week 5'];
     } else {
       return ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
     }

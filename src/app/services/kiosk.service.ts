@@ -4,7 +4,8 @@ import { UswagonCoreService } from 'uswagon-core';
 import { DivisionService } from './division.service';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../environment/environment';
-import { firstValueFrom } from 'rxjs';
+import { every, firstValueFrom } from 'rxjs';
+import { LogsService } from './logs.service';
 
 
 export interface Kiosk{
@@ -23,6 +24,7 @@ export interface Kiosk{
 export class KioskService {
 
   constructor(
+    private logService:LogsService,
     private http:HttpClient,
     private divisionService: DivisionService,
     private API:UswagonCoreService, private auth:UswagonAuthService) { }
@@ -34,23 +36,20 @@ export class KioskService {
   isSuperAdmin:boolean = this.auth.accountLoggedIn() == 'superadmin';
 
 
-  thermalPrint(data:any){
-   firstValueFrom( this.http
-    .post(environment.printserver + '/print', {
-      key: environment.apiKey,
-      app: environment.app,
-      printer_ip: this.kiosk?.printer_ip,
-      // chunk: base64String,
-      // fileName:  filename,
-      number: data.number,
-      name: data.name,
-      gender:data.gender,
-      id:data.id,
-      location:data.location,
-      date:data.date,
-      time:data.time,
-      services: data.services
-    }))
+
+  async thermalPrint(data:any){
+  this.API.socketSend({
+    event: 'printing',
+    printer_ip: this.kiosk?.printer_ip,
+    number: data.number,
+    name: data.name,
+    gender:data.gender,
+    id:data.id,
+    location:data.location,
+    date:data.date,
+    time:data.time,
+    services: data.services
+  })
   }
 
   async kioskLogin(code:string){
@@ -109,6 +108,7 @@ export class KioskService {
    if(!response.success){
      throw new Error('Something went wrong');
    }
+   this.logService.pushLog('new-kiosk', 'added a kiosk');
  }
 
  async updateKioskStatus(id:string, status: 'available'|'maintenance'){
@@ -123,6 +123,7 @@ export class KioskService {
    if(!response.success){
      throw new Error('Unable to add terminal');
    }
+
  }
 
  async updateKiosk(kiosk:Kiosk, touched:boolean){
@@ -155,6 +156,7 @@ export class KioskService {
   if(!response.success){
     throw new Error('Something went wrong.');
   }
+  this.logService.pushLog('update-kiosk', 'updated a kiosk');
 }
  async deleteKiosk(id:string){
    const response = await this.API.delete({
@@ -165,6 +167,7 @@ export class KioskService {
    if(!response.success){
      throw new Error('Unable to delete kiosk');
    }
+   this.logService.pushLog('delete-kiosk', 'deleted a kiosk');
  }
 
   async getAllKiosks(division_id:string){

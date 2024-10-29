@@ -4,33 +4,41 @@ import { ConfirmationComponent } from '../../../shared/modals/confirmation/confi
 import { LottieAnimationComponent } from '../../../shared/components/lottie-animation/lottie-animation.component';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
-import { Division, Service } from './types/service.types';
+import { Division, Service, SubService } from './types/service.types';
 import { DivisionService } from '../../../services/division.service';
 import { UswagonAuthService } from 'uswagon-auth';
 import { UswagonCoreService } from 'uswagon-core';
 import { ServiceService } from '../../../services/service.service';
+import { CreateSubServiceComponent } from './modals/create-sub-service/create-sub-service.component';
 
 @Component({
   selector: 'app-service-management',
   standalone: true,
-  imports: [CommonModule, FormsModule, LottieAnimationComponent, ConfirmationComponent,CreateServiceComponent],
+  imports: [CommonModule, FormsModule, LottieAnimationComponent, ConfirmationComponent,CreateServiceComponent,CreateSubServiceComponent],
   templateUrl: './service-management.component.html',
   styleUrl: './service-management.component.css'
 })
 export class ServiceManagementComponent {
   
-
+  
   divisions:Division[]=[];
   selectedDivision?:string;
 
   services: Service[]=[];
+  subServices: SubService[]=[];
+
   isSuperAdmin:boolean = this.auth.accountLoggedIn() == 'superadmin';
 
   selectedService?:Service;
+  selectedSubService?:SubService;
+  
+
+  
 
   modalType?:'maintenance'|'delete';
 
   openServiceModal:boolean = false;
+  openSubServiceModal:boolean = false;
 
   // Injecting ChangeDetectorRef to trigger manual change detection
   constructor(
@@ -55,6 +63,7 @@ export class ServiceManagementComponent {
     this.divisionService.setDivision(division)
     this.API.setLoading(true);
     this.services = (await this.serviceService.getAllServices(division.id));
+    this.closeService();
     this.API.setLoading(false);
   }
 
@@ -73,28 +82,64 @@ export class ServiceManagementComponent {
   
 
   addService(){
-    this.selectedService = undefined;
-    this.openServiceModal = true;
+    this.selectedService = {
+      name:'',
+    };
+  }
+  addSubService(){
+    this.selectedSubService = {
+      name:'',
+      service_id: this.serviceOpen?.id
+    };
+  
   }
 
-  updateService(service:Service){
+  updateService(event: MouseEvent,service:Service){
+    event.stopPropagation();
     this.selectedService = service;
     this.openServiceModal = true;
   }
+  updateSubService(service:SubService){
+    this.selectedSubService = service;
+    this.openSubServiceModal = true;
+  }
 
-  async deleteService(item:Service){
+  async deleteService(){
     this.API.setLoading(true);
     try{
-      await this.serviceService.deleteService(item.id!);
+      if(this.selectedService){
+        await this.serviceService.deleteService(this.selectedService?.id!);
+      }else{
+        await this.serviceService.deleteSubService(this.selectedSubService?.id!);
+      }
       await this.closeDialog(true);
-      this.API.sendFeedback('success', 'Service has been deleted!',5000);
     }catch(e:any){
-      this.API.sendFeedback('success', e.message,5000);
+      this.API.sendFeedback('error', e.message,5000);
     }
   }
 
-  selectService(item:Service){
+  serviceOpen?:Service;
+
+  async openService(service:Service){
+    this.API.setLoading(true);
+    this.serviceOpen = service;
+    this.subServices = await this.serviceService.getSubServices(service.id!);
+    this.API.setLoading(false);
+  }
+
+  closeService(){
+    this.serviceOpen = undefined;
+    this.subServices = [];
+  }
+
+
+  selectService(event:MouseEvent,item:Service){
+    event.stopPropagation();
     this.selectedService = item;
+    this.openDialog('delete');
+  }
+  selectSubService(item:SubService){
+    this.selectedSubService = item;
   }
 
   
@@ -103,20 +148,41 @@ export class ServiceManagementComponent {
     this.modalType = type;
   }
   async closeDialog(shouldRefresh:boolean){
-    const fromService = this.openServiceModal;
-    this.openServiceModal = false;
+    const fromService = this.selectedService != undefined;
+    const fromSubService = this.selectedSubService != undefined
+    const fromCreate = this.selectedService?.id != undefined || this.selectedSubService?.id != undefined;
+    const modalType = this.modalType;
+    this.selectedService = undefined;
+    this.selectedSubService = undefined;
     this.modalType = undefined;
     if(shouldRefresh){
       this.API.setLoading(true);
-      this.services = (await this.serviceService.getAllServices(this.selectedDivision!));
+      if(fromService){
+        this.services = (await this.serviceService.getAllServices(this.selectedDivision!));
+        if(modalType != 'delete'){
+          if(fromCreate ){
+            this.API.sendFeedback('success', 'Category has been updated!',5000);
+          }else{
+            this.API.sendFeedback('success', 'New category has been added!',5000);
+          }
+        }else{
+          this.API.sendFeedback('success', 'Category has been deleted!',5000);
+        }
+      }
+      if(fromSubService){
+        this.subServices = (await this.serviceService.getSubServices(this.serviceOpen?.id!));
+        if(modalType != 'delete'){
+          if(fromCreate){
+            this.API.sendFeedback('success', 'Service has been updated!',5000);
+          }else{
+            this.API.sendFeedback('success', 'New service has been added!',5000);
+          }
+        }else{
+          this.API.sendFeedback('success', 'Service has been deleted!',5000);
+        }
+      }
       this.API.setLoading(false);
     }
-    if(fromService && shouldRefresh){
-      if(this.selectedService){
-        this.API.sendFeedback('success', 'Service has been updated!',5000);
-      }else{
-        this.API.sendFeedback('success', 'New service has been added!',5000);
-      }
-    }
+
   }
 }

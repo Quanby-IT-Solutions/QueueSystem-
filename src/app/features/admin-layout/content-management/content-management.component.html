@@ -285,6 +285,47 @@
                             </div>
                         </div>
                         <div class="flex-1"></div>
+                        <!-- Prefix Collapsable -->
+                        <div class="w-full
+                            border-solid border-2 border-gray-300 text-gray-500
+                            transition-all
+                            hover:border-[var(--primary)] hover:text-[var(--primary)]
+                            rounded-lg
+                        "
+                        [ngClass]="{'hover:bg-[var(--primary-light)]   hover:border-[var(--primary-hover)]':!collapsables.prefix}"
+                        >
+                            <div (click)="toggleCollapse('prefix')" class="flex items-center justify-between px-2 py-2 text-lg">
+                                <div class="flex flex-row items-center justify-between w-full gap-2" >
+                                    <label for="announcement" class="px-1 text-lg text-gray-800">Prefix</label>
+                
+                                </div>
+                                <span *ngIf="!collapsables.prefix" class="material-icons"> keyboard_arrow_down </span>
+                            </div>
+               
+                            <div class="flex flex-row px-1 gap-2 pb-2" *ngIf="collapsables.prefix">
+                                <div  class="w-full h-10 rounded-md
+                                transition-all
+                                hover:border-[var(--primary)] hover:text-[var(--primary)] hover:bg-[var(--primary-light)]
+                                text-gray-400
+                                border-gray-300 border-2 border-solid
+                                bg-white cursor-pointer select-none flex items-center px-2 justify-between">
+                                    <input [(ngModel)]="inputFields.regular" placeholder="Set regular prefix"  maxlength="7" type="text" class="w-full h-full text-center bg-transparent border-none outline-none">
+                                </div>
+                                <div  class="w-full h-10 rounded-md
+                                transition-all
+                                hover:border-[var(--primary)] hover:text-[var(--primary)] hover:bg-[var(--primary-light)]
+                                text-gray-400
+                                border-gray-300 border-2 border-solid
+                                bg-white cursor-pointer select-none flex items-center px-2 justify-between">
+                                    <input [(ngModel)]="inputFields.priority" placeholder="Set priority prefix" maxlength="7" (keyup)="checkYoutubeUrl()" type="text" class="w-full h-full text-center bg-transparent border-none outline-none">
+                                </div>
+                            </div>
+                            <div class="flex flex-row gap-2 px-1 pb-2" *ngIf="collapsables.prefix">
+                                <div class="text-center flex-1 tracking-wide font-medium">Regular</div>
+                                <div class="text-center flex-1 tracking-wide font-medium">Priority</div>
+                            </div>
+                        </div>
+                        <div class="flex-1"></div>
                         <!-- ACTION BUTTONS -->
                         <div class="flex justify-end gap-2 mt-2">
                             <button (click)="confirmDialog('revert')" class="w-40 h-10 font-medium text-white bg-red-800 rounded-lg hover:bg-red-700">Revert Changes</button>
@@ -313,6 +354,8 @@
                     [backgroundUrl]="inputFields.backgroundUrl"
                     [logoUrl]="inputFields.logoUrl"
                     [colors]="colors"
+                    [priority]="inputFields.priority"
+                    [regular]="inputFields.regular"
                     [disableAPI]="true"
                     [isPreview]="true"
                     [division]="getDivision()"

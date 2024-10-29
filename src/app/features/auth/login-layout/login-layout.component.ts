@@ -7,6 +7,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { config } from '../../../../environment/config';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
+import { LogsService } from '../../../services/logs.service';
 
 @Component({
   selector: 'app-login-layout',
@@ -188,13 +189,16 @@ export class LoginLayoutComponent implements OnInit, AfterViewInit {
     window.open(url, '_blank');
   }
 
-  login(){
+  async login(){
+    this.auth.closeSnackbar();
     if(this.rememberMe){
       this.auth.useLocalStorage();
     }else{
       this.auth.useSessionStorage();
     }
-    this.auth.login();
+    await this.auth.login();
+
+ 
   }
 
   setTabIndexes(selectedTabIndex: number) {

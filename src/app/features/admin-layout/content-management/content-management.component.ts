@@ -5,10 +5,10 @@ import { ToggleComponent } from '../../../shared/components/toggle/toggle.compon
 import { UswagonAuthService } from 'uswagon-auth';
 import { ContentService } from '../../../services/content.service';
 import { UswagonCoreService } from 'uswagon-core';
-import { MatDialog } from '@angular/material/dialog';
 import { ConfirmationComponent } from '../../../shared/modals/confirmation/confirmation.component';
 import { QueueDisplayComponent } from '../../queueing-layout/queue-display/queue-display.component';
 import { DivisionService } from '../../../services/division.service';
+import { LogsService } from '../../../services/logs.service';
 
 interface ContentColors {
   primary_bg: string,
@@ -24,6 +24,7 @@ interface ContentCollapsables {
   widgets:boolean,
   colors:boolean,
   announcements:boolean,
+  prefix:boolean
 }
 
 interface ContentToggles {
@@ -36,6 +37,8 @@ interface ContentToggles {
 }
 interface ContentFields {
   announcements:string,
+  priority:string,
+  regular:string,
   youtubeURL?:string,
   videoUrl?:string,
   backgroundUrl?:string,
@@ -64,6 +67,7 @@ export class ContentManagementComponent implements OnInit {
   constructor(
     private divisionService:DivisionService,
     private auth:UswagonAuthService, 
+    private logService:LogsService,
     private contentService:ContentService,   
     private API:UswagonCoreService){}
 
@@ -86,6 +90,7 @@ export class ContentManagementComponent implements OnInit {
     widgets:false,
     colors:false,
     announcements:false,
+    prefix:false
   }
 
   colors:ContentColors={
@@ -100,7 +105,9 @@ export class ContentManagementComponent implements OnInit {
   files:ContentFiles= {}
 
   inputFields:ContentFields={
-    announcements : ''
+    announcements : '',
+    priority : 'P',
+    regular : 'R'
   }
   
   factorySettings:ContentSettings = {
@@ -188,6 +195,13 @@ export class ContentManagementComponent implements OnInit {
     if(this.toggles.videoURL){
       this.inputFields.youtubeURL = content.video
     }
+    if(content.priority_prefix){
+      this.inputFields.priority = content.priority_prefix
+    }
+
+    if(content.regular_prefix){
+      this.inputFields.regular = content.regular_prefix
+    }
 
     this.inputFields.announcements = content.announcements ?? '';
 
@@ -249,6 +263,14 @@ export class ContentManagementComponent implements OnInit {
         if(this.toggles.videoURL){
           this.inputFields.youtubeURL = content.video
         }
+
+        if(content.priority_prefix){
+          this.inputFields.priority = content.priority_prefix
+        }
+
+        if(content.regular_prefix){
+          this.inputFields.regular = content.regular_prefix
+        }
         
         this.inputFields.announcements = content.announcements ?? '';
       
@@ -298,6 +320,13 @@ export class ContentManagementComponent implements OnInit {
         if(this.toggles.videoURL){
           this.inputFields.youtubeURL = content.video
         }
+        if(content.priority_prefix){
+          this.inputFields.priority = content.priority_prefix
+        }
+
+        if(content.regular_prefix){
+          this.inputFields.regular = content.regular_prefix
+        }
         this.inputFields.announcements = content.announcements ?? '';
       }
       this.previousSettings ={
@@ -323,7 +352,7 @@ export class ContentManagementComponent implements OnInit {
     this.showEditSection = !this.showEditSection;
   }
 
-  toggleCollapse(key:'uploads'|'widgets'|'colors'|'announcements'){
+  toggleCollapse(key:'uploads'|'widgets'|'colors'|'announcements'|'prefix'){
     if(this.collapsables[key] == true) return;
     this.collapsables[key] = !this.collapsables[key];
     if(this.collapsables[key] == true){
@@ -357,6 +386,20 @@ export class ContentManagementComponent implements OnInit {
   }
 
   confirmDialog(type:'publish'| 'revert'){
+    if(type=='publish'){
+      if(this.inputFields.priority.trim() == ''){
+        this.API.sendFeedback('error','Priority prefix must be set.');
+        return;
+      }
+      if(this.inputFields.regular.trim() == ''){
+        this.API.sendFeedback('error','Regular prefix must be set.');
+        return;
+      }
+      if(this.inputFields.priority.trim() == this.inputFields.regular.trim()){
+        this.API.sendFeedback('error','Prefixes must be different for Priority and Regular.');
+        return
+      }
+    }
     this.modalType = type;
   }
 
@@ -398,9 +441,12 @@ export class ContentManagementComponent implements OnInit {
   async publishChanges(){
     if(this.selectedDivision == undefined) return;
     this.modalType = undefined;
+   
     this.API.setLoading(true);
     try{
       await this.contentService.updateContentSettings({
+        regular: this.inputFields.regular,
+        priority: this.inputFields.priority,
         division_id: this.selectedDivision!,
         selectedFiles: {
           logo: this.files.logo,
@@ -425,6 +471,7 @@ export class ContentManagementComponent implements OnInit {
         'event': 'content-changes'
       })
       this.API.setLoading(false);
+      this.logService.pushLog('content-change',`published a content change on ${this.getDivisionName()}`);
       this.API.sendFeedback('success','Content has been updated successfully!', 5000)
     }catch(e:any){
       console.log(e.message)

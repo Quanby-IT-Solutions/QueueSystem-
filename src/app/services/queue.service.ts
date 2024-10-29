@@ -6,6 +6,7 @@ import { UswagonCoreService } from 'uswagon-core';
 import { KioskService } from './kiosk.service';
 import { DivisionService } from './division.service';
 import { DatePipe } from '@angular/common';
+import { LogsService } from './logs.service';
 
 
 
@@ -41,7 +42,7 @@ interface AttendedQueue{
 })
 export class QueueService  {
 
-  constructor(private API:UswagonCoreService,private auth:UswagonAuthService, 
+  constructor(private API:UswagonCoreService,private auth:UswagonAuthService, private logService:LogsService ,
     private divisionService:DivisionService,
     private kioskService:KioskService) {}
 
@@ -53,8 +54,7 @@ export class QueueService  {
   public allTodayQueue:Queue[]= [];
   public attendedQueues:AttendedQueue[]= [];
   private takenQueue:string[]= [];
-  private takenPriorityNumbers:number[]= [];
-  private takenRegularNumbers:number[]= [];
+
   private lastTimestamp:number = new Date().getTime();
   public attendedQueue?:AttendedQueue;
   private queueSubject = new BehaviorSubject<Queue[]>([]);
@@ -254,7 +254,7 @@ export class QueueService  {
           });
           if(!createResponse.success){
             throw new Error(createResponse.output);
-          }
+          }this.logService.pushLog('transaction-bottom',`put a transaction to bottom of queue.`);
         } 
         if(remark=='return'){
           const updateResponse = await this.API.update({
@@ -267,6 +267,7 @@ export class QueueService  {
           if(!updateResponse.success){
             throw new Error(updateResponse.output);
           }
+          this.logService.pushLog('transaction-bottom',`returned transaction.`);
         }
         const updateResponse = await this.API.update({
           tables: 'attended_queue',
