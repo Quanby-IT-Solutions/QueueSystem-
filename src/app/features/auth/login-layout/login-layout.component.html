@@ -62,18 +62,18 @@
             Efficient Flow, Seamless Service: <br /> Your Queueing Management Solution!
           </p>
           <div class="flex items-center gap-4 mt-6">
-            <img (click)="openExternalLink('https://www.vsu.edu.ph')"
+            <img (click)="openExternalLink('https://www.pcso.gov.ph')"
                  loading="lazy"
                  src="https://cdn.builder.io/api/v1/image/assets/TEMP/31fd4b9ea34a63e228f8fb604a3f1d884d27b4160be7793af8d53e0b65722f39"
                  class="w-[35px] cursor-pointer"
                  alt="Website icon" />
-            <img (click)="openExternalLink('https://www.facebook.com/visayasstateu/')"
+            <img (click)="openExternalLink('https://www.facebook.com/pcsoofficialsocialmedia/')"
                  loading="lazy"
                  src="https://cdn.builder.io/api/v1/image/assets/TEMP/f9b5f4d23117931c46243310db6d001dd0cee5d96cc7fa3c2b2dac839e06a4e6"
                  class="w-[35px] cursor-pointer"
                  alt="Facebook icon" />
             <div class="flex items-center gap-2">
-              <img (click)="openExternalMap()"
+              <img
                    loading="lazy"
                    src="https://cdn.builder.io/api/v1/image/assets/TEMP/0c78319bb686a1aa34bb1c1e9338e1d06a351a9b327ddf5c26cc06e7ee034993"
                    class="w-[25px] cursor-pointer"
@@ -167,19 +167,19 @@
   </div>
 
   <div *ngIf="getAuthFeedback()"
-  class="absolute bottom-4 right-4 z-50 flex flex-col gap-4 ">
+  class="absolute z-50 flex flex-col gap-4 bottom-4 right-4 ">
      <ng-container  >
          <div  class="animate-pop flex items-center gap-10 min-w-96 justify-between bg-white rounded-xl  w-auto shadow-md border-2 border-solid {{borderColorMap[getAuthFeedback()!.type]}} h-auto py-2 pl-4 pr-4">
-             <div class="flex gap-4 items-center">
-                 <div class="w-14 h-14 flex items-center">
+             <div class="flex items-center gap-4">
+                 <div class="flex items-center w-14 h-14">
                      <app-lottie-animation animation="{{lottieMap[getAuthFeedback()!.type]}}" [loop]="false"></app-lottie-animation>
                  </div>
                  <div class="text-{{bgColorMap[getAuthFeedback()!.type]}}-500  text-lg font-medium text-center">
                      {{getAuthFeedback()!.message}}
                  </div>
              </div>
-             <div (click)="closeFeedback()" class="flex items-center rounded-full p-1 bg-gray-200 hover:bg-gray-100 cursor-pointer">
-                 <span  class="material-icons text-lg leading-none"> close </span>
+             <div (click)="closeFeedback()" class="flex items-center p-1 bg-gray-200 rounded-full cursor-pointer hover:bg-gray-100">
+                 <span  class="text-lg leading-none material-icons"> close </span>
              </div>
          </div>
          <audio [volume]="0.4" [src]="getAuthFeedback()!.type !='success' ? 'assets/audio/pop-notif.wav': 'assets/audio/notif.mp3'" autoplay preload="auto"></audio>
