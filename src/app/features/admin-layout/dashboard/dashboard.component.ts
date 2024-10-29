@@ -22,6 +22,7 @@ import { KioskService } from '../../../services/kiosk.service';
 import { TerminalService } from '../../../services/terminal.service';
 import { ServiceService } from '../../../services/service.service';
 import { firstValueFrom } from 'rxjs';
+import type { WorkBook } from 'xlsx';
 // Import section
 import { jsPDF } from 'jspdf';
 import 'jspdf-autotable';
@@ -477,26 +478,212 @@ private async loadTerminalsAndKiosks() {
     }
   }
 
+  // async downloadReport() {
+  //   try {
+  //     const doc = new jsPDF();
+  //     const margins = 15;
+
+  //     // Header
+  //     doc.setFontSize(20);
+  //     doc.text('Queue Management System Report', margins, 20);
+
+  //     doc.setFontSize(10);
+  //     doc.text(`Generated: ${new Date().toLocaleString()}`, margins, 30);
+
+  //     // Overall Metrics Section
+  //     doc.setFontSize(12);
+  //     doc.text('Overall Metrics', margins, 40);
+
+  //     // Get all metrics data
+  //     const metrics = await firstValueFrom(this.overallMetrics$);
+  //     const metricsData = [
+  //       // Division metrics
+  //       ...metrics.map(metric => [
+  //         metric.title,
+  //         metric.value.toString(),
+  //         this.selectedFilter.toUpperCase()
+  //       ]),
+  //       // Additional metrics for non-super admins
+  //       ...((!this.isSuperAdmin) ? [
+  //         ['Available Kiosks', this.availableKiosks.toString(), 'units available'],
+  //         ['Available Terminals', this.availableTerminals.toString(), 'units available'],
+  //         ['Total Services', this.totalServices.toString(), 'active services']
+  //       ] : [])
+  //     ];
+
+  //     (doc as any).autoTable({
+  //       startY: 45,
+  //       head: [['Metric', 'Value', 'Period']],
+  //       body: metricsData,
+  //       theme: 'striped',
+  //       styles: {
+  //         fontSize: 10,
+  //         cellPadding: 5,
+  //       },
+  //       headStyles: {
+  //         fillColor: [66, 139, 202],
+  //         textColor: 255,
+  //         fontSize: 10,
+  //         fontStyle: 'bold',
+  //       },
+  //       columnStyles: {
+  //         0: { cellWidth: 80 },
+  //         1: { cellWidth: 40 },
+  //         2: { cellWidth: 60 }
+  //       }
+  //     });
+
+  //     // Rest of your code remains the same...
+  //     // Queue Status
+  //     const queueData = await firstValueFrom(this.queueAnalytics$);
+  //     if (queueData?.length) {
+  //       doc.addPage();
+  //       doc.setFontSize(12);
+  //       doc.text('Queue Status', margins, 20);
+
+  //       (doc as any).autoTable({
+  //         startY: 25,
+  //         head: [['Office', 'Current Ticket', 'Waiting', 'Avg Wait Time', 'Status']],
+  //         body: queueData.map(q => [
+  //           q.office,
+  //           q.currentTicket.toString(),
+  //           q.waitingCount.toString(),
+  //           q.avgWaitTime,
+  //           q.status
+  //         ]),
+  //         theme: 'striped',
+  //         styles: {
+  //           fontSize: 10,
+  //           cellPadding: 5,
+  //         },
+  //         headStyles: {
+  //           fillColor: [66, 139, 202],
+  //           textColor: 255,
+  //           fontSize: 10,
+  //           fontStyle: 'bold',
+  //         }
+  //       });
+  //     }
+
+  //     // Staff Performance
+  //     const staffData = await firstValueFrom(this.staffPerformance$);
+  //     if (staffData?.length) {
+  //       doc.addPage();
+  //       doc.setFontSize(12);
+  //       doc.text('Staff Performance Metrics', margins, 20);
+
+  //       (doc as any).autoTable({
+  //         startY: 25,
+  //         head: [['Staff Name', 'Office', 'Tickets Served', 'Avg Service Time', 'Rating']],
+  //         body: staffData.map(s => [
+  //           s.name,
+  //           s.office,
+  //           s.ticketsServed.toString(),
+  //           s.avgServiceTime,
+  //           `${s.customerRating}/5`
+  //         ]),
+  //         theme: 'striped',
+  //         styles: {
+  //           fontSize: 10,
+  //           cellPadding: 5,
+  //         },
+  //         headStyles: {
+  //           fillColor: [66, 139, 202],
+  //           textColor: 255,
+  //           fontSize: 10,
+  //           fontStyle: 'bold',
+  //         }
+  //       });
+  //     }
+
+  //     // Kiosk Status
+  //     const kioskData = await firstValueFrom(this.kioskStatus$);
+  //     if (kioskData?.length) {
+  //       doc.addPage();
+  //       doc.setFontSize(12);
+  //       doc.text('Kiosk Status Overview', margins, 20);
+
+  //       (doc as any).autoTable({
+  //         startY: 25,
+  //         head: [['ID', 'Location', 'Status', 'Tickets Issued', 'Last Maintenance']],
+  //         body: kioskData.map(k => [
+  //           k.id,
+  //           k.location,
+  //           k.status,
+          
+  //         ]),
+  //         theme: 'striped',
+  //         styles: {
+  //           fontSize: 10,
+  //           cellPadding: 5,
+  //         },
+  //         headStyles: {
+  //           fillColor: [66, 139, 202],
+  //           textColor: 255,
+  //           fontSize: 10,
+  //           fontStyle: 'bold',
+  //         }
+  //       });
+  //     }
+
+  //     // Summary
+  //     doc.addPage();
+  //     doc.setFontSize(12);
+  //     doc.text('System Summary', margins, 20);
+
+  //     const summaryData = [
+  //       ['Report Period', this.selectedFilter.toUpperCase()],
+  //       ['Total Transactions', metrics.find(m => m.title === 'Total Transactions')?.value.toString() || '0'],
+  //       ['Registrar Division', metrics.find(m => m.title === 'Registrar Division')?.value.toString() || '0'],
+  //       ['Cash Division', metrics.find(m => m.title === 'Cash Division')?.value.toString() || '0'],
+  //       ['Accounting Division', metrics.find(m => m.title === 'Accounting Division')?.value.toString() || '0'],
+  //       ['Available Kiosks', this.availableKiosks.toString()],
+  //       ['Available Terminals', this.availableTerminals.toString()],
+  //       ['Total Services', this.totalServices.toString()],
+  //       ['System Status', 'OPERATIONAL'],
+  //       ['Last Updated', this.lastUpdated]
+  //     ];
+
+  //     (doc as any).autoTable({
+  //       startY: 25,
+  //       head: [['Metric', 'Value']],
+  //       body: summaryData,
+  //       theme: 'striped',
+  //       styles: {
+  //         fontSize: 10,
+  //         cellPadding: 5,
+  //       },
+  //       headStyles: {
+  //         fillColor: [66, 139, 202],
+  //         textColor: 255,
+  //         fontSize: 10,
+  //         fontStyle: 'bold',
+  //       }
+  //     });
+
+  //     // Save the PDF
+  //     const fileName = `queue-management-report-${new Date().toISOString().split('T')[0]}.pdf`;
+  //     doc.save(fileName);
+
+  //     this.showToast('Report downloaded successfully');
+  //   } catch (error) {
+  //     console.error('Error generating report:', error);
+  //     this.showToast('Failed to download report', 'error');
+  //   }
+  // }
+
   async downloadReport() {
     try {
-      const doc = new jsPDF();
-      const margins = 15;
-
-      // Header
-      doc.setFontSize(20);
-      doc.text('Queue Management System Report', margins, 20);
-
-      doc.setFontSize(10);
-      doc.text(`Generated: ${new Date().toLocaleString()}`, margins, 30);
-
-      // Overall Metrics Section
-      doc.setFontSize(12);
-      doc.text('Overall Metrics', margins, 40);
-
-      // Get all metrics data
+      // Import xlsx dynamically to reduce initial bundle size
+      const XLSX = await import('xlsx');
+      
+      // Create workbook
+      const wb = XLSX.utils.book_new();
+  
+      // Overall Metrics Sheet
       const metrics = await firstValueFrom(this.overallMetrics$);
       const metricsData = [
-        // Division metrics
+        ['Metric', 'Value', 'Period'],
         ...metrics.map(metric => [
           metric.title,
           metric.value.toString(),
@@ -509,128 +696,50 @@ private async loadTerminalsAndKiosks() {
           ['Total Services', this.totalServices.toString(), 'active services']
         ] : [])
       ];
-
-      (doc as any).autoTable({
-        startY: 45,
-        head: [['Metric', 'Value', 'Period']],
-        body: metricsData,
-        theme: 'striped',
-        styles: {
-          fontSize: 10,
-          cellPadding: 5,
-        },
-        headStyles: {
-          fillColor: [66, 139, 202],
-          textColor: 255,
-          fontSize: 10,
-          fontStyle: 'bold',
-        },
-        columnStyles: {
-          0: { cellWidth: 80 },
-          1: { cellWidth: 40 },
-          2: { cellWidth: 60 }
-        }
-      });
-
-      // Rest of your code remains the same...
-      // Queue Status
+      const metricsSheet = XLSX.utils.aoa_to_sheet(metricsData);
+      XLSX.utils.book_append_sheet(wb, metricsSheet, 'Overall Metrics');
+  
+      // Queue Status Sheet
       const queueData = await firstValueFrom(this.queueAnalytics$);
       if (queueData?.length) {
-        doc.addPage();
-        doc.setFontSize(12);
-        doc.text('Queue Status', margins, 20);
-
-        (doc as any).autoTable({
-          startY: 25,
-          head: [['Office', 'Current Ticket', 'Waiting', 'Avg Wait Time', 'Status']],
-          body: queueData.map(q => [
-            q.office,
-            q.currentTicket.toString(),
-            q.waitingCount.toString(),
-            q.avgWaitTime,
-            q.status
-          ]),
-          theme: 'striped',
-          styles: {
-            fontSize: 10,
-            cellPadding: 5,
-          },
-          headStyles: {
-            fillColor: [66, 139, 202],
-            textColor: 255,
-            fontSize: 10,
-            fontStyle: 'bold',
-          }
-        });
+        const queueSheet = XLSX.utils.json_to_sheet(queueData.map(q => ({
+          'Office': q.office,
+          'Current Ticket': q.currentTicket,
+          'Waiting': q.waitingCount,
+          'Average Wait Time': q.avgWaitTime,
+          'Status': q.status
+        })));
+        XLSX.utils.book_append_sheet(wb, queueSheet, 'Queue Status');
       }
-
-      // Staff Performance
+  
+      // Staff Performance Sheet
       const staffData = await firstValueFrom(this.staffPerformance$);
       if (staffData?.length) {
-        doc.addPage();
-        doc.setFontSize(12);
-        doc.text('Staff Performance Metrics', margins, 20);
-
-        (doc as any).autoTable({
-          startY: 25,
-          head: [['Staff Name', 'Office', 'Tickets Served', 'Avg Service Time', 'Rating']],
-          body: staffData.map(s => [
-            s.name,
-            s.office,
-            s.ticketsServed.toString(),
-            s.avgServiceTime,
-            `${s.customerRating}/5`
-          ]),
-          theme: 'striped',
-          styles: {
-            fontSize: 10,
-            cellPadding: 5,
-          },
-          headStyles: {
-            fillColor: [66, 139, 202],
-            textColor: 255,
-            fontSize: 10,
-            fontStyle: 'bold',
-          }
-        });
+        const staffSheet = XLSX.utils.json_to_sheet(staffData.map(s => ({
+          'Staff Name': s.name,
+          'Office': s.office,
+          'Tickets Served': s.ticketsServed,
+          'Average Service Time': s.avgServiceTime,
+          'Rating': `${s.customerRating}/5`
+        })));
+        XLSX.utils.book_append_sheet(wb, staffSheet, 'Staff Performance');
       }
-
-      // Kiosk Status
+  
+      // Kiosk Status Sheet
       const kioskData = await firstValueFrom(this.kioskStatus$);
       if (kioskData?.length) {
-        doc.addPage();
-        doc.setFontSize(12);
-        doc.text('Kiosk Status Overview', margins, 20);
-
-        (doc as any).autoTable({
-          startY: 25,
-          head: [['ID', 'Location', 'Status', 'Tickets Issued', 'Last Maintenance']],
-          body: kioskData.map(k => [
-            k.id,
-            k.location,
-            k.status,
-          
-          ]),
-          theme: 'striped',
-          styles: {
-            fontSize: 10,
-            cellPadding: 5,
-          },
-          headStyles: {
-            fillColor: [66, 139, 202],
-            textColor: 255,
-            fontSize: 10,
-            fontStyle: 'bold',
-          }
-        });
+        const kioskSheet = XLSX.utils.json_to_sheet(kioskData.map(k => ({
+          'ID': k.id,
+          'Location': k.location,
+          'Status': k.status,
+        
+        })));
+        XLSX.utils.book_append_sheet(wb, kioskSheet, 'Kiosk Status');
       }
-
-      // Summary
-      doc.addPage();
-      doc.setFontSize(12);
-      doc.text('System Summary', margins, 20);
-
+  
+      // Summary Sheet
       const summaryData = [
+        ['Metric', 'Value'],
         ['Report Period', this.selectedFilter.toUpperCase()],
         ['Total Transactions', metrics.find(m => m.title === 'Total Transactions')?.value.toString() || '0'],
         ['Registrar Division', metrics.find(m => m.title === 'Registrar Division')?.value.toString() || '0'],
@@ -642,34 +751,21 @@ private async loadTerminalsAndKiosks() {
         ['System Status', 'OPERATIONAL'],
         ['Last Updated', this.lastUpdated]
       ];
-
-      (doc as any).autoTable({
-        startY: 25,
-        head: [['Metric', 'Value']],
-        body: summaryData,
-        theme: 'striped',
-        styles: {
-          fontSize: 10,
-          cellPadding: 5,
-        },
-        headStyles: {
-          fillColor: [66, 139, 202],
-          textColor: 255,
-          fontSize: 10,
-          fontStyle: 'bold',
-        }
-      });
-
-      // Save the PDF
-      const fileName = `queue-management-report-${new Date().toISOString().split('T')[0]}.pdf`;
-      doc.save(fileName);
-
+      const summarySheet = XLSX.utils.aoa_to_sheet(summaryData);
+      XLSX.utils.book_append_sheet(wb, summarySheet, 'Summary');
+  
+      // Generate Excel file
+      const fileName = `queue-management-report-${new Date().toISOString().split('T')[0]}.xlsx`;
+      XLSX.writeFile(wb, fileName);
+  
       this.showToast('Report downloaded successfully');
     } catch (error) {
       console.error('Error generating report:', error);
       this.showToast('Failed to download report', 'error');
     }
   }
+
+
   toggleAutoRefresh() {
     if (this.autoRefreshEnabled) {
       this.startRealtimeUpdates();
