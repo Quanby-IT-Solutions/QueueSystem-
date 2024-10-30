@@ -8,7 +8,7 @@ export const environment = {
     
     // PCSO 
     api: 'https://quanby-staging.com/apiSQL.php',
-    socket: 'wss://quanby-staging.com',
+    socket: 'wss://quanby-staging.com/websocket',
     nodeserver: 'https://quanby-staging.com',
     server: 'https://quanby-staging.com/public/',
 
