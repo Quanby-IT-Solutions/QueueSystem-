@@ -7,6 +7,7 @@ import { LogsService } from './logs.service';
 interface Division{
   id:string;
   name:string;
+  description?:string;
   logo?:string;
 }
 

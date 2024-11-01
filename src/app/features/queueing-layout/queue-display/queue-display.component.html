@@ -354,7 +354,7 @@
     [ngStyle]="{ 'border-color': colors.primary_text + '30',}"
     class="announcement-banner absolute bottom-2 min-[3500px]:bottom-8 h-7 flex items-center w-full z-50  overflow-hidden text-red-600 bg-white border-dashed border-y-2 min-[3500px]:border-y-8 shadow-sm
       min-[3500px]:h-28
-    ">.includes('P') 
+    ">
       <div class="w-full h-full relative">
         <div  class="announcement-text absolute inline-flex min-w-[200%] animate-scroll-tailing h-full tracking-widest font-semibold min-[3500px]:text-6xl items-center  whitespace-nowrap">
           <span class="flex-1 whitespace-nowrap  px-2 min-[3500px]:px-6 inline-block ">{{announcements}} </span>
@@ -367,7 +367,7 @@
     [ngStyle]="{
       'background': 'linear-gradient(' + 'to right' + ', ' + colors.primary_bg + ', ' + darkenColor(colors.primary_bg,5) + ')',
       'mix-blend-mode': 'multiply' }"
-    class="absolute top-0 h-full w-full opacity-60 z-10">
+    class="absolute top-0 h-fulpl w-full opacity-60 z-10">
     </div>
     <!-- Background Image -->
     <img *ngIf="showBackground" [src]="backgroundUrl??'assets/queue-display/background.png'" class="absolute top-0 h-full w-full object-cover opacity-20  z-0">

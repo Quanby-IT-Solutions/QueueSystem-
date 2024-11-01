@@ -63,9 +63,9 @@ export class ServiceManagementComponent {
     this.divisionService.setDivision(division)
     this.API.setLoading(true);
     this.services = (await this.serviceService.getAllServices(division.id));
-    this.closeService();
     this.API.setLoading(false);
   }
+
 
   statusMap:any = {
     'available' : 'bg-green-500',

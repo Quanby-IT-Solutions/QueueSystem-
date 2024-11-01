@@ -50,6 +50,7 @@ export class SidebarComponent implements OnInit {
       { title: 'Terminal Management', route: '/admin/terminal', active: false, icon: 'computer' },
       { title: 'Kiosk Management', route: '/admin/kiosk-management', active: false, icon: 'touch_app' },
       { title: 'Service Management', route: '/admin/service-management', active: false, icon: 'description' },
+      { title: 'Prefix Management', route: '/admin/format-management', active: false, icon: 'tag' },
     ]: [
       { title: 'Dashboard', route: '/desk-attendant/dashboard', active: true, icon: 'dashboard' },
       { title: 'Terminal', route: '/desk-attendant/terminalmgmt', active: false, icon: 'computer' },
