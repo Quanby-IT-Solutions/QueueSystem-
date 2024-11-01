@@ -131,11 +131,11 @@ export class ContentService {
           await this.API.uploadFile(selectedFiles[variable]!, location);
           uploadedFiles[variable] = location;
         }
-      }catch(e){
+      }catch(e:any){
         for(const variable in uploadedFiles){
            await this.API.disposeFile(uploadedFiles[variable]!);
         }
-        throw new Error('Error uploading files.');
+        throw new Error(e.message);
       }
     }
 
