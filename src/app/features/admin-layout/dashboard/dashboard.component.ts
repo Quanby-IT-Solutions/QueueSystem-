@@ -159,6 +159,7 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
   ) {}
 
   ngOnInit() {
+  
     this.currentUser = { firstName: 'User' };
     this.loadContents();
     this.staffPerformance$.subscribe(staff => {
