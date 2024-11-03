@@ -64,7 +64,7 @@
                   <button
                   *ngIf="checkIfOnline(terminal) != 'online'"
                   (click)="selectTerminal(terminal);openSetClient()" class="rounded-lg px-6 py-1 text-white flex gap-2 bg-blue-500">
-                    {{'Set Client'}}
+                    {{ getFormatName(terminal.specific)  ?? 'Set Client'}}
                   </button>
                   <button (click)="selectTerminal(terminal);openDialog('maintenance')" class="rounded-lg px-6 py-1 text-white flex gap-2 {{statusMap[checkIfOnline(terminal)]}}">
                     <span  class="material-icons hidden 2xl:block"> swap_horiz </span> {{checkIfOnline(terminal) == 'online' ? 'In Use' :checkIfOnline(terminal) != 'maintenance'? 'Available':'Maintenance'}}
