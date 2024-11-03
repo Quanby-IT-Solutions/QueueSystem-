@@ -42,7 +42,9 @@ interface Ticket {
   number:number;
   status:string;
   timestamp:string;
-  type:'regular'|'priority';
+  type:string;
+  tag?:string;
+  metaType?:string;
   fullname:string;
   services:string;
   department_id?:string;

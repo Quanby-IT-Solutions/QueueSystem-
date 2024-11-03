@@ -217,6 +217,7 @@ export class KioskFormsComponent implements OnInit, OnDestroy {
     const number = await this.queueService.addToQueue({
       fullname: this.customerName.trim(),
       type: this.selectedType,
+      tag: this.selectedType[0].toUpperCase(),
       gender: this.gender.toLowerCase() as 'male' | 'female' | 'other',
       services: this.selectedServices.map(item=>item.id!),
       student_id: this.studentNumber.trim() == '' ? undefined : this.studentNumber.trim(),
@@ -239,7 +240,7 @@ export class KioskFormsComponent implements OnInit, OnDestroy {
     this.isLoading =false;
     // Send feedback
     this.openFeedback( this.selectedType === 'regular' ? 'success':'priority');
-   }catch(e){
+   }catch(e:any){
     this.isLoading =false;
     this.API.sendFeedback('error','Something went wrong.',5000);
    }

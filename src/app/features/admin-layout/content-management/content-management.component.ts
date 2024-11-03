@@ -23,8 +23,7 @@ interface ContentCollapsables {
   uploads: boolean,
   widgets:boolean,
   colors:boolean,
-  announcements:boolean,
-  prefix:boolean
+  announcements:boolean
 }
 
 interface ContentToggles {
@@ -37,8 +36,6 @@ interface ContentToggles {
 }
 interface ContentFields {
   announcements:string,
-  priority:string,
-  regular:string,
   youtubeURL?:string,
   videoUrl?:string,
   backgroundUrl?:string,
@@ -90,7 +87,6 @@ export class ContentManagementComponent implements OnInit {
     widgets:false,
     colors:false,
     announcements:false,
-    prefix:false
   }
 
   colors:ContentColors={
@@ -106,8 +102,6 @@ export class ContentManagementComponent implements OnInit {
 
   inputFields:ContentFields={
     announcements : '',
-    priority : 'P',
-    regular : 'R'
   }
   
   factorySettings:ContentSettings = {
@@ -195,13 +189,6 @@ export class ContentManagementComponent implements OnInit {
     if(this.toggles.videoURL){
       this.inputFields.youtubeURL = content.video
     }
-    if(content.priority_prefix){
-      this.inputFields.priority = content.priority_prefix
-    }
-
-    if(content.regular_prefix){
-      this.inputFields.regular = content.regular_prefix
-    }
 
     this.inputFields.announcements = content.announcements ?? '';
 
@@ -264,14 +251,7 @@ export class ContentManagementComponent implements OnInit {
           this.inputFields.youtubeURL = content.video
         }
 
-        if(content.priority_prefix){
-          this.inputFields.priority = content.priority_prefix
-        }
 
-        if(content.regular_prefix){
-          this.inputFields.regular = content.regular_prefix
-        }
-        
         this.inputFields.announcements = content.announcements ?? '';
       
         this.API.setLoading(false);
@@ -320,13 +300,7 @@ export class ContentManagementComponent implements OnInit {
         if(this.toggles.videoURL){
           this.inputFields.youtubeURL = content.video
         }
-        if(content.priority_prefix){
-          this.inputFields.priority = content.priority_prefix
-        }
 
-        if(content.regular_prefix){
-          this.inputFields.regular = content.regular_prefix
-        }
         this.inputFields.announcements = content.announcements ?? '';
       }
       this.previousSettings ={
@@ -352,7 +326,7 @@ export class ContentManagementComponent implements OnInit {
     this.showEditSection = !this.showEditSection;
   }
 
-  toggleCollapse(key:'uploads'|'widgets'|'colors'|'announcements'|'prefix'){
+  toggleCollapse(key:'uploads'|'widgets'|'colors'|'announcements'){
     if(this.collapsables[key] == true) return;
     this.collapsables[key] = !this.collapsables[key];
     if(this.collapsables[key] == true){
@@ -386,20 +360,7 @@ export class ContentManagementComponent implements OnInit {
   }
 
   confirmDialog(type:'publish'| 'revert'){
-    if(type=='publish'){
-      if(this.inputFields.priority.trim() == ''){
-        this.API.sendFeedback('error','Priority prefix must be set.');
-        return;
-      }
-      if(this.inputFields.regular.trim() == ''){
-        this.API.sendFeedback('error','Regular prefix must be set.');
-        return;
-      }
-      if(this.inputFields.priority.trim() == this.inputFields.regular.trim()){
-        this.API.sendFeedback('error','Prefixes must be different for Priority and Regular.');
-        return
-      }
-    }
+
     this.modalType = type;
   }
 
@@ -445,8 +406,6 @@ export class ContentManagementComponent implements OnInit {
     this.API.setLoading(true);
     try{
       await this.contentService.updateContentSettings({
-        regular: this.inputFields.regular,
-        priority: this.inputFields.priority,
         division_id: this.selectedDivision!,
         selectedFiles: {
           logo: this.files.logo,
