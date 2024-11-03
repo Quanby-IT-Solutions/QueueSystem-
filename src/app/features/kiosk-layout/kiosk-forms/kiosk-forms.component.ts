@@ -17,6 +17,8 @@ import { LottieAnimationComponent } from '../../../shared/components/lottie-anim
 import { ConfirmationComponent } from '../../../shared/modals/confirmation/confirmation.component';
 import { config } from '../../../../environment/config';
 import { ContentService } from '../../../services/content.service';
+import { FormatService } from '../../../services/format.service';
+import { Format } from '../../admin-layout/format-management/types/format.types';
 
 
 @Component({
@@ -39,7 +41,7 @@ export class KioskFormsComponent implements OnInit, OnDestroy {
 
   queueNumber: string | null = null;
   selectedServices: Service[] = [];
-  selectedType: 'regular' | 'priority' = 'regular';
+  selectedType: 'regular' | 'priority'|string = 'regular';
   customerName: string = '';
   group: string = '';
   gender: string = '';
@@ -53,6 +55,7 @@ export class KioskFormsComponent implements OnInit, OnDestroy {
   isDropdownOpen: boolean = false;
   division?:Division;
 
+  formats:Format[]=[];
   departments:Department[] = [];
   divisions:Division[] = [];
   serviceInterval:any;
@@ -69,12 +72,13 @@ export class KioskFormsComponent implements OnInit, OnDestroy {
     private divisionService: DivisionService,
     private serviceService:ServiceService,
     private departmentService:DepartmentService,
+    private formatService:FormatService,
     private contentService:ContentService, 
     private API: UswagonCoreService) {}
 
  
   config = config
-  modal?:'priority'|'success';
+  modal?:'priority'|'success'|string;
   content:any;
 
   openFeedback(type:'priority'|'success'){
@@ -125,6 +129,21 @@ export class KioskFormsComponent implements OnInit, OnDestroy {
 
 
     this.services = await this.serviceService.getAllServices(this.divisionService.selectedDivision?.id!);
+    this.formats = await this.formatService.getFrom(this.divisionService.selectedDivision!.id);
+    if(this.formats.length <= 0){
+      this.formats = [
+        {
+          id: 'priority',
+          name:'priority',
+          prefix:'P'
+        },
+        {
+          id: 'regular',
+          name:'regular',
+          prefix:'R'
+        }
+      ]
+    }
     this.departments = await this.departmentService.getAllDepartments();
     this.divisions = await this.divisionService.getDivisions();
     if(this.serviceInterval){
@@ -135,10 +154,10 @@ export class KioskFormsComponent implements OnInit, OnDestroy {
       this.departments = await this.departmentService.getAllDepartments();
     },2000)
     this.queueService.listenToQueue();
-    this.resetQueueNumberIfNewDay();
   }
+  
 
-  handleButtonClick(type: 'regular' | 'priority'): void {
+  handleButtonClick(type: string): void {
     this.isChecklistVisible = true;
     this.selectedType = type;
   }
@@ -225,8 +244,8 @@ export class KioskFormsComponent implements OnInit, OnDestroy {
     });
     this.API.socketSend({event:'queue-events'})
     this.API.socketSend({event:'admin-dashboard-events'})
-    this.successDescription = `Your current position is <span class='font-medium'>${this.selectedType === 'regular' ? 'R' : 'P'}-${number.toString().padStart(3,'0')}</span>`
-    await this.printImage(`${this.selectedType === 'regular' ? 'R' : 'P'}-${number.toString().padStart(3,'0')}`);
+    this.successDescription = `Your current position is <span class='font-medium'>${this.formats.find((format)=>format.id == this.selectedType)?.prefix}-${number.toString().padStart(3,'0')}</span>`
+    await this.printImage(`${this.formats.find((format)=>format.id == this.selectedType)?.prefix}-${number.toString().padStart(3,'0')}`);
     // Reset
     this.selectedServices = this.subServices
     .filter(item => item.selected)
@@ -239,7 +258,7 @@ export class KioskFormsComponent implements OnInit, OnDestroy {
     // Loading to false
     this.isLoading =false;
     // Send feedback
-    this.openFeedback( this.selectedType === 'regular' ? 'success':'priority');
+    this.openFeedback( this.selectedType != 'priority' ? 'success':'priority');
    }catch(e:any){
     this.isLoading =false;
     this.API.sendFeedback('error','Something went wrong.',5000);
@@ -250,35 +269,7 @@ export class KioskFormsComponent implements OnInit, OnDestroy {
   }
 
 
-  generateQueueNumber(): string {
-    const today = new Date().toDateString();
-    const queueKey = `${this.departmentName}_${today}`;
-    let departmentQueueData = JSON.parse(localStorage.getItem(queueKey) || '{}');
 
-    if (!departmentQueueData.date) {
-      departmentQueueData = { date: today, lastRegularQueueNumber: 0, lastPriorityQueueNumber: 0 };
-    }
-
-    if (this.selectedType === 'regular') {
-      departmentQueueData.lastRegularQueueNumber += 1;
-      localStorage.setItem(queueKey, JSON.stringify(departmentQueueData));
-      return `R-${departmentQueueData.lastRegularQueueNumber}`;
-    } else {
-      departmentQueueData.lastPriorityQueueNumber += 1;
-      localStorage.setItem(queueKey, JSON.stringify(departmentQueueData));
-      return `P-${departmentQueueData.lastPriorityQueueNumber}`;
-    }
-  }
-
-  resetQueueNumberIfNewDay(): void {
-    const today = new Date().toDateString();
-    const queueKey = `${this.departmentName}_${today}`;
-    let departmentQueueData = JSON.parse(localStorage.getItem(queueKey) || '{}');
-
-    if (departmentQueueData.date !== today) {
-      localStorage.setItem(queueKey, JSON.stringify({ date: today, lastRegularQueueNumber: 0, lastPriorityQueueNumber: 0 }));
-    }
-  }
 
   async printImage(code: string) {
     const ticketWidth = 500;  // 483 pixels wide
@@ -295,106 +286,6 @@ export class KioskFormsComponent implements OnInit, OnDestroy {
     document.body.appendChild(container);
 
     try {
-        // Background Logo
-        // const logoUrl = './assets/logo/vsu.png';
-        // const logoData = await this.getBase64Image(logoUrl);
-        // const transparentLogoData = await this.makeImageTransparent(logoData, 0.7);
-
-
-        // // Drawing content into the canvas
-        // const canvas = document.createElement('canvas');
-        // const ctx = canvas.getContext('2d');
-        // if (ctx) {
-        //     canvas.width = ticketWidth;
-        //     canvas.height = ticketHeight;
-
-        //     // Set background color
-        //     ctx.fillStyle = '#FFFFFF';
-        //     ctx.fillRect(0, 0, ticketWidth, ticketHeight);
-
-          
-
-        //     // Header with Queue Number
-        //     ctx.fillStyle = 'rgb(95, 141, 78)'; // #5F8D4E
-        //     const headerWidth = 450; // Fixed header width
-        //     const headerX = (ticketWidth - headerWidth) / 2; // Center the header
-        //     // ctx.fillRect(headerX, margin, headerWidth, 50);
-        //     ctx.fillStyle = '#000000';
-        //     ctx.font = 'bold 82px helvetica';
-        //     ctx.textAlign = 'center';
-        //     ctx.fillText(code, ticketWidth / 2, margin + 40);
-
-        //     // Welcome text
-        //     ctx.fillStyle = '#000000';
-        //     ctx.font = '28px helvetica';
-        //     ctx.fillText("Welcome! You're currently in the queue", ticketWidth / 2, margin + 80);
-
-        //     // Horizontal line
-        //     ctx.strokeStyle = 'rgb(200, 200, 200)';
-        //     ctx.beginPath();
-        //     ctx.moveTo(margin + 20, margin + 110);
-        //     ctx.lineTo(ticketWidth - (margin + 20), margin + 110);
-        //     ctx.stroke();
-
-        //     // Customer details
-        //     ctx.textAlign ='left';
-        //     const contentStartX = margin;
-
-
-        //     const details = [
-        //         { label: 'Name:', value: this.customerName },
-        //         { label: 'Gender:', value: this.gender},
-        //         { label: 'Student ID:', value: this.studentNumber || 'No ID specified.'},
-        //         { label: 'Department:', value: this.department || 'No department selected.'},
-        //         { label: 'Date:', value: this.currentDate.toLocaleDateString() },
-        //         { label: 'Time:', value: this.currentTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) },
-        //     ];
-
-        //     let yPosition = margin + 140;
-            
-        //     details.forEach(detail => {
-        //         ctx.fillStyle = '#000000';
-        //         ctx.font = 'bold 30px helvetica';
-        //         ctx.fillText(detail.label, contentStartX, yPosition);
-        //         const textWidth = ctx.measureText(detail.label).width;
-        //         ctx.font = '30px helvetica';
-        //         ctx.fillText(detail.value, contentStartX + 10 + textWidth, yPosition);
-        //         yPosition += 35;
-        //     });
-            
-        //     ctx.fillStyle = '#000000';
-        //     ctx.font = 'bold 30px helvetica';
-        //     ctx.fillText('Services:', contentStartX , yPosition, 200);
-        //     yPosition += 35;
-        //     ctx.font = '30px helvetica';
-        //     for(let service of this.selectedServices){
-        //       ctx.fillText( '• '+service.name, contentStartX, yPosition, 200);
-        //       yPosition += 30;
-        //     }
-
-        //     yPosition += 30;
-        //     // Footer text
-        //     ctx.textAlign = 'center';
-        //     ctx.font = '24px helvetica';
-        //     ctx.fillText('Your number will be called shortly.', ticketWidth / 2, yPosition);
-        //     yPosition += 30;
-        //     const logoWidth = 150;
-        //     const logoHeight = 150;
-        //     const logoX = (ticketWidth - logoWidth) / 2;
-        //     // Draw logo
-        //     const logoImg = new Image();
-        //     logoImg.src = transparentLogoData;
-        //     await new Promise((resolve) => {
-        //         logoImg.onload = () => {
-        //             ctx.drawImage(logoImg, logoX, yPosition, logoWidth, logoHeight);
-        //             resolve(null);
-        //         };
-        //     });
-        // }
-
-        // Convert canvas to Base64
-        // const base64Image = canvas.toDataURL('image/png');
-        // const base64String = base64Image.split(',')[1];
         this.kioskService.thermalPrint({
           number:code,
           name: this.customerName,

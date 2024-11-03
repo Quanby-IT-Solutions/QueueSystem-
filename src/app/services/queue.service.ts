@@ -1,6 +1,6 @@
 
-import { Injectable, OnInit } from '@angular/core';
-import { BehaviorSubject, last } from 'rxjs';
+import { Injectable } from '@angular/core';
+import { BehaviorSubject } from 'rxjs';
 import { UswagonAuthService } from 'uswagon-auth';
 import { UswagonCoreService } from 'uswagon-core';
 import { KioskService } from './kiosk.service';
@@ -430,15 +430,26 @@ export class QueueService  {
     const response = await this.API.read({
       selectors: ['*'],
       tables: 'queue',
-      conditions: `WHERE division_id = '${this.divisionService.selectedDivision!.id}' AND CAST(timestamp AS DATE) = CAST(GETDATE() AS DATE) ${filter} ORDER BY timestamp ASC` 
+      conditions: `WHERE division_id = '${this.divisionService.selectedDivision!.id}' AND CAST(timestamp AS DATE) = CAST(GETDATE() AS DATE) ${filter} ORDER BY timestamp DESC` 
     });
     if(response.success){
       const queue = response.output as Queue[];
       const formats:Format[] =  await this.formatService.getFrom(this.divisionService.selectedDivision!.id);
-      if(formats.length <= 0){
-        this.queueNumber['priority'] = queue.filter(queue=> queue.type == 'priority').length + 1;
-        this.queueNumber['regular'] = queue.filter(queue=> queue.type == 'regular').length + 1;
-      }else{
+      const formatMap:{[key:string]:Format} = {
+        'priority':{
+          id:'0',
+          name: 'priority',
+          prefix:'P'
+        },
+        'regular':{
+          id:'0',
+          name: 'regular',
+          prefix:'R'
+        },
+      };
+      this.queueNumber['priority'] = queue.filter(queue=> queue.type == 'priority').length + 1;
+      this.queueNumber['regular'] = queue.filter(queue=> queue.type == 'regular').length + 1;
+      if(formats.length > 0){
         for(let format of formats){
           this.queueNumber[format.id!] = queue.filter(queue=> queue.type == format.id).length + 1;
         }
@@ -464,8 +475,12 @@ export class QueueService  {
       // });
       const filteredQueue = queue.filter(queue=>!this.takenQueue.includes(queue.id));
       
-      console.log(filteredQueue);
-  
+      for(let i = 0; i < filteredQueue.length;i++){
+        filteredQueue[i].tag = formatMap[filteredQueue[i].type].prefix
+        if(filteredQueue[i].type != 'priority' && filteredQueue[i].type != 'regular'){
+          filteredQueue[i].metaType = formatMap[filteredQueue[i].type].name;
+        }
+      }
       this.queueSubject.next(filteredQueue);
 
       this.queue = filteredQueue;
@@ -481,7 +496,7 @@ export class QueueService  {
     const response = await this.API.read({
       selectors: ['*'],
       tables: 'queue',
-      conditions: `WHERE  CAST(timestamp AS DATE) = CAST(GETDATE() AS DATE) ${filter} ORDER BY timestamp ASC` 
+      conditions: `WHERE  CAST(timestamp AS DATE) = CAST(GETDATE() AS DATE) ${filter} ORDER BY timestamp DESC` 
     });
     if(response.success){
       const queue = response.output as Queue[];
@@ -498,13 +513,11 @@ export class QueueService  {
           prefix:'R'
         },
       };
-      if(formats.length <= 0){
-        this.queueNumber['priority'] = queue.filter(queue=> queue.type == 'priority').length + 1;
-        this.queueNumber['regular'] = queue.filter(queue=> queue.type == 'regular').length + 1;
-      }else{
+      this.queueNumber['priority'] = queue.filter(queue=> queue.type == 'priority').length + 1;
+      this.queueNumber['regular'] = queue.filter(queue=> queue.type == 'regular').length + 1;
+      if(formats.length > 0){
         for(let format of formats){
           this.queueNumber[format.id!] = queue.filter(queue=> queue.type == format.id).length + 1;
-          formatMap[format.name] = format;
         }
       }
 
