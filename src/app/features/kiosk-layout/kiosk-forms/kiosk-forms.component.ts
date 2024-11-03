@@ -151,10 +151,7 @@ export class KioskFormsComponent implements OnInit, OnDestroy {
     if(this.serviceInterval){
       clearInterval(this.serviceInterval)
     }
-    this.serviceInterval = setInterval(async()=>{
-      this.services = await this.serviceService.getAllServices(this.divisionService.selectedDivision?.id!);
-      this.departments = await this.departmentService.getAllDepartments();
-    },2000)
+
     this.queueService.listenToQueue();
   }
   
