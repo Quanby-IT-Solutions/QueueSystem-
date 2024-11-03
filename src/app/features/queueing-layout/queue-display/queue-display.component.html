@@ -76,7 +76,7 @@
           class="serving-title font-medium text-lg 2xl:text-2xl tracking-widest px-2 min-[3500px]:font-semibold min-[3500px]:px-4 min-[3500px]:text-8xl" >Serving Now:</h2>
           <div class="serving-items flex-1 grid grid-cols-2 grid-rows-5 grid-flow-col   gap-2 min-[3500px]:gap-5">
             <!-- Counter -->
-            <ng-container *ngFor="let item of counters;let i = index" >
+            <ng-container *ngFor="let item of counters| slice:offset:offset+slice;let i = index" >
               <div
               *ngIf="item.status == 'online'"
               [ngStyle]="{
@@ -90,7 +90,7 @@
                 }"
                 class="serving-item-header w-1/4 px-3 flex flex-col items-center justify-center font-medium text-2xl 2xl:text-2xl  shadow-sm text-shadow tracking-wide  min-[3500px]:text-8xl min-[3500px]:px-10 min-[3500px]:font-semibold ">
                   <span class="serving-item-label text-[0.5rem] leading-none min-[3500px]:text-3xl" >COUNTER</span>
-                  <span>{{i+1}}</span>
+                  <span>{{item.number}}</span>
                 </div>
                 <div
                 [ngStyle]="{

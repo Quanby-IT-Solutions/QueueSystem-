@@ -50,21 +50,31 @@
               <span class="font-medium ">{{checkIfOnline(terminal) == 'online' ? 'Current Session: ' : 'Last Session: '}} </span>
               <span class="opacity-75">{{terminal.last_active ? (terminal.last_active | date:'MM-dd-yyyy h:mm a' ) : 'No sessions yet.'}}</span>
             </div>
+            <div>
+              <span class="font-medium "> Client Type: </span>
+              <span class="opacity-75">{{getFormatName(terminal.specific) ?? 'General'}}</span>
+            </div>
             <div class="flex w-full  mt-2">
               <div class="w-full flex justify-between">
                 <button *ngIf="checkIfOnline(terminal) != 'online'" (click)="selectTerminal(terminal);openDialog('delete')" class="rounded-lg px-2 flex items-center justify-center py-1 text-white bg-red-500 hover:bg-red-600 ">
                   <span  class="material-icons"> delete </span>
                 </button>
                 <div *ngIf="checkIfOnline(terminal) == 'online'"></div>
-                <button (click)="selectTerminal(terminal);openDialog('maintenance')" class="rounded-lg px-6 py-1 text-white flex gap-2 {{statusMap[checkIfOnline(terminal)]}}">
-                  <span  class="material-icons hidden 2xl:block"> swap_horiz </span> {{checkIfOnline(terminal) == 'online' ? 'In Use' :checkIfOnline(terminal) != 'maintenance'? 'Available':'Maintenance'}}
-                </button>
+                <div class="flex gap-2">
+                  <button
+                  *ngIf="checkIfOnline(terminal) != 'online'"
+                  (click)="selectTerminal(terminal);openSetClient()" class="rounded-lg px-6 py-1 text-white flex gap-2 bg-blue-500">
+                    {{'Set Client'}}
+                  </button>
+                  <button (click)="selectTerminal(terminal);openDialog('maintenance')" class="rounded-lg px-6 py-1 text-white flex gap-2 {{statusMap[checkIfOnline(terminal)]}}">
+                    <span  class="material-icons hidden 2xl:block"> swap_horiz </span> {{checkIfOnline(terminal) == 'online' ? 'In Use' :checkIfOnline(terminal) != 'maintenance'? 'Available':'Maintenance'}}
+                  </button>
+                </div>
               </div>
             </div>
           </div>
         </button>
         <button
-        *ngIf="terminals.length <10"
         (click)="addTerminal()"
         class="bg-white tracking-wider h-auto min-h-48 font-thin rounded-lg gap-3 shadow-md  hover:bg-green-950 hover:text-white cursor-pointer flex justify-center border-2 border-solid border-black/10 items-center  "
         >
@@ -77,6 +87,13 @@
     </div>
   </div>
 </div>
+<!-- Set Client Modal -->
+<app-set-client
+*ngIf="setClientModal"
+[formats]="formats"
+[terminal]="selectedTerminal"
+(onClose)="closeSetClient($event)"
+/>
 <!-- Maintenance Modal -->
 <app-confirmation
     *ngIf="modalType== 'maintenance'"

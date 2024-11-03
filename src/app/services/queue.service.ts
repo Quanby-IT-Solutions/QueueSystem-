@@ -452,8 +452,10 @@ export class QueueService  {
       if(formats.length > 0){
         for(let format of formats){
           this.queueNumber[format.id!] = queue.filter(queue=> queue.type == format.id).length + 1;
+          formatMap[format.id!] = format;
         }
       }
+
      
 
       // const sortedQueue = queue.sort((a,b)=>{ 
@@ -481,9 +483,9 @@ export class QueueService  {
           filteredQueue[i].metaType = formatMap[filteredQueue[i].type].name;
         }
       }
+      this.queue = filteredQueue;
       this.queueSubject.next(filteredQueue);
 
-      this.queue = filteredQueue;
       return this.queue;
     }else{
       throw new Error('Unable to fetch queue');
@@ -517,6 +519,7 @@ export class QueueService  {
       this.queueNumber['regular'] = queue.filter(queue=> queue.type == 'regular').length + 1;
       if(formats.length > 0){
         for(let format of formats){
+          formatMap[format.id!] = format;
           this.queueNumber[format.id!] = queue.filter(queue=> queue.type == format.id).length + 1;
         }
       }
@@ -593,8 +596,16 @@ export class QueueService  {
       });
       if(response.success){
         this.attendedQueues = [];
+        let formats = await this.formatService.getFrom(this.divisionService.selectedDivision!.id);
+        if(formats.length <=0){
+          formats = [
+            {id:'priority',name:'priority',prefix:'P'},
+            {id:'regular',name:'regular',prefix:'R'},
+          ]
+        }
         for(let attended of response.output){
-          this.attendedQueues.push({...attended, queue: {...attended, id: attended.queue_id}})
+          const format  = formats.find((_format:any)=> _format.id == attended.type);
+          this.attendedQueues.push({...attended, queue: {...attended, id: attended.queue_id, type:format.id, tag:format.prefix, metaType: format.name}})
         }
         return this.attendedQueues;
       }else{
@@ -608,6 +619,7 @@ export class QueueService  {
 
   async getQueueOnDesk(){
     const user = this.auth.getUser();
+
     try{
       const response = await this.API.read({
         selectors: ['queue.status as queue_status,queue.*, attended_queue.*'],
@@ -620,21 +632,44 @@ export class QueueService  {
       });
       if(response.success){
         if(response.output.length> 0){
+          let format;
+          if(response.output[0].type != 'priority' || response.output[0].type != 'regular'){
+            format = await this.formatService.get(response.output[0].type);
+          }else{
+            format = {
+              id: '0',
+              name: response.output[0].type,
+              prefix: response.output[0].type == 'priority'? 'P':'R'
+            }
+          }
+          if(!format){
+            this.attendedQueue = undefined;
+            return {
+              attendedQueue:this.attendedQueue,
+              queue:undefined
+            };
+          }
           this.attendedQueue  = {
             ...response.output[0],
             queue:{
               id:response.output[0].queue_id,
               status:response.output[0].queue_status,
-              ...response.output[0]
+              ...response.output[0],
+              tag: format.prefix, 
+              type:format.id,
+              metaType: format.name,
             }
           }
-          response.output[0];
+
           return {
             attendedQueue:this.attendedQueue,
             queue: {
               id:response.output[0].queue_id,
               status:response.output[0].queue_status,
-              ...response.output[0]
+              ...response.output[0],
+              tag: format.prefix, 
+              type:format.id,
+              metaType: format.name,
             } as Queue
           };
         }else{
@@ -667,10 +702,26 @@ export class QueueService  {
       });
       if(response.success){
         if(response.output.length> 0){
+          let format;
+          if(response.output[0].type != 'priority' || response.output[0].type != 'regular'){
+            format = await this.formatService.get(response.output[0].type);
+          }else{
+            format = {
+              id: '0',
+              name: response.output[0].type,
+              prefix: response.output[0].type == 'priority'? 'P':'R'
+            }
+          }
+          if(!format){
+            return undefined;
+          }
           return  {
             id:response.output[0].queue_id,
-            status:response.output[0].queue_statusm,
-            ...response.output[0]
+            status:response.output[0].queue_status,
+            ...response.output[0],
+            tag: format.prefix, 
+            type:format.id,
+            metaType: format.name,
           } as Queue
         }else{
           return undefined;

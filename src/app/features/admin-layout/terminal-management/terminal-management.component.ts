@@ -1,12 +1,14 @@
 import { Component, OnInit, ChangeDetectorRef, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { TerminalService } from '../../../services/terminal.service';
-import { ContentService } from '../../../services/content.service';
 import { LottieAnimationComponent } from '../../../shared/components/lottie-animation/lottie-animation.component';
 import { UswagonAuthService } from 'uswagon-auth';
 import { UswagonCoreService } from 'uswagon-core';
 import { ConfirmationComponent } from '../../../shared/modals/confirmation/confirmation.component';
 import { DivisionService } from '../../../services/division.service';
+import { SetClientComponent } from './modals/set-client/set-client.component';
+import { Format } from '../format-management/types/format.types';
+import { FormatService } from '../../../services/format.service';
 
 // Interface defining the structure of a Counter object
 
@@ -20,6 +22,7 @@ interface Terminal{
   session_status?:string;
   last_active?:string;
   attendant?:string;
+  specific?:string;
 }
 interface Division{
   id:string;
@@ -31,7 +34,7 @@ interface Division{
   templateUrl: './terminal-management.component.html',  // HTML template for the component
   styleUrls: ['./terminal-management.component.css'],  // CSS for the component
   standalone: true,  // Allows the component to be used without being declared in a module
-  imports: [CommonModule,LottieAnimationComponent, ConfirmationComponent]  // Importing CommonModule to use Angular common directives
+  imports: [CommonModule,LottieAnimationComponent, ConfirmationComponent, SetClientComponent]  // Importing CommonModule to use Angular common directives
 })
 export class TerminalManagementComponent implements OnInit, OnDestroy {
 
@@ -45,13 +48,14 @@ export class TerminalManagementComponent implements OnInit, OnDestroy {
   isSuperAdmin:boolean = this.auth.accountLoggedIn() == 'superadmin';
 
   selectedTerminal?:Terminal;
-
+  formats:Format[] = [];
   actionLoading:boolean = false;
   dataLoaded:boolean = false;
 
   constructor( 
     private cdr:ChangeDetectorRef,
     private divisionService:DivisionService,
+    private formatService:FormatService,
     private auth:UswagonAuthService,private API:UswagonCoreService,
     private terminalService:TerminalService) {}
 
@@ -64,6 +68,27 @@ export class TerminalManagementComponent implements OnInit, OnDestroy {
     if(this.statusInterval){
       clearInterval(this.statusInterval);
     }
+  }
+
+  setClientModal:boolean = false;
+  
+  openSetClient(){
+    this.setClientModal = true;
+  }
+
+  async closeSetClient(refresh:boolean){
+    this.setClientModal  = false;
+    if(refresh){
+      this.API.sendFeedback('success', 'Terminal Client Type has been updated!',5000)
+      this.API.setLoading(true);
+      this.terminals = (await this.terminalService.getAllTerminals());
+      this.API.setLoading(false);
+    }
+  }
+
+  getFormatName(id?:string){
+    if(!id) return null;
+    return this.formats.find(format=>format.id == id)?.name;
   }
 
   checkIfOnline(terminal:Terminal){
@@ -85,6 +110,7 @@ export class TerminalManagementComponent implements OnInit, OnDestroy {
     this.API.setLoading(true);
     this.selectedDivision = (await this.divisionService.getDivision())?.id;
     this.divisions = this.divisionService.divisions;
+    await  this.loadFormats();
     await this.updateTerminalData();
     this.API.setLoading(false);
     this.API.addSocketListener('terminal-events', async(data)=>{
@@ -123,10 +149,30 @@ export class TerminalManagementComponent implements OnInit, OnDestroy {
 
   async selectDivision(division:Division){
     this.selectedDivision = division.id;
-    this.divisionService.setDivision(division);
     this.API.setLoading(true);
+    await this.loadFormats();
+    this.divisionService.setDivision(division);
+ 
     this.terminals = (await this.terminalService.getAllTerminals());
     this.API.setLoading(false);
+  }
+
+  async loadFormats(){
+    this.formats = await this.formatService.getFrom(this.selectedDivision!);
+    if(this.formats.length <=0){
+      this.formats = [
+        {
+          id:'priority',
+          name:'Priority',
+          prefix:'P'
+        },
+        {
+          id:'regular',
+          name:'Regular',
+          prefix:'R'
+        },
+      ]
+    }
   }
 
   statusMap:any = {

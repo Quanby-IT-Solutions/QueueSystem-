@@ -98,4 +98,20 @@ getTable(){
     }
   }
 
+  async get(id:string){
+    const response = await this.core.read({
+      selectors: ['*'],
+      tables: this.table!,
+      conditions: `
+        WHERE id = '${id}'
+      `
+    });
+    if(response.success){
+      if(response.output.length <=0) return null;
+      return response.output[0] ;
+    }else{
+      throw new Error(`Unable to fetch item`);
+    }
+  }
+
 }
