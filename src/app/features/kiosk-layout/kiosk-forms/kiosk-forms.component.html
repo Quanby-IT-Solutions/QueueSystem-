@@ -175,7 +175,7 @@
             </div> -->
 
 
-            <div  class="flex justify-center gap-8 p-10 mt-10">
+            <div  class="flex justify-center flex-wrap gap-8 p-10 mt-10">
               <button  
               *ngFor='let format of formats'
               type="button" (click)="handleButtonClick(format.id!)" class="border-dashed border-2 border-[var(--primary-light)]flex flex-col p-4 items-center justify-center text-white font-semibold text-lg  transition {{selectedType == format.id ? 'bg-yellow-400':'bg-[var(--primary-dark)]'}} rounded-lg  hover:bg-yellow-300">
