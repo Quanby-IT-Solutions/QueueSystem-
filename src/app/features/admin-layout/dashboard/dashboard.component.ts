@@ -27,6 +27,7 @@ import type { WorkBook } from 'xlsx';
 import { jsPDF } from 'jspdf';
 import 'jspdf-autotable';
 import { map } from 'rxjs/operators';
+import { FormatService } from '../../../services/format.service';
 
 interface Division{
   id:string;
@@ -154,6 +155,7 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
     private kioskService: KioskService,
     private terminalService: TerminalService,
     private serviceService: ServiceService,
+    private formatService:FormatService,
     private auth: UswagonAuthService,
     private cdr: ChangeDetectorRef
   ) {}
@@ -680,7 +682,41 @@ private async loadTerminalsAndKiosks() {
       
       // Create workbook
       const wb = XLSX.utils.book_new();
-  
+
+      
+
+      // Todays Queue
+      
+      let queueRows = this.queueService.allTodayQueue;
+      if(!this.isSuperAdmin){
+        queueRows = queueRows.filter(queue=>queue.division_id == this.divisionService.selectedDivision!.id);
+      }
+      const kiosks = await this.kioskService.getAll();
+      const services  = await this.serviceService.getAllSubServices();
+      let formats = await this.formatService.getAll();
+      if(formats.length <=0 ){
+        formats = [
+          {id:'priority', name:'Priority', prefix:'P'},
+          {id:'regular', name:'Regular', prefix:'R'},
+        ]
+      }
+      const queueList = [
+       [ 'ID', 'Division', 'Kiosk', 'Client Name','Client Gender' ,'Services Chosen', 'Ticket Number','Client Type'],
+       ...queueRows.map(row=>[
+          row.id,
+          this.divisions.find(division=>division.id == row.division_id)?.name,
+         kiosks.find((kiosk:any)=>kiosk.id == row.kiosk_id)!.code,
+         row.fullname,
+         row.gender,
+         row.services.split(', ').map(id=> services.find((service:any)=>service.id == id)?.name).join(','),
+         row.number,
+         formats.find(format=> format.id == row.type)?.name
+       ])
+      ];
+
+      const queueDataSheet = XLSX.utils.aoa_to_sheet(queueList);
+      XLSX.utils.book_append_sheet(wb, queueDataSheet, 'Today Queue');
+
       // Overall Metrics Sheet
       const metrics = await firstValueFrom(this.overallMetrics$);
       const metricsData = [
@@ -721,7 +757,7 @@ private async loadTerminalsAndKiosks() {
           'Office': s.office,
           'Tickets Served': s.ticketsServed,
           'Average Service Time': s.avgServiceTime,
-          'Rating': `${s.customerRating}/5`
+          // 'Rating': `${s.customerRating}/5`
         })));
         XLSX.utils.book_append_sheet(wb, staffSheet, 'Staff Performance');
       }

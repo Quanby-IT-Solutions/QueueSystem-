@@ -604,7 +604,7 @@ export class QueueService  {
           ]
         }
         for(let attended of response.output){
-          const format  = formats.find((_format:any)=> _format.id == attended.type);
+          const format  = formats.find((_format:any)=> _format.id == attended.type)!;
           this.attendedQueues.push({...attended, queue: {...attended, id: attended.queue_id, type:format.id, tag:format.prefix, metaType: format.name}})
         }
         return this.attendedQueues;

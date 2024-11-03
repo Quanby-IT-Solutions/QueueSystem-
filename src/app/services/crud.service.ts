@@ -80,7 +80,7 @@ getTable(){
    }
  }
  
-  async getAll(){  
+  async getAll(): Promise<T[]>{  
     const response = await this.core.read({
         selectors: ['*'],
         tables: this.table!,
