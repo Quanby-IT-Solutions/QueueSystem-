@@ -615,6 +615,9 @@ export class QueueDisplayComponent implements OnInit, AfterViewInit, OnChanges, 
   countOnlineCounters(){
     return this.counters.filter(counter=>counter.status =='online').length;
   }
+  getOnlineCounters(){
+    return this.counters.filter(counter=>counter.status =='online');
+  }
 
 
 }

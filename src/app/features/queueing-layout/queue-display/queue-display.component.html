@@ -76,7 +76,7 @@
           class="serving-title font-medium text-lg 2xl:text-2xl tracking-widest px-2 min-[3500px]:font-semibold min-[3500px]:px-4 min-[3500px]:text-8xl" >Serving Now:</h2>
           <div class="serving-items flex-1 grid grid-cols-2 grid-rows-5 grid-flow-col   gap-2 min-[3500px]:gap-5">
             <!-- Counter -->
-            <ng-container *ngFor="let item of counters| slice:offset:offset+slice;let i = index" >
+            <ng-container *ngFor="let item of getOnlineCounters()| slice:offset:offset+slice;let i = index" >
               <div
               *ngIf="item.status == 'online'"
               [ngStyle]="{
