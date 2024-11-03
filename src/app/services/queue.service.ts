@@ -458,24 +458,15 @@ export class QueueService  {
 
      
 
-      // const sortedQueue = queue.sort((a,b)=>{ 
+      const sortedQueue = queue.sort((a,b)=>{ 
 
-      //   if(a.status == 'bottom' && b.status =='bottom'){
-      //     return new Date( a.timestamp).getTime() - new Date( b.timestamp).getTime();
-      //   }
-      //   if (a.type === 'priority' && b.type === 'regular') {
-      //     if(a.status == 'bottom'){
-      //       return new Date( a.timestamp).getTime() - new Date( b.timestamp).getTime();
-      //     }else{
-      //       return -1
-      //     }
-      //   };
-      //   if (a.type === 'regular' && b.type === 'priority') return 1;
-
-
-      //   return new Date( a.timestamp).getTime() - new Date( b.timestamp).getTime();
-      // });
-      const filteredQueue = queue.filter(queue=>!this.takenQueue.includes(queue.id));
+        if(a.status == 'bottom' && b.status =='bottom'){
+          return new Date( a.timestamp).getTime() - new Date( b.timestamp).getTime();
+        }
+       
+        return new Date( a.timestamp).getTime() - new Date( b.timestamp).getTime();
+      });
+      const filteredQueue = sortedQueue.filter(queue=>!this.takenQueue.includes(queue.id));
       
       for(let i = 0; i < filteredQueue.length;i++){
         filteredQueue[i].tag = formatMap[filteredQueue[i].type].prefix
@@ -524,24 +515,15 @@ export class QueueService  {
         }
       }
 
-      // const sortedQueue = queue.sort((a,b)=>{ 
+      const sortedQueue = queue.sort((a,b)=>{ 
 
-      //   if(a.status == 'bottom' && b.status =='bottom'){
-      //     return new Date( a.timestamp).getTime() - new Date( b.timestamp).getTime();
-      //   }
-        // if (a.type === 'priority' && b.type === 'regular') {
-        //   if(a.status == 'bottom'){
-        //     return new Date( a.timestamp).getTime() - new Date( b.timestamp).getTime();
-        //   }else{
-        //     return -1
-        //   }
-        // };
-        // if (a.type === 'regular' && b.type === 'priority') return 1;
-
-
-        // return new Date( a.timestamp).getTime() - new Date( b.timestamp).getTime();
-      // });
-      const filteredQueue = queue.filter(queue=>!this.takenQueue.includes(queue.id));
+        if(a.status == 'bottom' && b.status =='bottom'){
+          return new Date( a.timestamp).getTime() - new Date( b.timestamp).getTime();
+        }
+       
+        return new Date( a.timestamp).getTime() - new Date( b.timestamp).getTime();
+      });
+      const filteredQueue = sortedQueue.filter(queue=>!this.takenQueue.includes(queue.id));
       for(let i = 0; i < filteredQueue.length;i++){
         filteredQueue[i].tag = formatMap[filteredQueue[i].type].prefix
         if(filteredQueue[i].type != 'priority' && filteredQueue[i].type != 'regular'){

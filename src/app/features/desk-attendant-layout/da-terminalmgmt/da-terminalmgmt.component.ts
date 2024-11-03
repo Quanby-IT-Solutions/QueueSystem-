@@ -280,8 +280,6 @@ timerProgress: any;
     });
     this.terminals = this.terminals.filter(terminal=> exisitingTerminals.includes(terminal.id))
 
-    // get last session
-    this.terminals = [...updatedTerminals]
     if(this.lastSession){
       const terminal =  this.terminals.find(terminal=>terminal.id == this.lastSession.terminal_id);
       if(terminal?.status == 'maintenance'){
@@ -295,15 +293,7 @@ timerProgress: any;
     }
     this.services = await this.serviceService.getAllSubServices();
   }
-  private updateUpcomingTicket() {
-    // Find the next 'waiting' ticket in the queue
-    const nextTicket = this.tickets.find(ticket => ticket.status === 'waiting');
-  
-    // Update the lastCalledNumber with the next ticket's number or 'N/A' if not available
-    this.lastCalledNumber = nextTicket
-      ? `${nextTicket.tag}-${nextTicket.number.toString().padStart(3, '0')}`
-      : 'N/A';
-  }  
+
 
   openTerminateModal(){
     this.terminateModal = true;
@@ -435,7 +425,7 @@ timerProgress: any;
 
         // Start timer and update display
         this.startTimer();
-        this.updateUpcomingTicket();
+        // this.updateUpcomingTicket();
         
         this.API.socketSend({
           event: 'number-calling',
@@ -515,7 +505,7 @@ timerProgress: any;
 
         // Start timer and update display
         this.startTimer();
-        this.updateUpcomingTicket();
+        // this.updateUpcomingTicket();
         
         this.API.sendFeedback('success', `Transaction started with client.`, 5000);
         this.API.socketSend({
@@ -629,7 +619,7 @@ timerProgress: any;
 
         // Start timer and update display
         this.startTimer();
-        this.updateUpcomingTicket();
+        // this.updateUpcomingTicket();
         
         this.API.sendFeedback('success', `Transaction started with client.`, 5000);
         this.logService.pushLog('transaction-manual',`started a manual select transaction.`);
@@ -691,7 +681,7 @@ timerProgress: any;
     this.resetInterface();
   
     // Update the upcoming ticket
-    this.updateUpcomingTicket();
+    // this.updateUpcomingTicket();
   
     this.actionLoading = false;
     this.API.socketSend({event:'queue-events'})

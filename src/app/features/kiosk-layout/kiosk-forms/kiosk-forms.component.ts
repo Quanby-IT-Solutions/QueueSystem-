@@ -98,6 +98,8 @@ export class KioskFormsComponent implements OnInit, OnDestroy {
 
   async updateSubServices(){
     this.subServices = await this.serviceService.getSubServices(this.group);
+    this.isDropdownOpen = false;
+
   }
 
 
@@ -208,6 +210,7 @@ export class KioskFormsComponent implements OnInit, OnDestroy {
   }
 
   async submitForm() {
+    this.isDropdownOpen = false;
     if(this.isLoading){
       return;
     }
