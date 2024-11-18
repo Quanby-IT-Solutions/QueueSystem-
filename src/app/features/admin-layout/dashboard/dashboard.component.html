@@ -1,6 +1,6 @@
-<section class="w-full min-h-screen py-2">
+<section class="w-full min-h-screen ">
 
-  <div class="flex items-center justify-between  px-2 mb-8 ">
+  <div class="flex items-center justify-between mb-8 ">
     <!-- Left side - same as before -->
     <div class="flex items-center gap-4">
       <div>
@@ -84,7 +84,21 @@
         </div>
       </div>
 
-      
+      <!-- Auto-refresh toggle -->
+      <!-- <div class="flex items-center gap-2">
+        <label class="relative inline-flex items-center cursor-pointer">
+          <input type="checkbox"
+                 class="sr-only peer"
+                 [(ngModel)]="autoRefreshEnabled"
+                 (change)="toggleAutoRefresh()">
+          <div class="w-9 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer
+                      peer-checked:after:translate-x-full peer-checked:bg-blue-600
+                      after:content-[''] after:absolute after:top-[2px] after:left-[2px]
+                      after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all">
+          </div>
+        </label>
+        <span class="text-xs text-gray-500">Auto-refresh</span>
+      </div> -->
     </div>
   </div>
 
@@ -93,7 +107,7 @@
     <section class="grid grid-cols-1 gap-6 mb-12 lg:grid-cols-3">
       <!-- Metrics -->
       <div class="lg:col-span-2">
-        <!-- <div class="flex items-center justify-between mb-6">
+        <div class="flex items-center justify-between mb-6">
           <h2 class="text-2xl font-bold text-neutral-800">Overall Metrics Overview</h2>
           <select
             [(ngModel)]="selectedFilter"
@@ -104,8 +118,8 @@
             <option value="month">This Month</option>
             <option value="year">This Year</option>
           </select>
-        </div> -->
-        <div class="grid grid-cols-2 gap-4 md:grid-cols-4">
+        </div>
+        <div class="grid grid-cols-2 gap-4 md:grid-cols-5">
           <ng-container *ngFor="let metric of overallMetrics$ | async">
             <div
               class="p-6 transition-transform duration-300 border shadow-sm cursor-pointer bg-white/80 backdrop-blur-sm rounded-2xl border-white/50 hover:shadow-lg hover:scale-105 group"
@@ -175,7 +189,7 @@
               </div>
             </div>
           </ng-container>
-        </div>
+        </div> 
 
 
 
