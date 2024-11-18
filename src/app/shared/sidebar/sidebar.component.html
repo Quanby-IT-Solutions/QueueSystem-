@@ -14,35 +14,35 @@
     <div class="flex items-center  {{!isExpanded ? 'w-0 overflow-hidden': 'flex-1'}}">
       <!-- Logo (hide when collapsed, header height fixed) -->
       <div
-        class="flex items-center justify-center flex-shrink-0 overflow-hidden transition-all duration-500 ease-in-out bg-white rounded-full"
+        class="bg-white rounded-full flex-shrink-0 flex items-center justify-center overflow-hidden transition-all duration-500 ease-in-out"
         [ngClass]="{
           'w-10 h-10': isExpanded,
           'w-0 h-0 opacity-0 max-w-0': !isExpanded
         }"
       >
         <img
-          src="assets/specifics/pcso/pcso-logo.svg"
+          src="assets/logo/vsu.png"
           alt="Logo"
-          class="object-contain w-full h-full"
+          class="w-full h-full object-contain"
         />
       </div>
       <!-- App Title (smooth transition, but header size stays consistent) -->
       <div
-      class="justify-center flex-1"
+      class="flex-1 justify-center"
         [ngClass]="{
           'opacity-100 max-w-full': isExpanded,
           'opacity-0 max-w-0': !isExpanded
         }"
       >
         <h1
-          class="text-4xl font-medium tracking-wide text-center transition-all duration-500 ease-in-out whitespace-nowrap"
+          class="text-center font-medium text-sm whitespace-nowrap transition-all duration-500 ease-in-out tracking-wide"
           style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis"
         >
           {{ appTitle }}
         </h1>
-        <!-- <div class="text-xs font-thin tracking-wide text-center opacity-70">
+        <div class="text-center font-thin text-xs opacity-70 tracking-wide">
           {{ appDescription}}
-        </div> -->
+        </div>
       </div>
     </div>
     <!-- Hamburger Menu Toggle Button (Fixed position) -->
@@ -51,20 +51,20 @@
       class="text-white focus:outline-none"
       aria-label="Toggle Sidebar"
     >
-      <span class="text-2xl material-icons">menu</span>
+      <span class="material-icons text-2xl">menu</span>
     </button>
   </div>
 
   <!-- Navigation Items -->
   <ul class="flex-grow mt-3 overflow-y-auto">
-    <li *ngFor="let item of menuItems; let i = index" class="flex justify-between gap-2 pl-3 mb-2 overflow-hidden group">
+    <li *ngFor="let item of menuItems; let i = index" class="mb-2 pl-3 flex justify-between gap-2 group overflow-hidden">
       <a
-        class="flex items-center flex-1 px-3 py-3 transition-all duration-500 ease-in-out rounded-lg cursor-pointer hover:bg-white"
+        class="flex items-center  py-3 px-3 rounded-lg transition-all duration-500 ease-in-out cursor-pointer hover:bg-white  flex-1"
         [ngClass]="{ 'bg-white shadow-md': item.active }"
         (click)="setActiveItem(i)"
       >
         <span
-          class="flex items-center justify-center w-6 h-6 transition-all duration-500 ease-in-out material-icons group-hover:text-gray-800"
+          class="material-icons  flex items-center justify-center w-6 h-6 transition-all duration-500 ease-in-out group-hover:text-gray-800"
           [ngClass]="{
             'text-gray-800': item.active,
             'text-white': !item.active
@@ -73,22 +73,22 @@
           {{ item.icon }}
         </span>
         <span
-          class="ml-3 overflow-hidden transition-all duration-500 ease-in-out whitespace-nowrap group-hover:text-gray-800 group-hover:tracking-wide"
+          class="ml-3 whitespace-nowrap overflow-hidden transition-all duration-500 ease-in-out group-hover:text-gray-800 group-hover:tracking-wide"
           [ngClass]="{
             'opacity-100 max-w-xs': isExpanded,
             'opacity-0 max-w-0': !isExpanded,
             'tracking-wide text-gray-800': item.active,
             'text-white': !item.active
-
+            
           }"
         >
           {{ item.title }}
         </span>
       </a>
-      <div class="w-1 transition-all duration-500 ease-in-out rounded-l-full"
+      <div class="transition-all duration-500 ease-in-out  w-1 rounded-l-full"
       [ngClass]="{ 'bg-white shadow-md': item.active }"
       >
-
+        
       </div>
     </li>
   </ul>
@@ -102,7 +102,7 @@
         logout
       </span>
       <span
-        class="overflow-hidden whitespace-nowrap "
+        class="whitespace-nowrap overflow-hidden  "
         [ngClass]="{
           'opacity-100 max-w-xs': isExpanded,
           'opacity-0 max-w-0': !isExpanded
@@ -113,7 +113,7 @@
     </button>
     <div class="transition-all  w-1 {{isExpanded?'rounded-l-full':''}} group-hover:bg-white"
       >
-
+        
       </div>
   </div>
 </div>
