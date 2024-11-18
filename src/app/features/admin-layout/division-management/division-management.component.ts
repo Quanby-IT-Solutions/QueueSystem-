@@ -17,7 +17,6 @@ import { CommonModule } from '@angular/common';
 })
 export class DivisionManagementComponent {
  
-
   divisions: Division[]=[];
   isSuperAdmin:boolean = this.auth.accountLoggedIn() == 'superadmin';
 

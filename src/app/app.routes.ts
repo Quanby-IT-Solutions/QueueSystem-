@@ -48,7 +48,7 @@ export const routes: Routes = [
       { path: 'kiosk-management', component: KioskManagementComponent },
       { path: 'service-management', component: ServiceManagementComponent },
       { path: 'format-management', component: FormatManagementComponent },
-    { path: 'branch-management', component: DivisionManagementComponent },
+      { path: 'branch-management', component: DivisionManagementComponent },
     ]
   },
   {
