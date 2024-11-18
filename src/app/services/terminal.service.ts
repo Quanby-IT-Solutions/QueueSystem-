@@ -16,6 +16,7 @@ interface Terminal{
   _status:string;  
   last_active?:string;
   attendant?:string;
+  specific?:string;
 }
 @Injectable({
   providedIn: 'root'
@@ -33,13 +34,8 @@ export class TerminalService {
 listenToTerminalUpdates(){
   this.API.addSocketListener('live-terminal-listener', (message)=>{
     if(message.division != this.divisionService.selectedDivision?.id) return;
-
-    if(message.event == 'terminal-maintenance'){
-      // this.getAllTerminals();
-    }
   });
 }
-
 
 updateMaintenance(){
   this.API.socketSend({
@@ -85,7 +81,27 @@ async updateTerminalStatus(id:string, status: 'available'|'maintenance'){
   this.API.socketSend({event:'admin-dashboard-events'})
   this.logService.pushLog('update-terminal', 'updated a terminal');
 }
+
+async setTerminalClient(id:string, clientType?: string){
+  const response = await this.API.update({
+    tables: 'terminals',
+    values:{
+      specific:clientType
+    }  ,
+    conditions: `WHERE id = '${id}'`
+  });
+
+  if(!response.success){
+    throw new Error('Unable to set terminal client');
+  }
+  this.API.socketSend({event:'queue-events'})
+  this.API.socketSend({event:'terminal-events'})
+  this.API.socketSend({event:'admin-dashboard-events'})
+  this.logService.pushLog('set-client-terminal', 'set client to a terminal');
+}
+
 async deleteTerminal(id:string){
+  
   const response = await this.API.delete({
     tables: 'terminals',
     conditions: `WHERE id = '${id}'`
@@ -98,6 +114,7 @@ async deleteTerminal(id:string){
   this.API.socketSend({event:'terminal-events'})
   this.API.socketSend({event:'admin-dashboard-events'})
   this.logService.pushLog('delete-terminal', 'deleted a terminal');
+
 }
 
  async getAllTerminals() : Promise<Terminal[]>{
@@ -120,6 +137,7 @@ async deleteTerminal(id:string){
           terminals.division_id, 
           terminals.number, 
           terminals.status, 
+          terminals.specific, 
           divisions.name, 
           terminal_sessions.terminal_id,
           desk_attendants.fullname, 
@@ -158,6 +176,7 @@ async deleteTerminal(id:string){
       }
       return response.output;
     }else{
+
       throw new Error('Unable to load terminals');
     }
   }

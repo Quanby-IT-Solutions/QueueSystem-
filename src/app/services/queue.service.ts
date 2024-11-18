@@ -1,12 +1,14 @@
 
-import { Injectable, OnInit } from '@angular/core';
-import { BehaviorSubject, last } from 'rxjs';
+import { Injectable } from '@angular/core';
+import { BehaviorSubject } from 'rxjs';
 import { UswagonAuthService } from 'uswagon-auth';
 import { UswagonCoreService } from 'uswagon-core';
 import { KioskService } from './kiosk.service';
 import { DivisionService } from './division.service';
 import { DatePipe } from '@angular/common';
 import { LogsService } from './logs.service';
+import { FormatService } from './format.service';
+import { Format } from '../features/admin-layout/format-management/types/format.types';
 
 
 
@@ -16,7 +18,9 @@ interface Queue{
   number:number;
   status:string;
   timestamp:string;
-  type:'regular'|'priority';
+  type:string;
+  tag?:string;
+  metaType?:string;
   fullname:string;
   services:string;
   department_id?:string;
@@ -42,13 +46,17 @@ interface AttendedQueue{
 })
 export class QueueService  {
 
-  constructor(private API:UswagonCoreService,private auth:UswagonAuthService, private logService:LogsService ,
+  constructor(
+    private formatService:FormatService,
+    private API:UswagonCoreService,private auth:UswagonAuthService, private logService:LogsService ,
     private divisionService:DivisionService,
     private kioskService:KioskService) {}
 
 
-  private regularQueueNumber:number = 0;
-  private priorityQueueNumber:number = 0;
+  private queueNumber:{[key:string]:number} = {
+    'priority': 0,
+    'regular': 0,
+  };
   public queue:Queue[]=[];
   public allQueue:Queue[]= [];
   public allTodayQueue:Queue[]= [];
@@ -80,16 +88,12 @@ export class QueueService  {
   }
 
 
-  private updateQueue(type:'regular'|'priority' , division:string){
+  private updateQueue(type:string , division:string){
     this.API.socketSend({
       event: 'update-queue',
       division:division
     });
-    if(type == 'priority'){
-      this.priorityQueueNumber +=1;
-    }else{
-      this.regularQueueNumber +=1;
-    }
+    this.queueNumber[type]+=1;
   }
 
   private takeFromQueue(id?:string){
@@ -130,7 +134,8 @@ export class QueueService  {
   async addToQueue(
     info:{department_id?:string,
           fullname:string, 
-          type:'regular'|'priority', 
+          type:string,
+          tag:string,
           gender:'male'|'female'|'other'
           student_id?:string,
           services:string[],
@@ -152,14 +157,14 @@ export class QueueService  {
               kiosk_id:this.kioskService.kiosk?.id,
               department_id: info.department_id,
               fullname: info.fullname,
-              number: info.type == 'priority' ? this.priorityQueueNumber : this.regularQueueNumber,
+              number: this.queueNumber[info.type],
               type: info.type,
               gender: info.gender,
               services:  info.services.join(', '),
               status:'waiting',
               timestamp: new DatePipe('en-US').transform(now, 'yyyy-MM-dd HH:mm:ss.SSSSSS'),
               student_id: info.student_id,
-              collision:  `${formattedDate}:${this.kioskService.kiosk?.id}:${info.type == 'priority'?'P':'R'}-${info.type == 'priority'? this.priorityQueueNumber : this.regularQueueNumber}` ,
+              collision:  `${formattedDate}:${this.kioskService.kiosk?.id}:${info.tag}-${this.queueNumber[info.type]}` ,
             }
           });
           if(!response.success){
@@ -167,7 +172,7 @@ export class QueueService  {
             throw new Error('Something went wrong.');
           }else{
             collision =false;
-            const lastNumber = info.type == 'priority' ? this.priorityQueueNumber : this.regularQueueNumber;
+            const lastNumber =this.queueNumber[info.type];
             this.updateQueue(info.type,this.kioskService.kiosk?.division_id!);
             return lastNumber;
           }
@@ -175,14 +180,10 @@ export class QueueService  {
           if(e.message.includes('Server Error')){
             throw new Error('Something went wrong')
           }
-          if(info.type == 'priority'){
-            this.priorityQueueNumber +=1;
-          }else{
-            this.regularQueueNumber +=1;
-          }
+          this.queueNumber[info.type] +=1
         }
     }
-    const lastNumber = info.type == 'priority' ? this.priorityQueueNumber : this.regularQueueNumber;
+    const lastNumber = this.queueNumber[info.type];
     return lastNumber;
     
   }
@@ -224,7 +225,7 @@ export class QueueService  {
       this.attendedQueue = attended;
       if(!createResponse.success) throw new Error(createResponse.output);
     }catch(e:any){
-      throw new Error('Something went wrong. Please try again');
+      throw new Error(e.message);
     }
   }
   
@@ -313,7 +314,7 @@ export class QueueService  {
     }
   }
 
-  async takeFromQueueByType(type: 'priority' | 'regular'): Promise<Queue | undefined> {
+  async takeFromQueueByType(type: string): Promise<Queue | undefined> {
     const availableQueue = this.queue.filter(queue => !this.takenQueue.includes(queue.id))
     const targetQueue = availableQueue.find(q => 
       q.type === type && 
@@ -339,7 +340,7 @@ export class QueueService  {
   
 
   // Modify your nextQueue method to accept a type parameter
-  async nextQueue(type?: 'priority' | 'regular'): Promise<Queue | undefined> {
+  async nextQueue(type?: string): Promise<Queue | undefined> {
     try {
       if (this.queue.length <= 0) return;
 
@@ -429,36 +430,53 @@ export class QueueService  {
     const response = await this.API.read({
       selectors: ['*'],
       tables: 'queue',
-      conditions: `WHERE division_id = '${this.divisionService.selectedDivision!.id}' AND CAST(timestamp AS DATE) = CAST(GETDATE() AS DATE) ${filter} ORDER BY timestamp ASC` 
+      conditions: `WHERE division_id = '${this.divisionService.selectedDivision!.id}' AND CAST(timestamp AS DATE) = CAST(GETDATE() AS DATE) ${filter} ORDER BY timestamp DESC` 
     });
     if(response.success){
       const queue = response.output as Queue[];
-      this.priorityQueueNumber =queue.filter(queue=> queue.type == 'priority').length + 1;
-      this.regularQueueNumber =queue.filter(queue=> queue.type == 'regular').length + 1;
+      const formats:Format[] =  await this.formatService.getFrom(this.divisionService.selectedDivision!.id);
+      const formatMap:{[key:string]:Format} = {
+        'priority':{
+          id:'0',
+          name: 'priority',
+          prefix:'P'
+        },
+        'regular':{
+          id:'0',
+          name: 'regular',
+          prefix:'R'
+        },
+      };
+      this.queueNumber['priority'] = queue.filter(queue=> queue.type == 'priority').length + 1;
+      this.queueNumber['regular'] = queue.filter(queue=> queue.type == 'regular').length + 1;
+      if(formats.length > 0){
+        for(let format of formats){
+          this.queueNumber[format.id!] = queue.filter(queue=> queue.type == format.id).length + 1;
+          formatMap[format.id!] = format;
+        }
+      }
 
-      // const sortedQueue = queue.sort((a,b)=>{ 
+     
 
-      //   if(a.status == 'bottom' && b.status =='bottom'){
-      //     return new Date( a.timestamp).getTime() - new Date( b.timestamp).getTime();
-      //   }
-      //   if (a.type === 'priority' && b.type === 'regular') {
-      //     if(a.status == 'bottom'){
-      //       return new Date( a.timestamp).getTime() - new Date( b.timestamp).getTime();
-      //     }else{
-      //       return -1
-      //     }
-      //   };
-      //   if (a.type === 'regular' && b.type === 'priority') return 1;
+      const sortedQueue = queue.sort((a,b)=>{ 
 
-
-      //   return new Date( a.timestamp).getTime() - new Date( b.timestamp).getTime();
-      // });
-      const filteredQueue = queue.filter(queue=>!this.takenQueue.includes(queue.id));
-      console.log(filteredQueue);
-  
+        if(a.status == 'bottom' && b.status =='bottom'){
+          return new Date( a.timestamp).getTime() - new Date( b.timestamp).getTime();
+        }
+       
+        return new Date( a.timestamp).getTime() - new Date( b.timestamp).getTime();
+      });
+      const filteredQueue = sortedQueue.filter(queue=>!this.takenQueue.includes(queue.id));
+      
+      for(let i = 0; i < filteredQueue.length;i++){
+        filteredQueue[i].tag = formatMap[filteredQueue[i].type].prefix
+        if(filteredQueue[i].type != 'priority' && filteredQueue[i].type != 'regular'){
+          filteredQueue[i].metaType = formatMap[filteredQueue[i].type].name;
+        }
+      }
+      this.queue = filteredQueue;
       this.queueSubject.next(filteredQueue);
 
-      this.queue = filteredQueue;
       return this.queue;
     }else{
       throw new Error('Unable to fetch queue');
@@ -471,31 +489,47 @@ export class QueueService  {
     const response = await this.API.read({
       selectors: ['*'],
       tables: 'queue',
-      conditions: `WHERE  CAST(timestamp AS DATE) = CAST(GETDATE() AS DATE) ${filter} ORDER BY timestamp ASC` 
+      conditions: `WHERE  CAST(timestamp AS DATE) = CAST(GETDATE() AS DATE) ${filter} ORDER BY timestamp DESC` 
     });
     if(response.success){
       const queue = response.output as Queue[];
-      this.priorityQueueNumber =queue.filter(queue=> queue.type == 'priority').length + 1 ;
-      this.regularQueueNumber =queue.filter(queue=> queue.type == 'regular').length + 1;
+      const formats:Format[] =  await this.formatService.getFrom(this.divisionService.selectedDivision!.id);
+      const formatMap:{[key:string]:Format} = {
+        'priority':{
+          id:'0',
+          name: 'priority',
+          prefix:'P'
+        },
+        'regular':{
+          id:'0',
+          name: 'regular',
+          prefix:'R'
+        },
+      };
+      this.queueNumber['priority'] = queue.filter(queue=> queue.type == 'priority').length + 1;
+      this.queueNumber['regular'] = queue.filter(queue=> queue.type == 'regular').length + 1;
+      if(formats.length > 0){
+        for(let format of formats){
+          formatMap[format.id!] = format;
+          this.queueNumber[format.id!] = queue.filter(queue=> queue.type == format.id).length + 1;
+        }
+      }
 
-      // const sortedQueue = queue.sort((a,b)=>{ 
+      const sortedQueue = queue.sort((a,b)=>{ 
 
-      //   if(a.status == 'bottom' && b.status =='bottom'){
-      //     return new Date( a.timestamp).getTime() - new Date( b.timestamp).getTime();
-      //   }
-        // if (a.type === 'priority' && b.type === 'regular') {
-        //   if(a.status == 'bottom'){
-        //     return new Date( a.timestamp).getTime() - new Date( b.timestamp).getTime();
-        //   }else{
-        //     return -1
-        //   }
-        // };
-        // if (a.type === 'regular' && b.type === 'priority') return 1;
-
-
-        // return new Date( a.timestamp).getTime() - new Date( b.timestamp).getTime();
-      // });
-      const filteredQueue = queue.filter(queue=>!this.takenQueue.includes(queue.id));
+        if(a.status == 'bottom' && b.status =='bottom'){
+          return new Date( a.timestamp).getTime() - new Date( b.timestamp).getTime();
+        }
+       
+        return new Date( a.timestamp).getTime() - new Date( b.timestamp).getTime();
+      });
+      const filteredQueue = sortedQueue.filter(queue=>!this.takenQueue.includes(queue.id));
+      for(let i = 0; i < filteredQueue.length;i++){
+        filteredQueue[i].tag = formatMap[filteredQueue[i].type].prefix
+        if(filteredQueue[i].type != 'priority' && filteredQueue[i].type != 'regular'){
+          filteredQueue[i].metaType = formatMap[filteredQueue[i].type].name;
+        }
+      }
       this.allTodayQueue = filteredQueue;
       return filteredQueue;
     }else{
@@ -544,8 +578,16 @@ export class QueueService  {
       });
       if(response.success){
         this.attendedQueues = [];
+        let formats = await this.formatService.getFrom(this.divisionService.selectedDivision!.id);
+        if(formats.length <=0){
+          formats = [
+            {id:'priority',name:'priority',prefix:'P'},
+            {id:'regular',name:'regular',prefix:'R'},
+          ]
+        }
         for(let attended of response.output){
-          this.attendedQueues.push({...attended, queue: {...attended, id: attended.queue_id}})
+          const format  = formats.find((_format:any)=> _format.id == attended.type)!;
+          this.attendedQueues.push({...attended, queue: {...attended, id: attended.queue_id, type:format.id, tag:format.prefix, metaType: format.name}})
         }
         return this.attendedQueues;
       }else{
@@ -559,6 +601,7 @@ export class QueueService  {
 
   async getQueueOnDesk(){
     const user = this.auth.getUser();
+
     try{
       const response = await this.API.read({
         selectors: ['queue.status as queue_status,queue.*, attended_queue.*'],
@@ -571,21 +614,44 @@ export class QueueService  {
       });
       if(response.success){
         if(response.output.length> 0){
+          let format;
+          if(response.output[0].type != 'priority' || response.output[0].type != 'regular'){
+            format = await this.formatService.get(response.output[0].type);
+          }else{
+            format = {
+              id: '0',
+              name: response.output[0].type,
+              prefix: response.output[0].type == 'priority'? 'P':'R'
+            }
+          }
+          if(!format){
+            this.attendedQueue = undefined;
+            return {
+              attendedQueue:this.attendedQueue,
+              queue:undefined
+            };
+          }
           this.attendedQueue  = {
             ...response.output[0],
             queue:{
               id:response.output[0].queue_id,
               status:response.output[0].queue_status,
-              ...response.output[0]
+              ...response.output[0],
+              tag: format.prefix, 
+              type:format.id,
+              metaType: format.name,
             }
           }
-          response.output[0];
+
           return {
             attendedQueue:this.attendedQueue,
             queue: {
               id:response.output[0].queue_id,
               status:response.output[0].queue_status,
-              ...response.output[0]
+              ...response.output[0],
+              tag: format.prefix, 
+              type:format.id,
+              metaType: format.name,
             } as Queue
           };
         }else{
@@ -618,10 +684,26 @@ export class QueueService  {
       });
       if(response.success){
         if(response.output.length> 0){
+          let format;
+          if(response.output[0].type != 'priority' || response.output[0].type != 'regular'){
+            format = await this.formatService.get(response.output[0].type);
+          }else{
+            format = {
+              id: '0',
+              name: response.output[0].type,
+              prefix: response.output[0].type == 'priority'? 'P':'R'
+            }
+          }
+          if(!format){
+            return undefined;
+          }
           return  {
             id:response.output[0].queue_id,
-            status:response.output[0].queue_statusm,
-            ...response.output[0]
+            status:response.output[0].queue_status,
+            ...response.output[0],
+            tag: format.prefix, 
+            type:format.id,
+            metaType: format.name,
           } as Queue
         }else{
           return undefined;

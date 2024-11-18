@@ -4,7 +4,7 @@
     <div 
     (click)="selectDivision(division.id)"
     *ngFor="let division of divisions" class="group transition-all gap-6 h-full text-5xl flex flex-col items-center bg-[var(--primary-dark)] hover:bg-[var(--primary)] text-white hover:tracking-wider font-thin justify-center cursor-pointer flex-1 rounded-lg"> 
-        <img [src]="contentMap[division.id]?.logo ?? 'assets/specifics/pcso/pcso-logo.svg'" class="transition-all w-52 h-52 group-hover:scale-105" alt="">
+        <img [src]="contentMap[division.id]?.logo ?? 'assets/specifics/pcso/pcso-logo.svg'" class="transition-all w-52 h-52 group-hover:scale-105 rounded-full" alt="">
         <span>
             {{division.name}}
         </span>
@@ -31,8 +31,6 @@
     [videoUrl]="content.video"
     [backgroundUrl]="content.background"
     [logoUrl]="content.logo"
-    [regular]="content.regular_prefix ?? 'R'"
-    [priority]="content.priority_prefix ?? 'P'"
     [colors]="{
         primary_bg: content.primary_bg,
         secondary_bg: content.secondary_bg,

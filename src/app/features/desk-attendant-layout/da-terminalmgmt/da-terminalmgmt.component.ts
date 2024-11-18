@@ -17,6 +17,8 @@ import { Subscription } from 'rxjs';
 import { QueueService } from '../../../services/queue.service';
 import { ServiceService } from '../../../services/service.service';
 import { LogsService } from '../../../services/logs.service';
+import { Format } from '../../admin-layout/format-management/types/format.types';
+import { FormatService } from '../../../services/format.service';
 
 
 interface Terminal{
@@ -28,6 +30,7 @@ interface Terminal{
   last_active?:string;
   session_status?:string;
   attendant?:string;
+  specific?:string;
 }
 
 interface Division{
@@ -42,7 +45,9 @@ interface Ticket {
   number:number;
   status:string;
   timestamp:string;
-  type:'regular'|'priority';
+  type:string;
+  tag?:string;
+  metaType?:string;
   fullname:string;
   services:string;
   department_id?:string;
@@ -127,6 +132,7 @@ timerProgress: any;
     private API:UswagonCoreService,
     private queueService:QueueService,
     private cdr:ChangeDetectorRef,
+    private formatService:FormatService,
     private contentService:ContentService,
     private logService:LogsService,
     private serviceService:ServiceService,
@@ -155,6 +161,32 @@ timerProgress: any;
       this.subscription.unsubscribe();
     }
   }
+  formats:Format[] = [];
+
+  
+  async loadFormats(){
+    this.formats = await this.formatService.getFrom(this.dvisionService.selectedDivision?.id!);
+    if(this.formats.length <=0){
+      this.formats = [
+        {
+          id:'priority',
+          name:'Priority',
+          prefix:'P'
+        },
+        {
+          id:'regular',
+          name:'Regular',
+          prefix:'R'
+        },
+      ]
+    }
+  }
+  
+  getFormatName(id?:string){
+    if(!id) return null;
+    return this.formats.find(format=>format.id == id)?.name;
+  }
+
 
   async loadContent(){
     this.API.setLoading(true);
@@ -164,6 +196,7 @@ timerProgress: any;
     
     this.lastSession = await this.terminalService.getActiveSession()
     this.services = await this.serviceService.getAllSubServices();
+    await this.loadFormats();
     if(this.lastSession){
       this.selectedCounter = this.terminals.find(terminal=>terminal.id == this.lastSession.terminal_id);
       this.terminalService.refreshTerminalStatus(this.lastSession.id);
@@ -171,6 +204,7 @@ timerProgress: any;
       const {attendedQueue,queue} =await this.queueService.getQueueOnDesk();
     
       this.currentTicket = queue ? {...queue!} : undefined;
+
       this.currentClientDetails = {
         name: this.currentTicket?.fullname || 'N/A',
         date: this.currentTicket?.timestamp || this.currentDate,
@@ -183,7 +217,7 @@ timerProgress: any;
       const lastQueue = await this.queueService.getLastQueueOnDesk();
   
       if(lastQueue)[
-        this.lastCalledNumber = (lastQueue.type=='priority' ? this.content.priority_prefix : this.content.regular_prefix) +'-' + lastQueue.number.toString().padStart(3, '0')
+        this.lastCalledNumber = (lastQueue.tag) +'-' + lastQueue.number.toString().padStart(3, '0')
       ]
       if(this.currentTicket){
         this.startTimer();
@@ -200,7 +234,12 @@ timerProgress: any;
       }
     }
     this.subscription = this.queueService.queue$.subscribe((queueItems: Ticket[]) => {
-      this.tickets = [...queueItems];
+      if(this.selectedCounter?.specific){
+        this.queueService.queue = queueItems.filter((queue)=>queue.type == this.selectedCounter?.specific)
+        this.tickets = [...this.queueService.queue];
+      }else{
+        this.tickets = [...this.queueService.queue];
+      }
     });
 
     this.queueService.listenToQueue();
@@ -241,8 +280,6 @@ timerProgress: any;
     });
     this.terminals = this.terminals.filter(terminal=> exisitingTerminals.includes(terminal.id))
 
-    // get last session
-    this.terminals = [...updatedTerminals]
     if(this.lastSession){
       const terminal =  this.terminals.find(terminal=>terminal.id == this.lastSession.terminal_id);
       if(terminal?.status == 'maintenance'){
@@ -256,15 +293,7 @@ timerProgress: any;
     }
     this.services = await this.serviceService.getAllSubServices();
   }
-  private updateUpcomingTicket() {
-    // Find the next 'waiting' ticket in the queue
-    const nextTicket = this.tickets.find(ticket => ticket.status === 'waiting');
-  
-    // Update the lastCalledNumber with the next ticket's number or 'N/A' if not available
-    this.lastCalledNumber = nextTicket
-      ? `${nextTicket.type === 'priority' ?this.content.priority_prefix : this.content.regular_prefix}-${nextTicket.number.toString().padStart(3, '0')}`
-      : 'N/A';
-  }  
+
 
   openTerminateModal(){
     this.terminateModal = true;
@@ -303,6 +332,7 @@ timerProgress: any;
     }
     this.selectedCounter = counter;
     this.API.setLoading(true);
+    await this.queueService.getTodayQueues();
     await this.terminalService.startTerminalSession(counter.id);
     this.lastSession = await this.terminalService.getActiveSession()
     this.terminalService.refreshTerminalStatus(this.lastSession.id);
@@ -341,7 +371,7 @@ timerProgress: any;
       
       this.actionLoading = true;
       
-      if(this.currentTicket?.type == 'regular'){
+      if(this.currentTicket?.type != 'priority'){
         this.API.sendFeedback('warning','Finish regular transaction first.',5000);
         this.actionLoading = false;
         return;
@@ -395,7 +425,7 @@ timerProgress: any;
 
         // Start timer and update display
         this.startTimer();
-        this.updateUpcomingTicket();
+        // this.updateUpcomingTicket();
         
         this.API.socketSend({
           event: 'number-calling',
@@ -475,13 +505,13 @@ timerProgress: any;
 
         // Start timer and update display
         this.startTimer();
-        this.updateUpcomingTicket();
+        // this.updateUpcomingTicket();
         
         this.API.sendFeedback('success', `Transaction started with client.`, 5000);
         this.API.socketSend({
           event: 'number-calling',
           division: this.division?.id,
-          message: `${this.currentTicket?.type =='priority' ? 'Priority':''} number ${this.currentTicket?.number}. Proceed to counter ${this.selectedCounter?.number}`
+          message: `${this.currentTicket?.metaType} number ${this.currentTicket?.number}. Proceed to counter ${this.selectedCounter?.number}`
         })
       } else {
         this.API.sendFeedback('warning', 'Could not get next client.', 5000);
@@ -505,7 +535,7 @@ timerProgress: any;
     this.isReturnTopActive = false;
     this.isReturnBottomActive = false;
     if (this.currentTicket) {
-      this.lastCalledNumber = (this.currentTicket.type == 'priority' ? this.content.priority_prefix : this.content.regular_prefix ) + '-' + 
+      this.lastCalledNumber = (this.currentTicket.tag ) + '-' + 
         this.currentTicket.number.toString().padStart(3, '0');
     }
     this.currentTicket = undefined;
@@ -549,12 +579,12 @@ timerProgress: any;
    */
   callNumber(): void {
     console.log(`Calling number ${this.currentTicket?.number}`);
-    this.API.sendFeedback('neutral', `Calling number ${this.currentTicket?.type =='priority' ? this.content.priority_prefix : this.content.regular_prefix}-${this.currentTicket?.number.toString().padStart(3, '0')}`,5000)
+    this.API.sendFeedback('neutral', `Calling number ${this.currentTicket?.tag}-${this.currentTicket?.number.toString().padStart(3, '0')}`,5000)
     
     this.API.socketSend({
       event: 'number-calling',
       division: this.division?.id,
-      message: `${this.currentTicket?.type =='priority' ? 'Priority':''} number ${this.currentTicket?.number}. Proceed to counter ${this.selectedCounter?.number}`
+      message: `${this.currentTicket?.metaType} number ${this.currentTicket?.number}. Proceed to counter ${this.selectedCounter?.number}`
     })
     // this.isCallNumberActive = false;
   }
@@ -589,14 +619,14 @@ timerProgress: any;
 
         // Start timer and update display
         this.startTimer();
-        this.updateUpcomingTicket();
+        // this.updateUpcomingTicket();
         
         this.API.sendFeedback('success', `Transaction started with client.`, 5000);
         this.logService.pushLog('transaction-manual',`started a manual select transaction.`);
         this.API.socketSend({
           event: 'number-calling',
           division: this.division?.id,
-          message: `${this.currentTicket?.type =='priority' ? 'Priority':''} number ${this.currentTicket?.number}. Proceed to counter ${this.selectedCounter?.number}`
+          message: `${this.currentTicket?.metaType} number ${this.currentTicket?.number}. Proceed to counter ${this.selectedCounter?.number}`
         })
       } else {
         this.API.sendFeedback('warning', 'Could not get next client.', 5000);
@@ -651,7 +681,7 @@ timerProgress: any;
     this.resetInterface();
   
     // Update the upcoming ticket
-    this.updateUpcomingTicket();
+    // this.updateUpcomingTicket();
   
     this.actionLoading = false;
     this.API.socketSend({event:'queue-events'})

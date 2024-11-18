@@ -3,19 +3,24 @@ import { DivisionService } from './division.service';
 import { UswagonAuthService } from 'uswagon-auth';
 import { UswagonCoreService } from 'uswagon-core';
 import { Service } from '../features/admin-layout/service-management/types/service.types';
+import { CrudService } from './crud.service';
 
 @Injectable({
   providedIn: 'root'
 })
-export class ServiceService {
+export class ServiceService extends CrudService<Service> {
 
   constructor(
     private divisionService: DivisionService,
-    private API:UswagonCoreService, private auth:UswagonAuthService) { }
+    private API:UswagonCoreService, private auth:UswagonAuthService) {
+      super(API);
+      super.setTable('services');
+     }
 
   public service?:Service;
   user:any = this.auth.getUser();
   isSuperAdmin:boolean = this.auth.accountLoggedIn() == 'superadmin';
+
 
 
 async addSubService(service_id:string,name:string){

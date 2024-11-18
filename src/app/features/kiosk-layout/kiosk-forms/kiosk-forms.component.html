@@ -159,7 +159,7 @@
               </div>
               <div>
                 <label for="name" class="block mb-1 text-sm font-medium text-gray-600">Name <span class="text-red-500">*</span></label>
-                <input maxlength="20" [(ngModel)]="customerName" id="name" type="text" placeholder="Type your name (eg. Juan Cruz)" name="name" class="w-full px-3 py-2 text-sm bg-white border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-green-500">
+                <input  [(ngModel)]="customerName" id="name" type="text" placeholder="Type your name (eg. Juan Cruz)" name="name" class="w-full px-3 py-2 text-sm bg-white border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-green-500">
               </div>
               <!-- <div>
                 <label for="department" class="block mb-1 text-sm font-medium text-gray-600">Branch (Optional)</label>
@@ -174,15 +174,13 @@
               <input [(ngModel)]="studentNumber" name="studentNumber" id="studentNumber" type="text" placeholder="Ex. VSU-2020-8467-91" class="w-full px-3 py-2 text-sm bg-white border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-green-500">
             </div> -->
 
-            <!-- Priority Selection -->
-            <div class="flex justify-center gap-8 p-10 mt-10">
-              <button type="button" (click)="handleButtonClick('priority')" class=" border-dashed border-2 border-[var(--primary-light)] flex flex-col p-4 items-center justify-center text-white font-semibold text-lg transition {{selectedType =='priority' ? 'bg-yellow-400':'bg-[var(--primary-dark)]'}} bg-[#2F4A2C] rounded-lg  hover:bg-yellow-300">
-                <img src="./assets/kiosk/Priority.png" alt="Priority icon" class="object-contain w-40 h-40">
-                <span class="text-shadow">PRIORITY</span>
-              </button>
-              <button type="button" (click)="handleButtonClick('regular')" class="border-dashed border-2 border-[var(--primary-light)]flex flex-col p-4 items-center justify-center text-white font-semibold text-lg  transition {{selectedType =='regular' ? 'bg-yellow-400':'bg-[var(--primary-dark)]'}} rounded-lg  hover:bg-yellow-300">
-                <img src="./assets/kiosk/Regular.png" alt="Regular icon" class="object-contain w-40 h-40">
-                <span class="text-shadow">REGULAR</span>
+
+            <div  class="flex justify-center flex-wrap gap-8 p-10 mt-10">
+              <button  
+              *ngFor='let format of formats'
+              type="button" (click)="handleButtonClick(format.id!)" class="border-dashed border-2 border-[var(--primary-light)]flex flex-col p-4 items-center justify-center text-white font-semibold text-lg  transition {{selectedType == format.id ? 'bg-yellow-400':'bg-[var(--primary-dark)]'}} rounded-lg  hover:bg-yellow-300">
+                <img src="{{format.id == 'priority' ? './assets/kiosk/Priority.png':'./assets/kiosk/Regular.png'}}" alt="{{format.id}}-icon" class="object-contain w-40 h-40">
+                <span class="text-shadow">{{format.name.toUpperCase()}}</span>
               </button>
             </div>
           </form>
@@ -214,15 +212,15 @@
               <label class="block mb-1 text-sm font-medium text-gray-600">Student number</label>
               <div class="w-full px-3 py-2 text-sm bg-white border border-gray-300 rounded-md">{{ studentNumber || 'Not Secified' }}</div> -->
             <!-- </div> -->
-            <div class="flex justify-center gap-8 p-10 mt-10">
-              <button *ngIf="selectedType=='priority'" type="button" class=" border-dashed border-2 border-green-700/55 flex flex-col p-4 items-center justify-center text-white font-semibold text-lg transition {{selectedType =='priority' ? 'bg-yellow-400':'bg-[#2F4A2C]'}} bg-[#2F4A2C] rounded-lg  hover:bg-yellow-300">
-                <img src="./assets/kiosk/Priority.png" alt="Priority icon" class="object-contain w-40 h-40">
-                <span class="text-shadow">PRIORITY</span>
-              </button>
-              <button *ngIf="selectedType=='regular'"  type="button"  class="border-dashed border-2 border-green-700/55 flex flex-col p-4 items-center justify-center text-white font-semibold text-lg  transition {{selectedType =='regular' ? 'bg-yellow-400':'bg-[#2F4A2C]'}} rounded-lg  hover:bg-yellow-300">
-                <img src="./assets/kiosk/Regular.png" alt="Regular icon" class="object-contain w-40 h-40">
-                <span class="text-shadow">REGULAR</span>
-              </button>
+             <div  class="flex justify-center gap-8 p-10 mt-10">
+              <ng-container  *ngFor='let format of formats'>
+                <button  
+                *ngIf="selectedType == format.id"
+                type="button" (click)="handleButtonClick(format.id!)" class="border-dashed border-2 border-[var(--primary-light)]flex flex-col p-4 items-center justify-center text-white font-semibold text-lg  transition {{selectedType == format.id ? 'bg-yellow-400':'bg-[var(--primary-dark)]'}} rounded-lg  hover:bg-yellow-300">
+                  <img src="{{format.id == 'priority' ? './assets/kiosk/Priority.png':'./assets/kiosk/Regular.png'}}" alt="{{format.id}}-icon" class="object-contain w-40 h-40">
+                  <span class="text-shadow">{{format.name.toUpperCase()}}</span>
+                </button>
+              </ng-container>
             </div>
           </div>
         </section>

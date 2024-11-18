@@ -18,6 +18,23 @@ interface Counter {
   personName?: string;
 }
 
+interface Queue{
+  id:string;
+  division_id:string;
+  number:number;
+  status:string;
+  timestamp:string;
+  type:string;
+  tag?:string;
+  metaType?:string;
+  fullname:string;
+  services:string;
+  department_id?:string;
+  kiosk_id:string;
+  gender:'male'|'female'|'other';
+  student_id?:string;
+  collision?:string;
+}
 interface AttendedQueue{
   id:string;
   desk_id:string;
@@ -26,8 +43,8 @@ interface AttendedQueue{
   finished_on?:string;
   status:string;
   terminal_id?:string;
+  queue?:Queue;
   number?:number;
-  type?:'priority' | 'regular';
 }
 
 interface UpNextItem {
@@ -74,8 +91,6 @@ export class QueueDisplayComponent implements OnInit, AfterViewInit, OnChanges, 
  
   // VARIABLES
   
-  @Input() priority: string = 'P';
-  @Input() regular: string = 'R';
  
   @Input() division?:Division;
  
@@ -131,6 +146,21 @@ export class QueueDisplayComponent implements OnInit, AfterViewInit, OnChanges, 
 
   weatherCurrencySwitchTimer:number = 6000;
   videoSwitchTimer:number = 8000;
+
+  counterSwitchTimer:number = 5000;
+  counterInterval:any ;
+  slice = 10;
+  offset = 0;
+
+  transitionCounters(){
+    this.counterInterval = setInterval(()=>{
+      if(this.countOnlineCounters() >  this.offset + this.slice){
+        this.offset = this.slice + this.offset;
+      }else{
+        this.offset = 0;
+      }
+    },this.counterSwitchTimer)
+  }
 
   // Control flags: 1 is "on", 0 is "off"
   upNextItems: UpNextItem[] = [
@@ -205,6 +235,7 @@ export class QueueDisplayComponent implements OnInit, AfterViewInit, OnChanges, 
     // clearInterval(this.intervalVideo);
     clearInterval(this.intervalWeather);
     clearInterval(this.intervalSwitchter);
+    clearInterval(this.counterInterval);
     this.subscription?.unsubscribe();
     this.API.addSocketListener('number-calling',(data)=>{})
     this.API.addSocketListener('queue-events',(data)=>{})
@@ -238,6 +269,8 @@ export class QueueDisplayComponent implements OnInit, AfterViewInit, OnChanges, 
     this.view = this.route.snapshot.queryParams['view'];
     // this.playNotes();
     const init = speechSynthesis.getVoices()
+
+    this.transitionCounters();
     
     this.API.addSocketListener('number-calling', (data:any)=>{
       if(data.event == 'number-calling' && data.division == this.division?.id){
@@ -416,19 +449,19 @@ export class QueueDisplayComponent implements OnInit, AfterViewInit, OnChanges, 
     this.getSafeYoutubeUrl(this.videoUrl);
     if(this.isPreview){
       this.counters = [
-        { number: 1, ticketNumber: `${this.priority}-32`, personName: 'Domeng Valdez',id:'',status:'online' },
-        { number : 1, ticketNumber: `${this.priority}-31`, personName: 'Maria Clara',id:'',status:'online' },
-        { number : 1, ticketNumber: `${this.priority}-34`, personName: 'Domeng Cruz',id:'',status:'online' },
-        { number : 1, ticketNumber: `${this.priority}-30`, personName: 'Juan Valdez',id:'',status:'online' },
-        { number : 1, ticketNumber: `${this.priority}-49`, personName: 'Marga Madrid',id:'',status:'online' },
-        { number : 1, ticketNumber: `${this.priority}-50`, personName: 'Jo Ann',id:'',status:'online' },
-        { number : 1, ticketNumber: `${this.priority}-20`, personName: 'John Mark',id:'',status:'online' },
+        { number: 1, ticketNumber: `P-32`, personName: 'Domeng Valdez',id:'',status:'online' },
+        { number : 1, ticketNumber: `P-31`, personName: 'Maria Clara',id:'',status:'online' },
+        { number : 1, ticketNumber: `P-34`, personName: 'Domeng Cruz',id:'',status:'online' },
+        { number : 1, ticketNumber: `P-30`, personName: 'Juan Valdez',id:'',status:'online' },
+        { number : 1, ticketNumber: `P-49`, personName: 'Marga Madrid',id:'',status:'online' },
+        { number : 1, ticketNumber: `P-50`, personName: 'Jo Ann',id:'',status:'online' },
+        { number : 1, ticketNumber: `P-20`, personName: 'John Mark',id:'',status:'online' },
       ];
       this.upNextItems =[
-        { avatar: '/assets/queue-display/Male_2.png', ticketNumber: `${this.priority}-217`, personName: 'Kristin Watson', type:'priority'},
-        { avatar: '/assets/queue-display/Male_1.png', ticketNumber: `${this.priority}-218`, personName: 'Al Francis Salceda', type:'priority' },
-        { avatar: '/assets/queue-display/Female_2.png', ticketNumber: `${this.regular}-247`, personName: 'Joey Bichara', type:'regular' },
-        { avatar: '/assets/queue-display/female_1.png', ticketNumber: `${this.regular}-217`, personName: 'Kenneth Felix Belga' , type:'regular'},
+        { avatar: '/assets/queue-display/Male_2.png', ticketNumber: `P-217`, personName: 'Kristin Watson', type:'priority'},
+        { avatar: '/assets/queue-display/Male_1.png', ticketNumber: `P-218`, personName: 'Al Francis Salceda', type:'priority' },
+        { avatar: '/assets/queue-display/Female_2.png', ticketNumber: `R-247`, personName: 'Joey Bichara', type:'regular' },
+        { avatar: '/assets/queue-display/female_1.png', ticketNumber: `R-217`, personName: 'Kenneth Felix Belga' , type:'regular'},
       ];
     }
     // if(this.videoPlayer != null)
@@ -522,7 +555,7 @@ export class QueueDisplayComponent implements OnInit, AfterViewInit, OnChanges, 
       this.upNextItems = queueItems.reduce((prev: UpNextItem[], item: any) => {
         return [...prev, {
           avatar: item.gender === 'male' ? '/assets/queue-display/Male_2.png' : item.gender =='female' ? '/assets/queue-display/Female_2.png' :'/assets/default.jpg',
-          ticketNumber: `${item.type === 'regular' ? this.regular : this.priority}-${item.number.toString().padStart(3, '0')}`,
+          ticketNumber: `${item.tag}-${item.number.toString().padStart(3, '0')}`,
           personName: item.fullname,
           type : item.type,
         }];
@@ -551,13 +584,13 @@ export class QueueDisplayComponent implements OnInit, AfterViewInit, OnChanges, 
           existingTerminals.push(updatedTerminal.id);
           const existingTerminal = this.counters.find(t => t.id === updatedTerminal.id);
           const ticket = this.attendedQueue.find(t=> t.terminal_id ==  updatedTerminal.id);
-          
+
           if (existingTerminal) {
             // Update properties of the existing terminal
             Object.assign(existingTerminal, {
               id: updatedTerminal.id,
               status: updatedTerminal.status,
-              ticketNumber: ticket ==undefined ? undefined : (ticket.type=='priority'?this.priority:this.regular) + '-'+ ticket.number!.toString().padStart(3, '0'),
+              ticketNumber: ticket ==undefined ? undefined : (ticket.queue!.tag) + '-'+ ticket.number!.toString().padStart(3, '0'),
               personName: updatedTerminal.fullname,
               number:updatedTerminal.number
             });
@@ -566,7 +599,7 @@ export class QueueDisplayComponent implements OnInit, AfterViewInit, OnChanges, 
             this.counters.push({
               id: updatedTerminal.id,
               status: updatedTerminal.status,
-              ticketNumber: ticket ==undefined ? undefined : (ticket.type=='priority'?this.priority:this.regular) + '-'+ ticket.number!.toString().padStart(3, '0'),
+              ticketNumber: ticket ==undefined ? undefined : (ticket.queue!.tag) + '-'+ ticket.number!.toString().padStart(3, '0'),
               personName: updatedTerminal.fullname,
               number:updatedTerminal.number
             });
@@ -581,6 +614,9 @@ export class QueueDisplayComponent implements OnInit, AfterViewInit, OnChanges, 
   
   countOnlineCounters(){
     return this.counters.filter(counter=>counter.status =='online').length;
+  }
+  getOnlineCounters(){
+    return this.counters.filter(counter=>counter.status =='online');
   }
 
 

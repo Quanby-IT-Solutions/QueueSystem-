@@ -7,6 +7,7 @@ import { LogsService } from './logs.service';
 interface Division{
   id:string;
   name:string;
+  description?:string;
   logo?:string;
 }
 
@@ -161,6 +162,7 @@ export class DivisionService {
      });
    
      if(!response.success){
+        alert(response.output);
        throw new Error('Unable to delete division');
      }
      this.logService.pushLog('new-division', 'deleted a  division');

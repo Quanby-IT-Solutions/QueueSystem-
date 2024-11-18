@@ -29,18 +29,21 @@
           <button
           (click)="openService(service)"
           *ngFor="let service of services; let i = index"
-          class="group transition-all hover:scale-110   bg-white border-[var(--primary)] hover:bg-[var(--primary-dark)] hover:text-white hover:border-[var(--primary-light)]  h-auto p-4 rounded-lg flex flex-col gap-2 shadow-md border-2 border-dashed">
+          class="group transition-all hover:scale-110  group  bg-white border-[var(--primary)] hover:bg-[var(--primary-dark)] hover:text-white hover:border-[var(--primary-light)]  h-auto p-4 rounded-lg flex flex-col gap-2 shadow-md border-2 border-dashed">
 
           <!-- Header -->
-          <div class="flex items-center gap-4">
-            <!-- Lottie Container -->
-            <div class="transition-all w-16 h-12 p-2 rounded-lg bg-[var(--primary-light)] group-hover:bg-yellow-200">
-                <app-lottie-animation animation="document"></app-lottie-animation>
+           <div class="flex justify-between items-center w-full">
+            <div class="flex items-center flex-1 gap-4">
+              <!-- Lottie Container -->
+                <div class="transition-all w-16 h-12 p-2 rounded-lg bg-[var(--primary-light)] group-hover:bg-yellow-200">
+                  <app-lottie-animation animation="document"></app-lottie-animation>
+                </div>
+                <div class="flex items-center gap-2 text-xl font-medium tracking-wide">
+                  Category <span class="text-4xl font-medium">{{i+1}}</span>
               </div>
-              <div class="flex items-center gap-2 text-xl font-medium tracking-wide">
-                Category <span class="text-4xl font-medium">{{i+1}}</span>
               </div>
-            </div>
+              <span class="material-icons text-[var(--primary)] group-hover:text-white">navigate_next</span>
+           </div>
             <!-- Body  -->
             <div class="flex flex-col items-start flex-1 w-full gap-1 py-2 ">
               <div class="flex-1">

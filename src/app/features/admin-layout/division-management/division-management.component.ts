@@ -68,9 +68,11 @@ export class DivisionManagementComponent {
   }
 
   async deleteDivision(item:Division){
+    
     this.API.setLoading(true);
     try{
       await this.divisionService.deleteDivision(item.id!);
+      
       await this.closeDialog(true);
       this.API.sendFeedback('success', 'Branch has been deleted!',5000);
     }catch(e:any){

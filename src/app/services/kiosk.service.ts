@@ -6,6 +6,7 @@ import { HttpClient } from '@angular/common/http';
 import { environment } from '../../environment/environment';
 import { every, firstValueFrom } from 'rxjs';
 import { LogsService } from './logs.service';
+import { CrudService } from './crud.service';
 
 
 export interface Kiosk{
@@ -21,13 +22,16 @@ export interface Kiosk{
 @Injectable({
   providedIn: 'root'
 })
-export class KioskService {
+export class KioskService extends CrudService<Kiosk>{
 
   constructor(
     private logService:LogsService,
     private http:HttpClient,
     private divisionService: DivisionService,
-    private API:UswagonCoreService, private auth:UswagonAuthService) { }
+    private API:UswagonCoreService, private auth:UswagonAuthService) { 
+      super(API);
+      super.setTable('kiosks');
+    }
 
   // KIOSK specific
 
@@ -169,7 +173,7 @@ export class KioskService {
    }
    this.logService.pushLog('delete-kiosk', 'deleted a kiosk');
  }
-
+ 
   async getAllKiosks(division_id:string){
 
      const response = await this.API.read({
