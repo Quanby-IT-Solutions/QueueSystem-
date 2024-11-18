@@ -1,20 +1,19 @@
 <section class="w-full mx-auto">
-  <!-- <header class="mb-6"> -->
-    <!-- <div class="flex justify-between items-center mb-4">
-      <h1 class="text-2xl font-bold text-neutral-800">Dashboard</h1>
-      <div class="flex gap-5 items-center">
-        <img src="https://cdn.builder.io/api/v1/image/assets/TEMP/702ea99fcce79d563e21e4f7ab2b0de69f9c593faa42c1c5968f9105c54f2be7" alt="Notification icon" class="w-6 h-6" />
-        <img src="https://cdn.builder.io/api/v1/image/assets/TEMP/4e6bf0145db2fa1ae8163d27fc8bdf957a76fe08e4f1e15c2314708d4e631f2b" alt="User profile icon" class="w-8 h-8" />
-      </div>
-    </div> -->
-    <!-- <img src="https://cdn.builder.io/api/v1/image/assets/TEMP/9982de8bfdbbd182f9fa456cccc2522269e3594d3d183ba9774b9b5789f5c911" alt="Dashboard banner" class="w-full rounded-2xl shadow-md" /> -->
-  <!-- </header> -->
+  <!-- User Greeting and Division Info -->
   <div class="bg-white rounded-lg shadow p-6 mb-6">
     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center">
-      <h2 class="text-xl font-bold text-neutral-900 mb-4 sm:mb-0">Good afternoon, {{userName}}</h2>
+      <div>
+        <h2 class="text-xl font-bold text-neutral-900 mb-1">Good afternoon, {{ userName }}</h2>
+        
+      </div>
       <div class="w-full sm:w-48">
         <label for="time-range" class="block text-sm font-medium text-gray-700 mb-1">Time Range</label>
-        <select id="time-range" [(ngModel)]="selectedTimeRange" (change)="onTimeRangeChange()" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md">
+        <select
+          id="time-range"
+          [(ngModel)]="selectedTimeRange"
+          (change)="onTimeRangeChange()"
+          class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
+        >
           <option value="day">Day</option>
           <option value="month">Month</option>
           <option value="year">Year</option>
@@ -22,45 +21,53 @@
       </div>
     </div>
   </div>
-  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+
+  <!-- Metrics Overview -->
+  <div class="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-3 gap-4 mb-6">
     <article *ngFor="let metric of metrics" class="bg-white p-4 rounded-lg shadow">
       <div class="flex flex-col items-center">
-        <h3 class="text-xl font-bold text-neutral-900">{{metric.value}}</h3>
-        <p class="mt-2 text-sm text-slate-500">{{metric.label}}</p>
+        <h3 class="text-xl font-bold text-neutral-900">{{ metric.value }}</h3>
+        <p class="mt-2 text-sm text-slate-500">{{ metric.label }}</p>
       </div>
     </article>
   </div>
 
+  <!-- Charts Section -->
   <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <!-- Service Time Distribution -->
     <section class="bg-white p-6 rounded-lg shadow">
       <h3 class="text-lg font-medium text-neutral-900 mb-4">Service Time Distribution</h3>
-      <div class="space-y-4">
+      <div *ngIf="serviceTimeDistribution.length; else noData" class="space-y-4">
         <div *ngFor="let item of serviceTimeDistribution" class="flex items-center space-x-4">
-          <span class="w-20 text-sm font-medium text-slate-500">{{item.range}}</span>
+          <span class="w-20 text-sm font-medium text-slate-500">{{ item.range }}</span>
           <div class="flex-grow bg-gray-200 rounded-full h-2.5">
             <div class="bg-blue-600 h-2.5 rounded-full" [style.width]="item.percentage + '%'"></div>
           </div>
         </div>
       </div>
+      <ng-template #noData>
+        <p class="text-sm text-gray-500">No data available.</p>
+      </ng-template>
     </section>
 
+    <!-- Daily/Monthly/Yearly Customer Served -->
     <section class="bg-white p-6 rounded-lg shadow">
       <h3 class="text-lg font-medium text-neutral-900 mb-4">
-        {{selectedTimeRange === 'day' ? 'Hourly' : selectedTimeRange === 'month' ? 'Daily' : 'Monthly'}} Customer Served
+        {{ selectedTimeRange === 'day' ? 'Daily' : selectedTimeRange === 'month' ? 'Monthly' : 'Yearly' }} Customer Served
       </h3>
+      <p class="text-sm text-gray-500 mb-2">Total Customers Served: {{ metrics[0]?.value }}</p>
       <div class="relative" style="height: 200px;">
         <svg [attr.viewBox]="'0 0 ' + graphWidth + ' ' + graphHeight" style="width: 100%; height: 100%;">
-          <polyline
-            [attr.points]="getPointsForLineGraph()"
-            fill="none"
-            stroke="#3b82f6"
-            stroke-width="2"
-          />
+          <polyline [attr.points]="getPointsForLineGraph()" fill="none" stroke="#3b82f6" stroke-width="2" />
         </svg>
       </div>
       <div class="flex justify-between text-xs font-medium text-slate-500 mt-2 overflow-x-auto">
-        <span *ngFor="let day of dailyCustomerServed; let i = index" [style.flex]="'0 0 ' + (100 / dailyCustomerServed.length) + '%'" class="text-center">
-          {{i % 3 === 0 || i === dailyCustomerServed.length - 1 ? day.date : ''}}
+        <span
+          *ngFor="let data of dailyCustomerServed; let i = index"
+          [style.flex]="'0 0 ' + (100 / dailyCustomerServed.length) + '%'"
+          class="text-center"
+        >
+          {{ i % 3 === 0 || i === dailyCustomerServed.length - 1 ? data.date : '' }}
         </span>
       </div>
     </section>
