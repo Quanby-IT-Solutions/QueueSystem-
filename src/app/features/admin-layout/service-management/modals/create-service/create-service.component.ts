@@ -18,6 +18,7 @@ export class CreateServiceComponent {
   errorMessageTimeout:any;
   errorMessage?:string;
   submittingForm:boolean = false;
+  actionLoading:boolean = false;
 
   constructor(private API:UswagonCoreService, private serviceService:ServiceService){}
 
@@ -42,6 +43,7 @@ export class CreateServiceComponent {
   }
 
   async submitForm(){
+    if(this.submittingForm) return;
     this.submittingForm = true;
     if(this.service.name.trim() == ''){
       this.errorMessage = 'This field is required.';
@@ -51,6 +53,7 @@ export class CreateServiceComponent {
       this.errorMessageTimeout = setTimeout(()=>{
         this.errorMessage = undefined;
       },5000)
+      this.submittingForm = false;
       return;
     }
     try{
@@ -61,8 +64,10 @@ export class CreateServiceComponent {
           this.service.name
         )
       }
+      this.submittingForm =false
     }catch(e:any){
       this.API.sendFeedback('error', e.message,5000);
+      this.submittingForm =false
       return;
     }
     this.onClose.emit(true);

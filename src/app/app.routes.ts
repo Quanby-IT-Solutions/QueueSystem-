@@ -18,8 +18,10 @@ import { QueueingLayoutComponent } from './features/queueing-layout/queueing-lay
 import { KioskLayoutComponent } from './features/kiosk-layout/kiosk-layout.component';
 import { kioskGuard } from './guards/kiosk.guard';
 import { ServiceManagementComponent } from './features/admin-layout/service-management/service-management.component';
-import { DepartmentManagementComponent } from './features/admin-layout/department-management/department-management.component';
+// import { DepartmentManagementComponent } from './features/admin-layout/department-management/department-management.component';
 import { ProfileLayoutComponent } from './shared/profile/profile-layout/profile-layout.component';
+import { DivisionManagementComponent } from './features/admin-layout/division-management/division-management.component';
+import { FormatManagementComponent } from './features/admin-layout/format-management/format-management.component';
 
 export const routes: Routes = [
   {
@@ -45,7 +47,8 @@ export const routes: Routes = [
       { path: 'terminal', component: TerminalManagementComponent },
       { path: 'kiosk-management', component: KioskManagementComponent },
       { path: 'service-management', component: ServiceManagementComponent },
-      { path: 'department-management', component: DepartmentManagementComponent },
+      { path: 'format-management', component: FormatManagementComponent },
+    { path: 'branch-management', component: DivisionManagementComponent },
     ]
   },
   {

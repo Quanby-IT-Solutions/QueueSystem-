@@ -1,13 +1,13 @@
-<section class="w-full min-h-screen p-6 bg-gradient-to-br from-gray-50 to-gray-100">
+<section class="w-full min-h-screen ">
 
-  <div class="flex items-center justify-between p-6 mb-8 border shadow-sm bg-white/80 backdrop-blur-lg rounded-2xl border-white/50">
+  <div class="flex items-center justify-between mb-8 mt-4 ">
     <!-- Left side - same as before -->
     <div class="flex items-center gap-4">
       <div>
-        <h1 class="text-3xl font-bold text-transparent bg-gradient-to-r from-[var(--primary)]  to-[var(--primary-hover)] bg-clip-text">
+        <h1 class="text-3xl mx-2 font-bold text-transparent bg-gradient-to-r from-[var(--primary)]  to-[var(--primary-hover)] bg-clip-text">
           Dashboard
         </h1>
-        <p class="mt-1 text-sm text-gray-500">Real-time monitoring</p>
+        <!-- <p class="mt-1 text-sm text-gray-500">Real-time monitoring</p> -->
       </div>
       <div class="flex items-center gap-2 px-3 py-1.5 text-sm text-emerald-600 rounded-full bg-emerald-50/80 border border-emerald-100">
         <span class="relative flex">
@@ -16,6 +16,13 @@
         </span>
         Live System
       </div>
+      <!-- <div class="flex items-center gap-2 px-3 py-1.5 text-sm text-emerald-600 rounded-full bg-emerald-50/80 border border-emerald-100">
+        <span class="relative flex">
+          <span class="absolute inline-flex w-2 h-2 rounded-full opacity-75 animate-ping bg-emerald-400"></span>
+          <span class="relative inline-flex w-2 h-2 rounded-full bg-emerald-500"></span>
+        </span>
+        Live System
+      </div> -->
     </div>
 
     <!-- Right side - updated -->
@@ -44,6 +51,26 @@
         </div>
       </button>
 
+    
+
+      <!-- Auto-refresh toggle -->
+      <!-- <div class="flex items-center gap-2">
+        <label class="relative inline-flex items-center cursor-pointer">
+          <input type="checkbox"
+                 class="sr-only peer"
+                 [(ngModel)]="autoRefreshEnabled"
+                 (change)="toggleAutoRefresh()">
+          <div class="w-9 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer
+                      peer-checked:after:translate-x-full peer-checked:bg-blue-600
+                      after:content-[''] after:absolute after:top-[2px] after:left-[2px]
+                      after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all">
+          </div>
+        </label>
+        <span class="text-xs text-gray-500">Auto-refresh</span>
+      </div> -->
+
+     
+
       <div class="relative text-right group">
         <p class="text-sm text-gray-400">Last updated</p>
         <p class="text-sm font-semibold text-gray-700">{{ lastUpdated }}</p>
@@ -58,7 +85,7 @@
       </div>
 
       <!-- Auto-refresh toggle -->
-      <div class="flex items-center gap-2">
+      <!-- <div class="flex items-center gap-2">
         <label class="relative inline-flex items-center cursor-pointer">
           <input type="checkbox"
                  class="sr-only peer"
@@ -71,7 +98,7 @@
           </div>
         </label>
         <span class="text-xs text-gray-500">Auto-refresh</span>
-      </div>
+      </div> -->
     </div>
   </div>
 
@@ -82,7 +109,6 @@
       <div class="lg:col-span-2">
         <div class="flex items-center justify-between mb-6">
           <h2 class="text-2xl font-bold text-neutral-800">Overall Metrics Overview</h2>
-          <!-- Filter Dropdown -->
           <select
             [(ngModel)]="selectedFilter"
             (change)="onFilterChange()"
@@ -93,7 +119,7 @@
             <option value="year">This Year</option>
           </select>
         </div>
-        <div class="grid grid-cols-2 gap-4 md:grid-cols-4">
+        <div class="grid grid-cols-2 gap-4 md:grid-cols-3">
           <ng-container *ngFor="let metric of overallMetrics$ | async">
             <div
               class="p-6 transition-transform duration-300 border shadow-sm cursor-pointer bg-white/80 backdrop-blur-sm rounded-2xl border-white/50 hover:shadow-lg hover:scale-105 group"
@@ -163,7 +189,7 @@
               </div>
             </div>
           </ng-container>
-        </div>
+        </div> 
 
 
 
@@ -222,77 +248,90 @@
     </section>
 
     <section class="grid grid-cols-1 gap-6 mb-12 lg:grid-cols-2">
-  <!-- Terminal and Kiosk Management Overview -->
-<div class="p-4 bg-white shadow-sm rounded-xl">
-  <h3 class="mb-3 text-lg font-bold text-neutral-800">Terminal and Kiosk Management Overview</h3>
-  <div class="overflow-hidden border shadow-sm bg-white/80 backdrop-blur-sm rounded-2xl border-white/50">
-    <table class="w-full table-auto">
-      <thead>
-        <tr class="bg-gray-50/50">
-          <th class="px-6 py-4 text-xs font-semibold tracking-wider text-left text-gray-500 uppercase">Name</th>
-          <th class="px-6 py-4 text-xs font-semibold tracking-wider text-left text-gray-500 uppercase">Location</th>
-          <th class="px-6 py-4 text-xs font-semibold tracking-wider text-left text-gray-500 uppercase">Status</th>
-          <th class="px-6 py-4 text-xs font-semibold tracking-wider text-left text-gray-500 uppercase">Tickets</th>
-        </tr>
-      </thead>
-      <tbody class="divide-y divide-gray-100">
-        <ng-container *ngFor="let kiosk of paginatedKioskStatus">
-          <tr class="transition-colors duration-200 hover:bg-gray-50/50">
-            <td class="px-6 py-4">
-              <div class="flex items-center gap-3">
-                <span class="h-2.5 w-2.5 rounded-full"
+
+
+      <!-- Terminal and Kiosk Management Overview -->
+      <div class="p-4 bg-white shadow-sm rounded-xl">
+        <h3 class="mb-3 text-lg font-bold text-neutral-800">Terminal and Kiosk Management Overview</h3>
+        <div class="overflow-hidden border shadow-sm bg-white/80 backdrop-blur-sm rounded-2xl border-white/50">
+          <table class="w-full table-auto">
+            <thead>
+              <tr class="bg-gray-50/50">
+                <th class="px-6 py-4 text-xs font-semibold tracking-wider text-left text-gray-500 uppercase">Name</th>
+                <th class="px-6 py-4 text-xs font-semibold tracking-wider text-left text-gray-500 uppercase">Location</th>
+                <th class="px-6 py-4 text-xs font-semibold tracking-wider text-left text-gray-500 uppercase">Status</th>
+                <th class="px-6 py-4 text-xs font-semibold tracking-wider text-left text-gray-500 uppercase">Tickets</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100">
+              <ng-container *ngFor="let item of paginatedKioskStatus">
+                <tr class="transition-colors duration-200 hover:bg-gray-50/50">
+                  <td class="px-6 py-4">
+                    <div class="flex items-center gap-3">
+                      <span
+                        class="h-2.5 w-2.5 rounded-full"
+                        [ngClass]="{
+                          'bg-green-500': item.status === 'Operational',
+                          'bg-red-500': item.status === 'Out of Service',
+                          'bg-yellow-500': item.status === 'Low Paper'
+                        }"
+                      ></span>
+                      <span class="text-sm font-medium text-gray-900">
+                        <ng-container *ngIf="item.type === 'kiosk'">Kiosk {{ item.kioskName }}</ng-container>
+                        <ng-container *ngIf="item.type === 'terminal'">Terminal {{ item.terminalNumber }}</ng-container>
+                      </span>
+                    </div>
+                  </td>
+                  <td class="px-6 py-4 text-sm text-gray-500">{{ item.location }}</td>
+                  <td class="px-6 py-4">
+                    <span
+                      class="inline-flex items-center gap-2 px-3 py-1 text-xs font-medium rounded-full"
                       [ngClass]="{
-                        'bg-green-500': kiosk.status === 'Operational',
-                        'bg-red-500': kiosk.status === 'Out of Service',
-                        'bg-yellow-500': kiosk.status === 'Low Paper'
-                      }">
-                </span>
-                <span class="text-sm font-medium text-gray-900">{{ kiosk.id }}</span>
-              </div>
-            </td>
-            <td class="px-6 py-4 text-sm text-gray-500">{{ kiosk.location }}</td>
-            <td class="px-6 py-4">
-              <span class="inline-flex items-center gap-2 px-3 py-1 text-xs font-medium rounded-full"
-                    [ngClass]="{
-                      'bg-green-50/80 text-green-600': kiosk.status === 'Operational',
-                      'bg-red-50/80 text-red-600': kiosk.status === 'Out of Service',
-                      'bg-yellow-50/80 text-yellow-600': kiosk.status === 'Low Paper'
-                    }">
-                {{ kiosk.status }}
-              </span>
-            </td>
-            <td class="px-6 py-4">
-              <div class="flex items-center gap-2">
-                <span class="text-sm font-medium text-gray-900">{{ kiosk.ticketsIssued }}</span>
-                <span class="text-xs text-gray-400">tickets</span>
-              </div>
-            </td>
-          </tr>
-        </ng-container>
-      </tbody>
-    </table>
-  </div>
-  <!-- Pagination controls -->
-  <div class="flex items-center justify-between px-2 mt-6">
-    <button
-      (click)="onKioskPageChange('prev')"
-      [disabled]="kioskCurrentPage === 1"
-      class="px-4 py-2 text-sm font-medium text-white transition-all duration-200 bg-blue-600 rounded-lg disabled:bg-gray-200 disabled:text-gray-400 disabled:cursor-not-allowed hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
-      <i class="mr-2 fas fa-chevron-left"></i>
-      Previous
-    </button>
-    <span class="text-sm font-medium text-gray-600">
-      Page {{ kioskCurrentPage }} of {{ totalKioskPages }}
-    </span>
-    <button
-      (click)="onKioskPageChange('next')"
-      [disabled]="kioskCurrentPage === totalKioskPages"
-      class="px-4 py-2 text-sm font-medium text-white transition-all duration-200 bg-blue-600 rounded-lg disabled:bg-gray-200 disabled:text-gray-400 disabled:cursor-not-allowed hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
-      Next
-      <i class="ml-2 fas fa-chevron-right"></i>
-    </button>
-  </div>
-</div>
+                        'bg-green-50/80 text-green-600': item.status === 'Operational',
+                        'bg-red-50/80 text-red-600': item.status === 'Out of Service',
+                        'bg-yellow-50/80 text-yellow-600': item.status === 'Low Paper'
+                      }"
+                    >
+                      {{ item.status }}
+                    </span>
+                  </td>
+                  <td class="px-6 py-4">
+                    <div class="flex items-center gap-2">
+                      <span class="text-sm font-medium text-gray-900">{{ item.ticketCount  }}</span>
+                      <span class="text-xs text-gray-400">tickets</span>
+                    </div>
+                  </td>
+                </tr>
+              </ng-container>
+            </tbody>
+          </table>
+        </div>
+      
+        <!-- Pagination controls -->
+        <div class="flex items-center justify-between px-2 mt-6">
+          <button
+            (click)="onKioskPageChange('prev')"
+            [disabled]="kioskCurrentPage === 1"
+            class="px-4 py-2 text-sm font-medium text-white transition-all duration-200 bg-blue-600 rounded-lg disabled:bg-gray-200 disabled:text-gray-400 disabled:cursor-not-allowed hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+          >
+            <i class="mr-2 fas fa-chevron-left"></i>
+            Previous
+          </button>
+          <span class="text-sm font-medium text-gray-600">
+            Page {{ kioskCurrentPage }} of {{ totalKioskPages }}
+          </span>
+          <button
+            (click)="onKioskPageChange('next')"
+            [disabled]="kioskCurrentPage === totalKioskPages"
+            class="px-4 py-2 text-sm font-medium text-white transition-all duration-200 bg-blue-600 rounded-lg disabled:bg-gray-200 disabled:text-gray-400 disabled:cursor-not-allowed hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+          >
+            Next
+            <i class="ml-2 fas fa-chevron-right"></i>
+          </button>
+        </div>
+      </div>
+      
+
 
       <!-- Screen Preview -->
       <div class="p-6 bg-white shadow-sm rounded-xl">
@@ -343,66 +382,36 @@
       </div>
     </section>
 
-    <!-- Desk Attendant Performance Metrics -->
  <!-- Desk Attendant Performance Metrics -->
 <section class="mb-12">
   <h3 class="mb-6 text-xl font-bold text-neutral-800">Desk Attendant Performance Metrics</h3>
   <div class="p-6 bg-white shadow-sm rounded-xl">
     <div class="overflow-hidden border shadow-sm bg-white/80 backdrop-blur-sm rounded-2xl border-white/50">
+    
       <table class="w-full">
         <thead>
           <tr class="bg-gray-50/50">
-            <th class="px-6 py-4 text-xs font-semibold tracking-wider text-left text-gray-500 uppercase">Staff</th>
+            <th class="px-6 py-4 text-xs font-semibold tracking-wider text-left text-gray-500 uppercase">Attendant Name</th>
             <th class="px-6 py-4 text-xs font-semibold tracking-wider text-left text-gray-500 uppercase">Location</th>
-            <th class="px-6 py-4 text-xs font-semibold tracking-wider text-left text-gray-500 uppercase">Performance</th>
-            <th class="px-6 py-4 text-xs font-semibold tracking-wider text-left text-gray-500 uppercase">Wait Time</th>
-            <th class="px-6 py-4 text-xs font-semibold tracking-wider text-left text-gray-500 uppercase">Rating</th>
+            <th class="px-6 py-4 text-xs font-semibold tracking-wider text-left text-gray-500 uppercase">Avg. Service Time</th>
+            <th class="px-6 py-4 text-xs font-semibold tracking-wider text-left text-gray-500 uppercase">Today's Check-ins</th>
+            <th class="px-6 py-4 text-xs font-semibold tracking-wider text-left text-gray-500 uppercase">Total Check-ins</th>
+
           </tr>
         </thead>
         <tbody class="divide-y divide-gray-100">
-          <ng-container *ngFor="let staff of (staffPerformance$ | async)?.slice((staffCurrentPage - 1) * 5, staffCurrentPage * 5)">
-            <tr class="transition-colors duration-200 hover:bg-gray-50/50">
-              <td class="px-6 py-4">
-                <div class="flex items-center gap-3">
-                  <div class="flex items-center justify-center w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600">
-                    <span class="font-medium text-white">{{ staff.name.charAt(0) }}</span>
-                  </div>
-                  <div>
-                    <p class="text-sm font-medium text-gray-900">{{ staff.name }}</p>
-                    <p class="text-xs text-gray-400">{{ staff.office }}</p>
-                  </div>
-                </div>
-              </td>
-              <td class="px-6 py-4 text-sm text-gray-500">{{ staff.office }}</td>
-              <td class="px-6 py-4">
-                <div class="flex flex-col">
-                  <span class="text-sm font-medium text-gray-900">{{ staff.ticketsServed }}</span>
-                  <div class="w-24 h-1.5 bg-gray-100 rounded-full mt-2">
-                    <div class="h-full bg-blue-500 rounded-full"
-                         [style.width]="(staff.ticketsServed / 100) * 100 + '%'"></div>
-                  </div>
-                </div>
-              </td>
-              <td class="px-6 py-4">
-                <span class="text-sm font-medium text-gray-900">{{ staff.avgServiceTime }}</span>
-              </td>
-              <td class="px-6 py-4">
-                <div class="flex items-center gap-2">
-                  <div class="flex gap-0.5">
-                    <!-- Loop over stars, apply filled color if star number <= rating -->
-                    <i class="text-sm fas fa-star"
-                       *ngFor="let star of [1, 2, 3, 4, 5]"
-                       [class.text-yellow-400]="star <= staff.customerRating"
-                       [class.text-gray-200]="star > staff.customerRating"></i>
-                  </div>
-                  <span class="text-sm text-gray-500">({{ staff.customerRating }})</span>
-                </div>
-              </td>
-            </tr>
-          </ng-container>
+          <tr *ngFor="let metric of deskAttendantMetrics">
+            <td class="px-6 py-4">{{ metric.fullname}}</td>
+            <td class="px-6 py-4">{{ metric.division_name }}</td>
+            <td class="px-6 py-4">{{ metric.averageTimeService }}</td>
+            <td class="px-6 py-4">{{ metric.totalCheckInsToday }}</td>
+            <td class="px-6 py-4">{{ metric.totalCheckIns }}</td>
 
+          </tr>
         </tbody>
       </table>
+
+    
 
       <!-- Pagination Controls -->
       <div class="flex items-center justify-between px-6 py-4 border-t border-gray-100">

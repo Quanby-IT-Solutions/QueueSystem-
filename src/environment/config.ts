@@ -1,11 +1,12 @@
 export const config = {
     texts:{
-        title: 'Visayas State University',
-        location: 'Visca, Baybay City, Leyte',
+        title: 'PHILIPPINE CHARITY SWEEPSTAKES OFFICE',
+        atitle: 'PCSO',
+        location: 'Pacific Mall, Landco Business Center, F. Imperial St',
     },
     assets:{
-        logo:'./assets/specifics/vsu/vsu.png',
-        test:'sdasd'
+        logo:'./assets/specifics/pcso/pcso-logo.svg',
+        banner:'./assets/specifics/pcso/lottobg.png'
     },
     // secondary_bg: '#4caf50',
     // accent_bg: '#3f51b5',

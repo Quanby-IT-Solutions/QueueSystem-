@@ -8,7 +8,7 @@
   >
     <!-- Image that Fills the Oval Container -->
     <img
-      src="https://www.vsu.edu.ph/images/Pasko_2022_1.jpg"
+      src="assets/specifics/pcso/lottobg.png"
       alt="University Image"
       class="object-cover w-full h-full"
     />
@@ -23,7 +23,7 @@
         class="flex items-center justify-center w-40 h-40 bg-white border-4 rounded-full shadow-md border-lime-600"
       >
         <img
-          src="https://www.vsu.edu.ph/images/VSU_Seal_2022.png"
+          src="assets/specifics/pcso/pcso-logo.svg"
           alt="University Badge"
           class="w-40 h-40"
         />
@@ -35,15 +35,15 @@
   <main
     class="relative z-10 flex flex-col items-center w-full max-w-md p-8 bg-white shadow-xl mt-60 rounded-3xl"
   >
-    <h2 class="mb-6 text-3xl font-extrabold text-center text-[#21621A]">
+    <h2 class="mb-6 text-3xl font-extrabold text-center text-[var(--primary)]">
       LOG IN
     </h2>
     <form
       (ngSubmit)="onSubmit()"
-      class="w-full space-y-6 text-lg font-medium text-[#21621A]"
+      class="w-full space-y-6 text-lg font-medium text-[var(--primary)]"
     >
       <div class="flex flex-col">
-        <label for="codeInput" class="mb-2 text-left text-[#21621A]"
+        <label for="codeInput" class="mb-2 text-left text-[var(--primary)]"
           >Code</label
         >
         <input
@@ -58,7 +58,7 @@
       </div>
       <button
         type="submit"
-        class="w-full px-6 py-3 text-lg font-bold text-white rounded-lg shadow-lg bg-[#21621A] hover:bg-lime-800"
+        class="w-full px-6 py-3 text-lg font-bold text-white rounded-lg shadow-lg bg-[var(--primary)] hover:[var(--primary-hover)]"
       >
         Log in
       </button>
@@ -74,7 +74,7 @@
         <div class="flex items-center space-x-1">
           <svg
             xmlns="http://www.w3.org/2000/svg"
-            class="w-4 h-4 text-lime-600"
+            class="w-4 h-4 text-[var(--primary)]"
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
@@ -86,14 +86,14 @@
               d="M12 2C8.686 2 6 4.686 6 8c0 1.568.603 3.034 1.666 4.146a19.523 19.523 0 001.88 1.6 20.538 20.538 0 001.697 1.176c.102.055.209.116.312.17l.001.001c.48.244.993.53 1.477.808a19.526 19.526 0 002.014-.978l.005-.003a20.527 20.527 0 001.864-1.51A19.526 19.526 0 0018 8c0-3.314-2.686-6-6-6zM12 20c-.94 0-1.875-.232-2.71-.69A8.936 8.936 0 018 18.764c-.896-.614-1.746-1.272-2.54-1.93C2.654 14.905 2 12.785 2 10.828 2 6.53 6.477 2 12 2s10 4.53 10 8.828c0 1.957-.654 4.077-2.46 5.864-.794.659-1.644 1.316-2.541 1.929-.837.459-1.77.692-2.709.692z"
             />
           </svg>
-          <span>Visca, Baybay City, Leyte Philippines 6521</span>
+          <span>{{config.texts.location}}</span>
         </div>
 
         <!-- Trunkline -->
         <div class="flex items-center space-x-1">
           <svg
             xmlns="http://www.w3.org/2000/svg"
-            class="w-4 h-4 text-lime-600"
+            class="w-4 h-4 text-[var(--primary)]"
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
@@ -112,7 +112,7 @@
         <div class="flex items-center space-x-1">
           <svg
             xmlns="http://www.w3.org/2000/svg"
-            class="w-4 h-4 text-lime-600"
+            class="w-4 h-4 text-[var(--primary)]"
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"

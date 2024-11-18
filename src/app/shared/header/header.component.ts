@@ -1,11 +1,17 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit, OnDestroy, AfterViewInit, ElementRef, ViewChild } from '@angular/core';
 import { Router } from '@angular/router';
-import gsap from 'gsap';
 import { UswagonAuthService } from 'uswagon-auth';
 import { UswagonCoreService } from 'uswagon-core';
 import { ContentService } from '../../services/content.service';
 
+interface UserData {
+  id: string;
+  fullname: string;
+  profile?: string;
+  division_name?: string;
+  role: string;
+}
 
 @Component({
   selector: 'app-header',
@@ -17,6 +23,7 @@ import { ContentService } from '../../services/content.service';
 export class HeaderComponent implements OnInit, AfterViewInit, OnDestroy {
   divisionLogo?: string;
   isDropdownOpen = false;
+  userData: UserData | null = null;
   private documentClickListener: (event: MouseEvent) => void;
 
   @ViewChild('dropdownMenu') dropdownMenuRef: ElementRef | undefined;
@@ -31,12 +38,12 @@ export class HeaderComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    this.getDivisionLogo();
+    this.loadUserData();
     document.addEventListener('click', this.documentClickListener);
   }
 
   ngAfterViewInit(): void {
-    gsap.from('header', { opacity: 0, y: -20, duration: 0.6 });
+    // Removed gsap animation
   }
 
   ngOnDestroy(): void {
@@ -55,19 +62,64 @@ export class HeaderComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   getUserProfile() {
-    return this.auth.getUser().profile
-      ? this.API.getFileURL(this.auth.getUser().profile)
+    return this.userData?.profile
+      ? this.API.getFileURL(this.userData.profile)
       : 'assets/images/noprofile.png';
   }
 
   getUserName() {
-    return this.auth.getUser().fullname ?? 'Unknown User';
+    return this.userData?.fullname ?? 'Unknown User';
   }
 
-  async getDivisionLogo() {
-    this.divisionLogo = (await this.contentService.getContentSetting())?.logo;
+  getUserId() {
+    return this.auth.getUser().id ?? 'Unknown User ID';
   }
 
+  getUserDivision() {
+    const roleDivisionMap: { [key: string]: string } = {
+      registrar: 'Registrar Division',
+      cashier: 'Cash Division',
+      accountant: 'Accounting Division',
+      superadmin: 'Administrator Division',
+      desk_attendant: 'Desk Attendant Division'
+    };
+  
+    const userRole = this.auth.getUser().role || 'desk_attendant';
+    return roleDivisionMap[userRole] || this.userData?.division_name || 'Unknown Division';
+  }
+  
+  async loadUserData() {
+    const userId = this.getUserId();
+    const userRole = this.auth.getUser().role || 'desk_attendant';
+    const targetTable = userRole === 'superadmin' || ['admin', 'cashier', 'accountant', 'registrar'].includes(userRole)
+      ? 'administrators'
+      : 'desk_attendants';
+  
+    try {
+      const response = await this.API.read({
+        selectors: [`${targetTable}.*, divisions.name AS division_name`],
+        tables: `${targetTable}, divisions`,
+        conditions: `WHERE ${targetTable}.id = '${userId}' AND ${targetTable}.division_id = divisions.id`
+      });
+  
+      console.log('API response:', response);
+  
+      if (response.success && response.output && response.output.length > 0) {
+        this.userData = response.output[0];
+        console.log('User data loaded:', this.userData);
+  
+        // Ensure role is set to 'desk_attendant' if undefined
+        if (this.userData && !this.userData.role) {
+          this.userData.role = 'desk_attendant';
+        }
+      } else {
+        console.error('Failed to load user data:', response.output);
+      }
+    } catch (error) {
+      console.error('Error loading user data:', error);
+    }
+  }
+  
   toggleDropdown() {
     this.isDropdownOpen = !this.isDropdownOpen;
     if (this.isDropdownOpen) {
@@ -89,7 +141,7 @@ export class HeaderComponent implements OnInit, AfterViewInit, OnDestroy {
         onStart: () => {
           dropdownElement.style.zIndex = '100';
           dropdownElement.style.pointerEvents = 'auto';
-          dropdownElement.style.display = 'block'; // Make sure it's visible
+          dropdownElement.style.display = 'block';
         }
       });
     }
@@ -105,21 +157,32 @@ export class HeaderComponent implements OnInit, AfterViewInit, OnDestroy {
         ease: 'power3.in',
         onComplete: () => {
           dropdownElement.classList.remove('open');
-          dropdownElement.style.pointerEvents = 'none'; // Prevent interaction when hidden
+          dropdownElement.style.pointerEvents = 'none';
           dropdownElement.style.zIndex = '1';
-          dropdownElement.style.display = 'none'; // Hide completely after animation
+          dropdownElement.style.display = 'none';
         }
       });
     }
     this.isDropdownOpen = false;
   }
 
-
   navigateToProfile(event: Event) {
     event.preventDefault();
-    this.router.navigate(['/admin/profile'])
-      .then(() => this.closeDropdown())
-      .catch(err => console.error('Navigation Error:', err));
+  
+    if (this.userData?.role === 'desk_attendant') {
+      this.router.navigate(['/desk-attendant/profile'])
+        .then(() => this.closeDropdown())
+        .catch(err => console.error('Navigation Error:', err));
+    } else if (this.userData?.role === 'superadmin') {
+      this.router.navigate(['/admin/profile'])
+        .then(() => this.closeDropdown())
+        .catch(err => console.error('Navigation Error:', err));
+    } else if (['cashier', 'accountant', 'registrar'].includes(this.userData?.role || '')) {
+      this.router.navigate(['/admin/profile'])
+        .then(() => this.closeDropdown())
+        .catch(err => console.error('Navigation Error:', err));
+    } else {
+      console.warn('Unknown role, no specific route defined');
+    }
   }
 }
-

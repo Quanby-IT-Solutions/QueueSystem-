@@ -1,171 +1,232 @@
-<main class="min-h-screen bg-gradient-to-br from-gray-100 to-gray-200 p-6">
-  <div class="mx-auto space-y-6 max-w-7xl">
-    <!-- Header Image -->
-    <div class="rounded-3xl shadow-xl overflow-hidden relative transform transition-all duration-500 hover:shadow-2xl">
-      <img src="assets/logo/vsuHeader.png" class="w-full h-full object-contain transform transition-transform duration-500 hover:scale-105">
-    </div>
 
-    <div class="flex space-x-6">
-      <!-- Performance Metrics Card -->
-      <div class="w-2/6 bg-white rounded-3xl shadow-xl p-6 border border-gray-100 transform transition-all duration-500 hover:shadow-2xl">
-        <h2 class="text-2xl font-semibold mb-6 text-gray-800 border-b pb-2 bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent">
+
+
+
+
+<main class="min-h-screen py-4">
+  <div class="w-full mx-auto space-y-8 ">
+    <!-- Flex Container -->
+    <div class="flex flex-col lg:flex-row lg:space-x-6 space-y-6 lg:space-y-0">
+      
+      <!-- Metrics Card -->
+      <div class="w-full lg:w-1/3 bg-white shadow-lg rounded-3xl">
+        <h2 [ngClass]="{'opacity-0 translate-y-4': metricsLoading, 'opacity-100 translate-y-0': !metricsLoading}"  
+          class="mt-6 mb-2 text-xl md:text-2xl tracking-wider text-center text-[var(--primary)] uppercase duration-500 ease-in-out">
           Performance Metrics
         </h2>
-        
-        <!-- User Profile Section -->
-        <div *ngIf="currentUser" 
-             class="bg-gradient-to-r from-gray-50 to-gray-100 rounded-2xl shadow-md px-4 py-3 flex items-center space-x-4 mb-6 border border-gray-50 transform transition-all duration-300 hover:shadow-lg hover:scale-102">
-          <div class="w-16 h-16 rounded-full overflow-hidden border-4 border-white shadow-inner group">
-            <img [src]="currentUser.profile || 'assets/default.jpg'" 
-                 alt="{{ currentUser.fullname }}"  
-                 class="w-full h-full object-cover transform transition-all duration-300 group-hover:scale-110">
-          </div>
-          <div class="flex-1">
-            <p class="font-semibold text-gray-800 text-lg">{{ currentUser.fullname }}</p>
-            <p class="text-sm text-gray-600">{{ currentUser.division }}</p>
+
+        <div [ngClass]="{'opacity-0 translate-y-4': metricsLoading, 'opacity-100 translate-y-0': !metricsLoading}"  
+          class="w-20 h-0.5 mx-auto mb-2 rounded-full bg-gradient-to-r from-green-800 to-green-900 duration-500 ease-in-out">
+        </div>
+
+        <!-- Profile Section -->
+        <div *ngIf="currentUser" [ngClass]="{'opacity-0 translate-y-4': metricsLoading, 'opacity-100 translate-y-0': !metricsLoading}"
+          class="duration-500 ease-in-out px-4 md:px-6 pt-6 pb-4">   
+          <div class="flex flex-col items-center">
+            <div class="relative">
+              <div class="w-20 h-20 md:w-24 md:h-24 overflow-hidden rounded-full shadow-lg ring-4 ring-green-50">
+                <img [src]="currentUser.profile || 'assets/images/noprofile.png'"
+                     alt="{{ currentUser.fullname }}"
+                     class="object-cover w-full h-full">
+              </div>
+              <div class="absolute bottom-1 right-1">
+                <div [ngClass]="{'bg-green-500': currentUser.is_online, 'bg-red-500': !currentUser.is_online}"
+                     class="w-4 h-4 md:w-5 md:h-5 rounded-full ring-2 ring-white">
+                </div>
+              </div>
+            </div>
+            <h3 class="mt-3 text-lg md:text-xl font-medium text-gray-800">{{ currentUser.fullname }}</h3>
+            <div class="px-3 rounded-full">
+              <span class="text-sm text-[var(--primary)] opacity-85">
+                {{ currentUser.role === 'superadmin' ? 'Super Admin' : currentUser.role !== 'Desk attendant' ? 'Admin' : 'Desk Attendant' }}
+              </span>
+            </div>
           </div>
         </div>
-        
+
         <!-- Metrics Grid -->
-        <div class="grid grid-cols-2 gap-4">
-          <div *ngFor="let metric of [
-            {label: 'Total Check-ins', value: 'Not Available'},
-            {label: 'Avg Check-in Time', value: 'Not Available'},
-            {label: 'Today\'s Check-ins', value: 'Not Available'},
-            {label: 'This Week\'s Check-ins', value: 'Not Available'},
-            {label: 'Avg Service Time', value: 'Not Available'},
-            {label: 'Rating', value: '★★★★★'}
-          ]" 
-          class="bg-gradient-to-br from-white to-gray-50 rounded-2xl shadow-md p-4 border border-gray-200 
-                 transform transition-all duration-300 hover:shadow-lg hover:scale-105 hover:bg-gradient-to-br hover:from-gray-50 hover:to-white">
-            <p class="text-sm font-medium text-gray-500 mb-1">{{ metric.label }}</p>
-            <p class="text-lg font-bold text-gray-800" [class.text-yellow-400]="metric.label === 'Rating'">{{ metric.value }}</p>
+        <div class="px-4 md:px-6 pb-6 space-y-4">
+          <div class="grid grid-cols-2 gap-3 duration-300 ease-in"           
+               [ngClass]="{'opacity-0 translate-y-4': metricsLoading, 'opacity-100 translate-y-0': !metricsLoading}">
+
+            <!-- Today's Check-ins -->
+            <div class="p-3 border border-transparent shadow-lg bg-gradient-to-br from-white to-sky-50 rounded-2xl">
+              <div class="flex items-start justify-between">
+                <div>
+                  <span class="text-xs md:text-sm font-medium text-sky-600">Today's Check-ins</span>
+                  <p class="mt-1 text-lg md:text-xl font-semibold text-gray-800">{{ performanceMetrics.totalCheckInsToday }}</p>
+                </div>
+                <app-lottie-animation class="w-10 h-10 md:w-12 md:h-12" animation="today"></app-lottie-animation>
+              </div>
+            </div>
+
+            <!-- Average Service -->
+            <div class="p-3 border border-transparent shadow-lg bg-gradient-to-br from-white to-violet-50 rounded-2xl">
+              <div class="flex items-start justify-between">
+                <div>
+                  <span class="text-xs md:text-sm font-medium text-violet-600">Average Service</span>
+                  <p class="mt-1 text-lg md:text-xl font-semibold text-gray-800">{{ performanceMetrics.averageTimeService }}</p>
+                </div>
+                <app-lottie-animation class="w-10 h-10 md:w-12 md:h-12" animation="time1"></app-lottie-animation>
+              </div>
+            </div>
+
+            <!-- Weekly Check-ins -->
+            <div class="p-3 border border-transparent shadow-lg bg-gradient-to-br from-white to-blue-50 rounded-2xl">
+              <div class="flex items-start justify-between">
+                <div>
+                  <span class="text-xs md:text-sm font-medium text-blue-600">Weekly Check-ins</span>
+                  <p class="mt-1 text-lg md:text-xl font-semibold text-gray-800">{{ performanceMetrics.totalCheckInsThisWeek }}</p>
+                </div>
+                <app-lottie-animation class="w-10 h-10 md:w-12 md:h-12" animation="3"></app-lottie-animation>
+              </div>
+            </div>
+
+            <!-- Average Check-in -->
+            <div class="p-3 border border-transparent shadow-lg bg-gradient-to-br from-white to-pink-50 rounded-2xl">
+              <div class="flex items-start justify-between">
+                <div>
+                  <span class="text-xs md:text-sm font-medium text-pink-400">Average Check-in</span>
+                  <p class="mt-1 text-lg md:text-xl font-semibold text-gray-800">{{ formatTime(performanceMetrics.averageCheckInTime) }}</p>
+                </div>
+                <app-lottie-animation class="w-10 h-10 md:w-12 md:h-12" animation="time2"></app-lottie-animation>
+              </div>
+            </div>
+
+            <div class="p-3 border border-transparent shadow-lg bg-gradient-to-br from-white to-pink-50 rounded-2xl">
+              <div class="flex items-start justify-between">
+                <div>
+                  <span class="text-xs md:text-sm font-medium text-indigo-600">Total Check-ins</span>
+                  <p class="mt-1 text-lg md:text-xl font-semibold text-gray-800">{{ performanceMetrics.totalCheckIns }}</p>
+                </div>
+                <app-lottie-animation class="w-10 h-10 md:w-12 md:h-12 " animation="average"></app-lottie-animation>
+        
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- Location Footer -->
+        <div *ngIf="currentUser" class="px-6 mb-4">
+          <div class="flex flex-col items-center space-y-1">
+            <div class="flex items-center text-green-800 duration-500 ease-in-out"
+                 [ngClass]="{'opacity-0 translate-y-4': metricsLoading, 'opacity-100 translate-y-0': !metricsLoading}">
+              <app-lottie-animation class="w-10 h-10 md:w-12 md:h-12" animation="location"></app-lottie-animation>
+              <span class="text-sm text-[var(--primary)]">{{ currentUser.division }}</span>
+            </div>
           </div>
         </div>
       </div>
 
       <!-- Users List Card -->
-      <div class="w-4/6 bg-white rounded-3xl shadow-xl p-6 border border-gray-100 transform transition-all duration-500 hover:shadow-2xl">
+      <div class="w-full lg:w-2/3 p-4 md:p-6 bg-white shadow-lg rounded-3xl">
         <!-- Search and Create Section -->
-        <div class="flex justify-between items-center mb-6">
-          <div class="relative w-64 group">
-            <input 
-              type="text" 
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+          <div class="relative w-full md:w-72">
+            <input
+              type="text"
               [(ngModel)]="searchQuery"
               (input)="searchUsers()"
-              placeholder="Search a user..." 
-              class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-400 focus:border-green-400 
-                     transition-all duration-300 group-hover:shadow-md"
-            >
-            <svg xmlns="http://www.w3.org/2000/svg" 
-                 class="h-5 w-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 transition-colors duration-300 group-hover:text-green-500" 
+              placeholder="Search a user..."
+              class="w-full py-2.5 pl-12 pr-4 text-sm text-gray-700 placeholder-gray-500 bg-white border border-[var(--primary)] rounded-xl shadow-md focus:outline-none focus:ring-1 focus:ring-[var(--primary)]">
+            <svg xmlns="http://www.w3.org/2000/svg"
+                 class="absolute w-6 h-6 text-[var(--primary)] left-3 top-1/2 transform -translate-y-1/2"
                  viewBox="0 0 20 20" fill="currentColor">
               <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd" />
             </svg>
           </div>
-          
+
           <button (click)="createNewAccount()" 
-                  class="bg-gradient-to-r from-[var(--primary)] to-[var(--primary-hover)] hover:from-[var(--primary-hover)] hover:to-[var(--primary-hover)] text-white 
-                         px-6 py-2 rounded-xl transition-all duration-300 flex items-center shadow-md hover:shadow-lg
-                         transform hover:scale-105 active:scale-95">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 transition-transform duration-300 group-hover:rotate-180" viewBox="0 0 20 20" fill="currentColor">
-              <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
-            </svg>
-            Create Account
-          </button>
+          class="w-full md:w-auto flex items-center justify-center px-2 md:px-4 py-2.5 text-sm  text-white bg-[var(--primary)] rounded-xl hover:bg-hover-green transition-colors duration-200 shadow-sm hover:shadow-md">
+    <svg xmlns="http://www.w3.org/2000/svg" 
+         class="w-4 h-4 md:w-5 md:h-5 mr-1.5 md:mr-2" 
+         viewBox="0 0 20 20" 
+         fill="currentColor">
+      <path fill-rule="evenodd" 
+            d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" 
+            clip-rule="evenodd" />
+    </svg>
+    Create Account
+  </button>
         </div>
 
-       <!-- Users Table -->
-<div class="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-200 transition-all duration-300 hover:shadow-xl">
-  <table class="w-full">
-    <thead class="bg-gradient-to-r from-[var(--primary)] to-[var(--primary-hover)] text-white">
-      <tr>
-        <th class="p-3 text-left text-sm font-semibold tracking-wider">Username</th>
-        <th class="p-3 text-left text-sm font-semibold tracking-wider">Full Name</th>
-        <th class="p-3 text-left text-sm font-semibold tracking-wider">Location</th>
-        <th class="p-3 text-left text-sm font-semibold tracking-wider">Type</th>
-        <th class="p-3 text-left text-sm font-semibold tracking-wider">Status</th>
-        <th class="p-3 text-left text-sm font-semibold tracking-wider">Action</th>
-      </tr>
-    </thead>
-    <tbody class="divide-y divide-gray-200">
-      <!-- Empty State -->
-      <tr *ngIf="paginatedUsers.length === 0">
-        <td colspan="6" class="p-8 text-center text-gray-500">
-          <app-lottie-animation class="w-56 h-56 mx-auto" animation="noUsers"></app-lottie-animation>
-          <div class="text-lg font-medium text-gray-600">No users available</div>
-          <div class="text-base text-gray-500 mb-4">
-            Click <span class="font-medium text-green-600">Create Account</span> to add a user
+        <!-- Users Table -->
+        <div class="overflow-x-auto">
+          <table class="w-full">
+            <thead>
+              <tr class="bg-[var(--primary)] text-white">
+                <th class="px-4 py-3 text-left text-sm font-semibold">Name</th>
+                <th class="px-4 py-3 text-left text-sm font-semibold hidden md:table-cell">Location</th>
+                <th class="px-4 py-3 text-left text-sm font-semibold">Type</th>
+                <th class="px-4 py-3 text-left text-sm font-semibold">Status</th>
+                <th class="px-4 py-3 text-left text-sm font-semibold">Action</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-200">
+              <tr *ngFor="let user of paginatedUsers"
+                  (click)="viewUserDetails(user)"
+                  [ngClass]="{'bg-gray-100': currentUser?.id === user.id, 'hover:bg-gray-50/50': currentUser?.id !== user.id}"
+                  class="transition-all duration-300">
+                <td class="px-4 py-3 text-sm text-gray-700">{{ user.fullname }}</td>
+                <td class="px-4 py-3 text-sm text-gray-600 hidden md:table-cell">{{ user.division }}</td>
+                <td class="px-4 py-3 text-sm text-gray-600">
+                  {{ user.role === 'superadmin' ? 'Super Admin' : user.role !== 'Desk attendant' ? 'Admin' : 'Desk Attendant' }}
+                </td>
+                <td class="px-4 py-3">
+                  <span [ngClass]="{'bg-green-100 text-green-800': user.is_online, 'bg-red-100 text-red-800': !user.is_online}"
+                        class="px-3 py-1 text-xs font-medium rounded-full">
+                    {{ user.is_online ? 'Active' : 'Inactive' }}
+                  </span>
+                </td>
+                <td class="px-4 py-3">
+                  <div class="flex space-x-3">
+                    <button (click)="editUser(user)" class="text-[var(--primary)] hover:text-hover-green">
+                      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                      </svg>
+                    </button>
+                    <button (click)="confirmDeleteUser(user)" class="text-red-400 hover:text-red-600">
+                      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                      </svg>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+
+              <!-- Empty State -->
+              <tr *ngIf="paginatedUsers.length === 0">
+                <td colspan="6" class="p-8 text-center text-gray-500">
+                  <app-lottie-animation class="w-40 h-40 md:w-56 md:h-56 mx-auto" animation="noUsers"></app-lottie-animation>
+                  <div class="text-lg font-medium text-gray-600">No users available</div>
+                  <div class="mb-4 text-base text-gray-500">
+                    Click <span class="font-medium text-green-600">Create Account</span> to add a user
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Pagination -->
+        <div class="flex flex-col md:flex-row md:items-center justify-between mt-6 gap-4">
+          <button (click)="previousPage()"
+                  [disabled]="currentPage === 1"
+                  class="px-4 py-2 text-sm md:text-base text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-50">
+            Previous
+          </button>
+          <span class="text-sm md:text-base text-gray-600">Page {{ currentPage }} of {{ totalPages }}</span>
+          <button (click)="nextPage()"
+                  [disabled]="currentPage === totalPages"
+                  class="px-4 py-2 text-sm md:text-base text-white bg-[var(--primary)] rounded-lg hover:bg-hover-green disabled:opacity-50">
+                  Next
+                </button>
+              </div>
+            </div>
           </div>
-        </td>
-      </tr>
-
-      <!-- User Rows -->
-      <tr (click)="viewUserDetails(user)" 
-          *ngFor="let user of paginatedUsers; let even = even" 
-          [ngClass]="{'bg-gray-50': even}"
-          class="hover:bg-green-50 transition-colors duration-200 cursor-pointer">
-        <td class="p-3 text-sm">{{ user.username }}</td>
-        <td class="p-3 text-sm">{{ user.fullname }}</td>
-        <td class="p-3 text-sm">{{ user.division }}</td>
-        <td class="p-3 text-sm">
-          {{ user.role === 'superadmin' ? 'Super Admin' : user.role !== 'Desk attendant' ? 'Admin' : 'Desk Attendant' }}
-        </td>
-        <td class="p-3">
-          <span [ngClass]="{'bg-green-100 text-green-800': user.is_online, 'bg-red-100 text-red-800': !user.is_online}"
-                class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full transition-all duration-300">
-            {{ user.is_online ? 'Active' : 'Inactive' }}
-          </span>
-        </td>
-        <td class="p-3">
-          <div class="flex space-x-2">
-            <button (click)="editUser(user); $event.stopPropagation()" 
-                    class="text-green-600 hover:text-green-800 transition-all duration-300 p-1 rounded-full hover:bg-green-100
-                           transform hover:scale-110 active:scale-95">
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="h-5 w-5">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536-10.607 10.607a2 2 0 01-.879.516l-4.243 1.061a1 1 0 01-1.213-1.213l1.06-4.243a2 2 0 01.517-.879l10.606-10.607zm1.414-1.414a2 2 0 012.828 0l1.414 1.414-3.536-3.536L16.646 3.818z" />
-              </svg>
-            </button>
-            
-            <button (click)="deleteUser(user); $event.stopPropagation()" 
-                    class="text-red-600 hover:text-red-800 transition-all duration-300 p-1 rounded-full hover:bg-red-100
-                           transform hover:scale-110 active:scale-95">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" />
-              </svg>
-            </button>
-          </div>
-        </td>
-      </tr>
-    </tbody>
-  </table>
-</div>
-
-<!-- Pagination Controls -->
-<div class="flex justify-between items-center mt-4">
-  <button 
-    (click)="previousPage()"
-    [disabled]="currentPage === 1"
-    class="bg-[var(--primary)] hover:bg-[var(--primary-hover)] text-white px-4 py-2 rounded-md disabled:opacity-50"
-  >
-    Previous
-  </button>
-  
-  <span class="text-gray-600">Page {{ currentPage }} of {{ totalPages }}</span>
-  
-  <button 
-    (click)="nextPage()"
-    [disabled]="currentPage === totalPages"
-    class="bg-[var(--primary)] hover:bg-[var(--primary-hover)] text-white px-4 py-2 rounded-md disabled:opacity-50"
-  >
-    Next
-  </button>
-</div>
-
-      </div>
-    </div>
-  </div>
-</main>
+        </div>
+      </main>
 
 <app-create-account-modal
   *ngIf="showModal"
@@ -175,3 +236,16 @@
   (closeModal)="closeModal()"
   (accountCreated)="onAccountCreated($event)">
 </app-create-account-modal>
+
+
+<app-confirmation *ngIf="showDeleteConfirmation"
+                  type="delete"
+                  title="Delete User"
+                  description="Are you sure you want to delete {{ userToDelete?.fullname }}?"
+                  (onConfirm)="onConfirmDelete()"
+                  (onCancel)="onCancelDelete()"
+                  animation="yellowWarning">
+</app-confirmation>
+
+
+

@@ -1,10 +1,8 @@
 <div class="w-full h-full">
-  <div class="  rounded-3xl shadow-xl overflow-hidden relative">
-    <img src="assets/logo/vsuHeader.png" class="w-full h-full object-contain ">
-  </div>
-  <div class="w-full py-4 px-6 my-4 flex justify-between rounded-lg bg-white shadow-md">
+
+  <div class="flex justify-between w-full px-6 py-4 my-4 bg-white rounded-lg shadow-md">
     <div>
-      <h1 class="font-medium text-2xl  tracking-wide">Kiosk Management</h1>
+      <h1 class="text-2xl font-medium tracking-wide">Kiosk Management</h1>
       <p class="font-thin " >Manage kiosk for clients. Create, edit, delete and view statuses of each kiosk in this section.</p>
     </div>
     <div class="w-16 h-16">
@@ -12,55 +10,59 @@
     </div>
   </div>
   <!-- Flex Container -->
-  <div class="flex flex-col 2xl:flex-row gap-3 w-full h-full pb-4">
+  <div class="flex flex-col w-full h-full gap-3 pb-4 2xl:flex-row">
     <!-- Divsion Selection -->
     <div *ngIf="isSuperAdmin" class="flex  2xl:flex-col gap-3 2xl:flex-[1_1_0%]">
       <!-- Item -->
-      <button 
+      <button
       (click)="selectDivision(division)"
-      class=" {{selectedDivision == division.id ? 'bg-[var(--primary-dark)] text-white':'bg-white'}}  tracking-wide h-12 rounded-lg shadow-md hover:bg-[var(--primary)] hover:text-white cursor-pointer flex items-center justify-between px-4 font-medium" 
+      class=" {{selectedDivision == division.id ? 'bg-[var(--primary-dark)] text-white':'bg-white'}}  tracking-wide h-12 rounded-lg shadow-md hover:bg-[var(--primary)] hover:text-white cursor-pointer flex items-center justify-between px-4 font-medium"
       *ngFor="let division of divisions">
-        {{division.name.toUpperCase()}} <span  class="material-icons hidden 2xl:block"> keyboard_arrow_right </span>
+        {{division.name.toUpperCase()}} <span  class="hidden material-icons 2xl:block"> keyboard_arrow_right </span>
       </button>
       <!-- Add -->
     </div>
     <!-- Item Selection -->
     <div class="bg-white rounded-lg shadow-md flex-[4_4_0%] h-full">
-      <div class=" grid grid-cols-3 px-3 py-3 gap-3"> 
-        <button 
- 
-        *ngFor="let kiosk of kiosks; let i = index" 
-        class="group transition-all hover:scale-110  {{kiosk.status == 'maintenance' ? 'bg-yellow-50 border-yellow-500' :'bg-white border-[var(--primary)] hover:bg-[var(--primary-dark)] hover:text-white hover:border-[var(--primary-light)] '}} h-48 p-4 rounded-lg flex flex-col gap-2 shadow-md border-2 border-dashed border-black/10 ">
+      <div class="grid grid-cols-2 2xl:grid-cols-3 portrait:grid-cols-1 gap-3 px-3 py-3 ">
+        <button
+
+        *ngFor="let kiosk of kiosks; let i = index"
+        class="group transition-all hover:scale-110  {{kiosk.status == 'maintenance' ? 'bg-yellow-50 border-yellow-500' :'bg-white border-[var(--primary)] hover:bg-[var(--primary-dark)] hover:text-white hover:border-[var(--primary-light)] '}} h-auto p-4 rounded-lg flex flex-col gap-2 shadow-md border-2 border-dashed border-black/10 ">
 
           <!-- Header -->
-          <div class="flex gap-4 items-center">
+          <div class="flex items-center gap-4">
             <!-- Lottie Container -->
             <div class="transition-all w-16 h-12 p-2 rounded-lg bg-[var(--primary-light)] group-hover:bg-yellow-200">
               <app-lottie-animation animation="tablet"></app-lottie-animation>
             </div>
             <div class="transition-all w-5 h-5 rounded-full {{statusMap[kiosk.status!]}} bottom-4 right-4"></div>
-            <div class="font-medium  tracking-wide text-xl flex items-center gap-2">
-              KIOSK <span class="font-medium text-4xl">{{i+1}}</span>
+            <div class="flex items-center gap-2 text-xl font-medium tracking-wide">
+              KIOSK <span class="text-4xl font-medium">{{i+1}}</span>
             </div>
           </div>
           <!-- Body  -->
-          <div class="flex-1 py-2 gap-1 w-full flex flex-col items-start ">
+          <div class="flex flex-col items-start flex-1 w-full gap-1 py-2 ">
             <div>
               <span class="font-medium">Kiosk Code: </span>
               <span class="opacity-75">{{kiosk.code}}</span>
+            </div>
+            <div>
+              <span class="font-medium">Printer: </span>
+              <span class="opacity-75">{{kiosk.printer_ip}}</span>
             </div>
             <div  class="flex-1">
               <span class="font-medium">Last Online: </span>
               <span class="opacity-75">{{(kiosk.last_online  | date:'MM/dd/yyyy hh:mm a')  ?? 'Not used yet.'}}</span>
             </div>
-       
-            <div class="flex w-full  mt-2">
-              <div class="w-full flex justify-between">
+
+            <div class="flex w-full mt-2">
+              <div class="flex justify-between w-full">
                 <div class="flex gap-2">
-                  <button *ngIf="kiosk.status != 'online'" (click)="selectKiosk(kiosk);openDialog('delete')" class="rounded-lg px-2 flex items-center justify-center py-1 text-white bg-red-500 hover:bg-red-600 ">
+                  <button *ngIf="kiosk.status != 'online'" (click)="selectKiosk(kiosk);openDialog('delete')" class="flex items-center justify-center px-2 py-1 text-white bg-red-500 rounded-lg hover:bg-red-600 ">
                     <span  class="material-icons"> delete </span>
                   </button>
-                  <button  (click)="updateKiosk(kiosk)" class="rounded-lg px-2 flex items-center justify-center py-1 text-white bg-green-500 hover:bg-green-600 ">
+                  <button  (click)="updateKiosk(kiosk)" class="flex items-center justify-center px-2 py-1 text-white bg-green-500 rounded-lg hover:bg-green-600 ">
                     <span  class="material-icons"> edit </span>
                   </button>
                 </div>
@@ -72,9 +74,9 @@
             </div>
           </div>
         </button>
-        <button 
+        <button
         (click)="addKiosk()"
-        class="transition-all hover:scale-110 bg-white tracking-wider h-48 font-thin rounded-lg gap-3 shadow-md  hover:bg-green-950 hover:text-white cursor-pointer flex justify-center border-2 border-solid border-black/10 items-center  " 
+        class="flex items-center justify-center h-auto min-h-48 gap-3 font-thin tracking-wider transition-all bg-white border-2 border-solid rounded-lg shadow-md cursor-pointer hover:scale-110 hover:bg-green-950 hover:text-white border-black/10 "
         >
         <span class="text-4xl font-medium">
           +

@@ -1,10 +1,8 @@
 <div class="w-full h-full">
-    <div class="  rounded-3xl shadow-xl overflow-hidden relative">
-      <img src="assets/logo/vsuHeader.png" class="w-full h-full object-contain ">
-    </div>
-    <div class="w-full py-4 px-6 my-4 flex justify-between rounded-lg bg-white shadow-md">
+
+    <div class="flex justify-between w-full px-6 py-4 my-4 bg-white rounded-lg shadow-md">
       <div>
-        <h1 class="font-medium text-2xl  tracking-wide">Service Management</h1>
+        <h1 class="text-2xl font-medium tracking-wide">Service Management</h1>
         <p class="font-thin " >Manage services for clients. Create, edit, delete and view statuses of each service in this section.</p>
       </div>
       <div class="w-16 h-16">
@@ -12,50 +10,54 @@
       </div>
     </div>
     <!-- Flex Container -->
-    <div class="flex flex-col 2xl:flex-row gap-3 w-full h-full pb-4">
+    <div class="flex flex-col w-full h-full gap-3 pb-4 2xl:flex-row">
       <!-- Divsion Selection -->
       <div *ngIf="isSuperAdmin" class="flex  2xl:flex-col gap-3 2xl:flex-[1_1_0%]">
         <!-- Item -->
-        <button 
+        <button
         (click)="selectDivision(division)"
-        class=" {{selectedDivision == division.id ? 'bg-[var(--primary-dark)] text-white':'bg-white'}}  tracking-wide h-12 rounded-lg shadow-md hover:bg-[var(--primary)] hover:text-white cursor-pointer flex items-center justify-between px-4 font-medium" 
+        class=" {{selectedDivision == division.id ? 'bg-[var(--primary-dark)] text-white':'bg-white'}}  tracking-wide h-12 rounded-lg shadow-md hover:bg-[var(--primary)] hover:text-white cursor-pointer flex items-center justify-between px-4 font-medium"
         *ngFor="let division of divisions">
-          {{division.name.toUpperCase()}} <span  class="material-icons hidden 2xl:block"> keyboard_arrow_right </span>
+          {{division.name.toUpperCase()}} <span  class="hidden material-icons 2xl:block"> keyboard_arrow_right </span>
         </button>
         <!-- Add -->
       </div>
       <!-- Item Selection -->
-      <div class="bg-white rounded-lg shadow-md flex-[4_4_0%] h-full">
-        <div class=" grid grid-cols-3 px-3 py-3 gap-3"> 
-          <button 
-   
-          *ngFor="let service of services; let i = index" 
-          class="group transition-all hover:scale-110   bg-white border-[var(--primary)] hover:bg-[var(--primary-dark)] hover:text-white hover:border-[var(--primary-light)]  h-48 p-4 rounded-lg flex flex-col gap-2 shadow-md border-2 border-dashed">
+      <div class="bg-white rounded-lg shadow-md flex-[4_4_0%] h-full justi">
+        <!-- Services -->
+        <div *ngIf="!serviceOpen" class="grid grid-cols-2 2xl:grid-cols-3 portrait:grid-cols-1 gap-3 px-3 py-3 ">
+          <button
+          (click)="openService(service)"
+          *ngFor="let service of services; let i = index"
+          class="group transition-all hover:scale-110  group  bg-white border-[var(--primary)] hover:bg-[var(--primary-dark)] hover:text-white hover:border-[var(--primary-light)]  h-auto p-4 rounded-lg flex flex-col gap-2 shadow-md border-2 border-dashed">
 
           <!-- Header -->
-          <div class="flex gap-4 items-center">
-            <!-- Lottie Container -->
-            <div class="transition-all w-16 h-12 p-2 rounded-lg bg-[var(--primary-light)] group-hover:bg-yellow-200">
-                <app-lottie-animation animation="document"></app-lottie-animation>
+           <div class="flex justify-between items-center w-full">
+            <div class="flex items-center flex-1 gap-4">
+              <!-- Lottie Container -->
+                <div class="transition-all w-16 h-12 p-2 rounded-lg bg-[var(--primary-light)] group-hover:bg-yellow-200">
+                  <app-lottie-animation animation="document"></app-lottie-animation>
+                </div>
+                <div class="flex items-center gap-2 text-xl font-medium tracking-wide">
+                  Category <span class="text-4xl font-medium">{{i+1}}</span>
               </div>
-              <div class="font-medium  tracking-wide text-xl flex items-center gap-2">
-                SERVICE <span class="font-medium text-4xl">{{i+1}}</span>
               </div>
-            </div>
+              <span class="material-icons text-[var(--primary)] group-hover:text-white">navigate_next</span>
+           </div>
             <!-- Body  -->
-            <div class="flex-1 py-2 gap-1 w-full flex flex-col items-start ">
+            <div class="flex flex-col items-start flex-1 w-full gap-1 py-2 ">
               <div class="flex-1">
-                <span class="font-medium">Service Name: </span>
+                <span class="font-medium">Category Name: </span>
                 <span class="opacity-75">{{service.name}}</span>
               </div>
 
-              <div class="flex w-full  mt-2">
-                <div class="w-full flex justify-end">
+              <div class="flex w-full mt-2">
+                <div class="flex justify-end w-full">
                   <div class="flex gap-2">
-                    <button  (click)="selectService(service);openDialog('delete')" class="rounded-lg px-2 flex items-center justify-center py-1 text-white bg-red-500 hover:bg-red-600 ">
+                    <button  (click)="selectService($event,service);" class="flex items-center justify-center px-2 py-1 text-white bg-red-500 rounded-lg hover:bg-red-600 ">
                       <span  class="material-icons"> delete </span>
                     </button>
-                    <button  (click)="updateService(service)" class="rounded-lg px-2 flex items-center justify-center py-1 text-white bg-green-500 hover:bg-green-600 ">
+                    <button  (click)="updateService($event,service)" class="flex items-center justify-center px-2 py-1 text-white bg-green-500 rounded-lg hover:bg-green-600 ">
                       <span  class="material-icons"> edit </span>
                     </button>
                   </div>
@@ -63,9 +65,66 @@
               </div>
             </div>
           </button>
-          <button 
+          <button
           (click)="addService()"
-          class="transition-all hover:scale-110 bg-white tracking-wider h-48 font-thin rounded-lg gap-3 shadow-md  hover:bg-green-950 hover:text-white cursor-pointer flex justify-center border-2 border-solid border-black/10 items-center  " 
+          class="flex items-center justify-center h-auto min-h-48 gap-3 font-thin tracking-wider transition-all bg-white border-2 border-solid rounded-lg shadow-md cursor-pointer hover:scale-110 hover:bg-green-950 hover:text-white border-black/10 "
+          >
+          <span class="text-4xl font-medium">
+            +
+          </span>
+          <span class="text-xl">NEW CATEGORY</span>
+          </button>
+        </div>
+
+        <!-- Sub services -->
+        <div 
+        class="font-medium w-auto pt-4 px-4  flex items-center"
+        *ngIf="serviceOpen">
+        <div 
+        (click)="closeService()" 
+        class="bg-[var(--primary-dark)] hover:scale-110 transition-all cursor-pointer text-xl px-4 py-2 rounded-lg shadow-sm text-white flex gap-2 items-center">
+          <span  class="material-icons"> keyboard_arrow_left </span>
+          {{serviceOpen.name}}
+        </div></div>
+        <div *ngIf="serviceOpen" class="grid grid-cols-2 2xl:grid-cols-3 portrait:grid-cols-1 gap-3 px-3 py-3 ">
+          <button
+          *ngFor="let service of subServices; let i = index"
+          class="group transition-all hover:scale-110   bg-white border-[var(--primary)] hover:bg-[var(--primary-dark)] hover:text-white hover:border-[var(--primary-light)]  h-auto p-4 rounded-lg flex flex-col gap-2 shadow-md border-2 border-dashed">
+
+          <!-- Header -->
+          <div class="flex items-center gap-4">
+            <!-- Lottie Container -->
+            <div class="transition-all w-16 h-12 p-2 rounded-lg bg-[var(--primary-light)] group-hover:bg-yellow-200">
+                <app-lottie-animation animation="document"></app-lottie-animation>
+              </div>
+              <div class="flex items-center gap-2 text-xl font-medium tracking-wide">
+                Service <span class="text-4xl font-medium">{{i+1}}</span>
+              </div>
+            </div>
+            <!-- Body  -->
+            <div class="flex flex-col items-start flex-1 w-full gap-1 py-2 ">
+              <div class="flex-1">
+                <span class="font-medium">Service Name: </span>
+                <span class="opacity-75">{{service.name}}</span>
+              </div>
+
+              <div class="flex w-full mt-2">
+                <div class="flex justify-end w-full">
+                  <div class="flex gap-2">
+                    <button  (click)="selectSubService(service);openDialog('delete')" class="flex items-center justify-center px-2 py-1 text-white bg-red-500 rounded-lg hover:bg-red-600 ">
+                      <span  class="material-icons"> delete </span>
+                    </button>
+                    <button  (click)="updateSubService(service)" class="flex items-center justify-center px-2 py-1 text-white bg-green-500 rounded-lg hover:bg-green-600 ">
+                      <span  class="material-icons"> edit </span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </button>
+          <button
+          (click)="addSubService()"
+          class="flex items-center justify-center h-auto min-h-48 gap-3 font-thin tracking-wider transition-all bg-white border-2 border-solid rounded-lg shadow-md cursor-pointer hover:scale-110 hover:bg-green-950 hover:text-white border-black/10 "
           >
           <span class="text-4xl font-medium">
             +
@@ -82,16 +141,20 @@
       *ngIf="modalType== 'delete'"
       [type]="'custom'"
       animation="warning"
-      title="Delete Service?"
-      description="Are you sure you want to PERMANENTLY DELETE this service?"
+      title="Delete {{selectedService ? 'Category':'Service'}}?"
+      description="Are you sure you want to PERMANENTLY DELETE this {{selectedService ? 'category':'service'}}?"
       (onCancel)="closeDialog(false)"
-      (onConfirm)="deleteService(selectedService!)"
+      (onConfirm)="deleteService()"
   ></app-confirmation>
-  
+
   <app-create-service
-    *ngIf="openServiceModal"
+    *ngIf="selectedService && modalType !='delete'"
     [exisitingservice]="selectedService"
     (onClose)="closeDialog($event)"
-  >
-  
-  </app-create-service>
+  />
+
+  <app-create-sub-service
+  *ngIf="selectedSubService && modalType !='delete'"
+  [exisitingservice]="selectedSubService"
+  (onClose)="closeDialog($event)"
+  />

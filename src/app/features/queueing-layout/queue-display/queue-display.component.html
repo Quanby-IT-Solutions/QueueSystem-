@@ -1,4 +1,4 @@
-<div *ngIf="!loading && ((upNextItems.length <= 0 && countOnlineCounters() <= 0)||countOnlineCounters()<=0) && !isPreview" class="main-container flex flex-col justify-center items-center aspect-[3840/2180] relative">
+<div *ngIf="!loading && (((upNextItems.length <= 0 && countOnlineCounters() <= 0)||countOnlineCounters()<=0) && !isPreview) || view == 1" class="main-container flex flex-col justify-center items-center aspect-[3840/2180] relative">
   <iframe
   #iframePlayer
   [ngStyle]="{'border-color': colors.primary_text + '80',}"
@@ -10,86 +10,89 @@
   class="video aspect-[3840/2180] w-full h-full animate-pop  object-cover rounded-lg shadow-lg overflow-hidden border-dashed border-2 min-[3500px]:border-8 min-[3500px]:rounded-3xl min-[3500px]:shadow-2xl"
   ></iframe>
   <video
-  *ngIf="!safeYoutubeUrl"
+  *ngIf="!safeYoutubeUrl && videoUrl"
   [ngStyle]="{'border-color': colors.primary_text + '80',}"
   autoplay
   loop
   [muted]="mute"
   #videoPlayer width="100%" height="100%" class="aspect-[3840/2180] video animate-pop  object-cover rounded-lg shadow-lg overflow-hidden border-dashed border-2 min-[3500px]:border-8 min-[3500px]:rounded-3xl min-[3500px]:shadow-2xl"  controls="false">
-    <source [src]="videoUrl ?? 'assets/queue-display/vsu.mp4'" type="video/mp4">
+    <source [src]="videoUrl" type="video/mp4">
     Your browser does not support the video tag.
-  </video> 
+  </video>
+  <div class="w-full h-full flex items-center text-7xl justify-center  bg-black text-white" *ngIf="!videoUrl && !safeYoutubeUrl">
+    Video content has not been configured
+  </div>
   <!-- Announcements -->
-  <div 
+  <div
   *ngIf="showAnnouncement"
   [ngStyle]="{ 'border-color': colors.primary_text + '30',}"
-  class="announcement-banner absolute bottom-2 min-[3500px]:bottom-8 h-7 flex items-center w-full z-50  overflow-hidden text-red-600 bg-white border-dashed border-y-2 min-[3500px]:border-y-8 shadow-sm 
-    min-[3500px]:h-28 
+  class="announcement-banner absolute bottom-2 min-[3500px]:bottom-8 h-7 flex items-center w-full z-50  overflow-hidden text-red-600 bg-white border-dashed border-y-2 min-[3500px]:border-y-8 shadow-sm
+    min-[3500px]:h-28
   ">
     <div class="w-full h-full relative">
-      <div  class="announcement-text absolute inline-flex min-w-[200%] animate-scroll-tailing h-full tracking-widest font-semibold min-[3500px]:text-6xl items-center  whitespace-nowrap"> 
-        <span class="flex-1 whitespace-nowrap  px-2 min-[3500px]:px-6 inline-block ">{{announcements}} </span> 
-        <span class="flex-1 whitespace-nowrap  px-2 min-[3500px]:px-6 inline-block ">{{announcements}} </span> 
+      <div  class="announcement-text absolute inline-flex min-w-[200%] animate-scroll-tailing h-full tracking-widest font-semibold min-[3500px]:text-6xl items-center  whitespace-nowrap">
+        <span class="flex-1 whitespace-nowrap  px-2 min-[3500px]:px-6 inline-block ">{{announcements}} </span>
+        <span class="flex-1 whitespace-nowrap  px-2 min-[3500px]:px-6 inline-block ">{{announcements}} </span>
      </div>
     </div>
   </div>
 </div>
 
 <div *ngIf="loading" class="main-container flex flex-col justify-center items-center relative aspect-[3840/2180]">
-  <app-lottie-animation class="animate-pop loader" animation="loader"></app-lottie-animation>
-  <div 
+  <app-lottie-animation class="animate-pop loader" animation="pcso"></app-lottie-animation>
+  <div
   class="animate-pop loader-text">Loading...</div>
 </div>
 
 <!-- Main Container -->
 <div *ngIf="!loading && (!((upNextItems.length <= 0 && countOnlineCounters() <= 0)||countOnlineCounters()<=0) || isPreview)" class="main-container flex flex-col w-full h-full relative aspect-[3840/2180] z-0"
   [ngStyle]="{'backgroundColor': colors.primary_bg}"
-> 
+>
   <!-- Layout Container -->
   <div class="layout-container w-full flex-1 relative">
     <!-- Main Content -->
     <div class="main-content w-full h-full flex flex-row px-4 pt-4 pb-8 2xl:pb-14  min-[3500px]:px-16  min-[3500px]:pt-14 min-[3500px]:pb-40 relative z-50">
       <!-- Left Side -->
-      <div class="left-side flex-[1_1_0%] flex flex-col gap-3  min-[3500px]:gap-5">  
+      <div class="left-side flex-[1_1_0%] flex flex-col gap-3  min-[3500px]:gap-5">
         <!-- Division Banner -->
         <div class="animate-pop division-banner flex w-full gap-3  min-[3500px]:gap-16 px-3 py-2  min-[3500px]:p-12">
           <!-- Logo -->
-          <img 
+          <img
           [ngStyle]="{
             'border-color': colors.primary_text + '80',
           }"
-          [src]="logoUrl ??'assets/logo/vsu.png'" alt="University Logo" class="banner-logo w-28 h-28 min-[3500px]:w-96 min-[3500px]:h-96 border-dashed border-2 min-[3500px]:border-8   rounded-full shadow-md object-cover">
+          [src]="logoUrl ??'assets/specifics/pcso/pcso-logo.svg'" alt="University Logo" class="banner-logo w-28 h-28 min-[3500px]:w-96 min-[3500px]:h-96 border-dashed border-2 min-[3500px]:border-8   rounded-full shadow-md object-cover">
           <div class="banner-text flex flex-col justify-center   min-[3500px]:gap-3">
             <h1 class="banner-title  min-[3500px]:leading-none  font-semibold tracking-wider min-[3500px]:tracking-wider text-shadow"
               [ngStyle]="{'color': colors.primary_text}">{{division!.name.toUpperCase()}}</h1>
             <h1 class="banner-label text-white tracking-wider min-[3500px]:tracking-widest text-shadow"
-              [ngStyle]="{'color': colors.primary_text}">Visayas State University</h1>
+              [ngStyle]="{'color': colors.primary_text}">Philippine Charity Sweepstakes Office</h1>
           </div>
         </div>
         <!-- SERVING -->
         <div class="serving-container flex-1 w-full flex flex-col gap-2  px-4 min-[3500px]:px-8 min-[3500px]:gap-14">
-          <h2 
+          <h2
           [ngStyle]="{'color': colors.primary_text}"
           class="serving-title font-medium text-lg 2xl:text-2xl tracking-widest px-2 min-[3500px]:font-semibold min-[3500px]:px-4 min-[3500px]:text-8xl" >Serving Now:</h2>
           <div class="serving-items flex-1 grid grid-cols-2 grid-rows-5 grid-flow-col   gap-2 min-[3500px]:gap-5">
             <!-- Counter -->
-            <ng-container *ngFor="let item of counters;let i = index" >
-              <div 
+            <ng-container *ngFor="let item of getOnlineCounters()| slice:offset:offset+slice;let i = index" >
+              <div
               *ngIf="item.status == 'online'"
               [ngStyle]="{
                 'border-color': colors.primary_text + '80',
               }"
               class="animate-pop serving-item-outer h-full rounded-lg shadow-lg flex overflow-hidden border-dashed border-2  min-[3500px]:rounded-3xl min-[3500px]:border-8">
-                <div 
+                <div
                 [ngStyle]="{
                   'backgroundColor': colors.tertiary_bg,
                   'color': colors.primary_text
                 }"
                 class="serving-item-header w-1/4 px-3 flex flex-col items-center justify-center font-medium text-2xl 2xl:text-2xl  shadow-sm text-shadow tracking-wide  min-[3500px]:text-8xl min-[3500px]:px-10 min-[3500px]:font-semibold ">
                   <span class="serving-item-label text-[0.5rem] leading-none min-[3500px]:text-3xl" >COUNTER</span>
-                  <span>{{i+1}}</span>
+                  <span>{{item.number}}</span>
                 </div>
-                <div 
+                <div
                 [ngStyle]="{
                   'backgroundColor': colors.secondary_bg,
                   'color': item.ticketNumber ? colors.secondary_text : colors.tertiary_bg + '80',
@@ -101,7 +104,7 @@
               </div>
               <div *ngFor="let filler of computeFillers(i+1,countOnlineCounters())" class="w-full h-full"></div>
             </ng-container>
-            
+
 
           </div>
         </div>
@@ -116,38 +119,41 @@
               <iframe
               #iframePlayer
               [ngStyle]="{'border-color': colors.primary_text + '80',}"
-              *ngIf="safeYoutubeUrl"
-              [src]="safeYoutubeUrl"
+              *ngIf="safeYoutubeUrlMute"
+              [src]="safeYoutubeUrlMute"
               allow="autoplay"
               loop
               frameborder="0"
               class="absolute w-full h-full object-cover"
             ></iframe>
             <video
-            *ngIf="!safeYoutubeUrl"
+            *ngIf="!safeYoutubeUrl && videoUrl"
             [ngStyle]="{'border-color': colors.primary_text + '80',}"
             autoplay
             loop
-            [muted]="mute"
+            [muted]="true"
             class="absolute w-full h-full object-cover"
             #videoPlayer    controls="false">
-              <source [src]="videoUrl ?? 'assets/queue-display/vsu.mp4'" type="video/mp4">
+              <source [src]="videoUrl" type="video/mp4">
               Your browser does not support the video tag.
-            </video> 
-            </div>         
+            </video>
+            <div class="w-full h-full flex items-center justify-center bg-black text-white" *ngIf="!videoUrl && !safeYoutubeUrl">
+              Video content goes here
+            </div>
+            </div>
           </div>
-          
-          <div 
+
+          <div
           *ngIf="showTime || showCurrency || showWeather"
           class="small-widgets-container flex flex-col flex-[2_2_0%] gap-3  min-[3500px]:gap-8">
             <!-- Time -->
-            <div 
+            <div
             *ngIf="showTime"
             [ngStyle]="{
               'border-color': colors.primary_text + '80',
             }"
             class="time-container-outer flex-[1_1_0%] border-dashed border-2 min-[3500px]:border-8  w-full h-full rounded-lg  min-[3500px]:rounded-3xl overflow-hidden ">
-              <div 
+              <div
               [ngStyle]="{
                 'color': colors.secondary_text,
                 'backgroundColor': colors.secondary_bg,
@@ -166,7 +172,7 @@
                 <!-- Current Time -->
                 <div class="current-time-container text-3xl 2xl:text-3xl w-full justify-center  flex font-bold min-[3500px]:text-9xl items-end">
                     <span>{{timeInfo.time.split(':')[0]}}:{{timeInfo.time.split(':')[1]}}</span>
-                    <span 
+                    <span
                     [ngStyle]="{
                       'color': colors.tertiary_text,
                     }"
@@ -179,13 +185,13 @@
             <div *ngIf="!showTime && (!showCurrency || !showWeather)" class="flex-1"></div>
             <!-- Currency Widget -->
             <ng-container *ngFor="let currency of currencies; let i = index">
-              <div   
+              <div
               [ngStyle]="{
                 'border-color': colors.primary_text + '80',
               }"
               *ngIf="showCurrency && i == currentCurrencyIndex && (switcher =='currency' || !showTime)"
               class="currency-container-outer border-dashed border-2 min-[3500px]:border-8  flex-[1_1_0%] flex flex-col w-full rounded-lg  min-[3500px]:rounded-3xl overflow-hidden  animate-pop ">
-                  <div 
+                  <div
                   [ngStyle]="{
                     'color': colors.secondary_text,
                     'backgroundColor': colors.secondary_bg,
@@ -194,7 +200,7 @@
                   class="currency-container-inner w-full rounded-lg shadow-lg flex flex-col h-full min-[3500px]:rounded-3xl min-[3500px]:shadow-2xl">
                     <!-- Currency Header -->
                     <div class="currency-header flex gap-2 flex-[2_2_0%]  px-4 pt-1 items-center min-[3500px]:px-10 min-[3500px]:py-6 min-[3500px]:gap-14">
-                      <div 
+                      <div
                       [ngStyle]="{
                         'color': colors.tertiary_text,
                         'backgroundColor': colors.secondary_text
@@ -209,7 +215,7 @@
                     <!-- Currency Details -->
                     <div class="currency-details-container flex-[4_4_0%] flex flex-col items-center min-[3500px]:gap-1">
                       <!-- Converted -->
-                      <div 
+                      <div
                       [ngStyle]="{
                         'color': colors.secondary_text,
                       }"
@@ -229,14 +235,14 @@
             <!-- Weather Widget -->
             <div *ngIf="showWeather &&(switcher =='weather' || !showTime)" class="weather-widgets-container animate-pop flex-[1_1_0%] flex gap-3 w-full  min-[3500px]:gap-8 items-center" >
               <ng-container *ngFor="let item of weatherItems; let i = index"  >
-                <div 
+                <div
                   *ngIf="i == currentWeatherIndex"
                   class="weather-container-outer border-dashed border-2 min-[3500px]:border-8  w-full h-full rounded-lg  min-[3500px]:rounded-3xl overflow-hidden "
                   [ngStyle]="{
                     'border-color': colors.primary_text + '80',
                   }"
                 >
-                  <div 
+                  <div
                   [ngStyle]="{
                     'color': colors.secondary_text,
                     'backgroundColor': colors.secondary_bg,
@@ -261,20 +267,20 @@
                     </div>
                   </div>
                 </div>
-              </ng-container> 
+              </ng-container>
             </div>
           </div>
-        
+
 
         </div>
-        
+
         <!-- Qeuue Row -->
-        <div 
+        <div
         class="queue-flex-container flex-[6_6_0%] flex items-center   w-full">
-          <div    
+          <div
           class="queue-container-outer border-dashed border-2 min-[3500px]:border-8  w-full h-full rounded-lg  min-[3500px]:rounded-3xl overflow-hidden  animate-pop"
           [ngStyle]="{'border-color': colors.primary_text + '80',}">
-            <div 
+            <div
             [ngStyle]="{
               'color':  colors.secondary_text,
               'backgroundColor': colors.secondary_bg
@@ -286,63 +292,60 @@
                 class="px-2 py-1 text-center flex flex-col items-center justify-center"
                 >
                   <div class="waiting">
-                    <app-lottie-animation class="w-full h-full" animation="waiting" ></app-lottie-animation> 
+                    <app-lottie-animation class="w-full h-full" animation="waiting" ></app-lottie-animation>
                   </div>
                   <span class="banner-label">
                     Waiting list is empty.
                    </span>
                 </div>
               </div>
-              <div *ngIf="upNextItems.length > 0" class="queue-list-container grid grid-cols-2 grid-rows-4 grid-flow-col gap-1 flex-1 ">
-                
-                <div *ngFor="let item of upNextItems | slice:0:8"
-                [ngStyle]="{
-                  'border-color': item.ticketNumber.includes('P') ? colors.tertiary_bg  + '80': colors.secondary_text + '80',
-                }"
-                class="border-dashed border-2  rounded-lg overflow-hidden"
-                >
-                  <div 
-                   class="queue-item-container h-full shadow-lg gap-4 flex items-center px-4 py-1 
-                  min-[3500px]:border-8 min-[3500px]:rounded-3xl min-[3500px]:gap-12
-                  min-[3500px]:px-14 min-[3500px]:py-10"
-                  [ngStyle]="{
-                    'backgroundColor': item.ticketNumber.includes('P') ? colors.tertiary_bg +'10' :'transparent',
-                    'color': item.ticketNumber.includes('P') ? colors.tertiary_bg  :colors.secondary_text,
-                  }"
+              <div *ngIf="upNextItems.length > 0" class="queue-list-container flex grid-flow-col gap-1 flex-1 ">
+
+                <div class="flex-1 grid grid-cols-2 grid-rows-4 grid-flow-col">
+                  <div *ngFor="let item of upNextItems | slice:0:8"
+                  class="border-dashed border-2  rounded-lg overflow-hidden"
                   >
-                    <img [src]="item.avatar" class="queue-item-icon w-9 h-9 min-[3500px]:w-36 min-[3500px]:h-36">
-                    <div class="queue-item-ticket text-lg font-semibold tracking-wider min-[3500px]:text-7xl min-[3500px]:font-semibold">{{item.ticketNumber}}</div>
-                    <!-- <div class="queue-item-flex-1 text-lg font-medium flex tracking-wider justify-end min-[3500px]:text-7xl min-[3500px]:font-semibold">{{item.personName}}</div> -->
+                    <div
+                     class="queue-item-container h-full shadow-lg gap-4 flex items-center px-4 py-1
+                    min-[3500px]:border-8 min-[3500px]:rounded-3xl min-[3500px]:gap-12
+                    min-[3500px]:px-14 min-[3500px]:py-10"
+                    >
+                      <img [src]="item.avatar" class="queue-item-icon w-9 h-9 min-[3500px]:w-36 min-[3500px]:h-36">
+                      <div class="queue-item-ticket text-lg font-semibold tracking-wider min-[3500px]:text-7xl min-[3500px]:font-semibold">{{item.ticketNumber}}</div>
+                      <!-- <div class="queue-item-flex-1 text-lg font-medium flex tracking-wider justify-end min-[3500px]:text-7xl min-[3500px]:font-semibold">{{item.personName}}</div> -->
+                    </div>
                   </div>
                 </div>
+
+
               </div>
             </div>
           </div>
-      
+
         </div>
- 
+
       </div>
     </div>
     <!-- Announcements -->
-    <div 
+    <div
     *ngIf="showAnnouncement"
     [ngStyle]="{ 'border-color': colors.primary_text + '30',}"
-    class="announcement-banner absolute bottom-2 min-[3500px]:bottom-8 h-7 flex items-center w-full z-50  overflow-hidden text-red-600 bg-white border-dashed border-y-2 min-[3500px]:border-y-8 shadow-sm 
-      min-[3500px]:h-28 
+    class="announcement-banner absolute bottom-2 min-[3500px]:bottom-8 h-7 flex items-center w-full z-50  overflow-hidden text-red-600 bg-white border-dashed border-y-2 min-[3500px]:border-y-8 shadow-sm
+      min-[3500px]:h-28
     ">
       <div class="w-full h-full relative">
-        <div  class="announcement-text absolute inline-flex min-w-[200%] animate-scroll-tailing h-full tracking-widest font-semibold min-[3500px]:text-6xl items-center  whitespace-nowrap"> 
-          <span class="flex-1 whitespace-nowrap  px-2 min-[3500px]:px-6 inline-block ">{{announcements}} </span> 
-          <span class="flex-1 whitespace-nowrap  px-2 min-[3500px]:px-6 inline-block ">{{announcements}} </span> 
+        <div  class="announcement-text absolute inline-flex min-w-[200%] animate-scroll-tailing h-full tracking-widest font-semibold min-[3500px]:text-6xl items-center  whitespace-nowrap">
+          <span class="flex-1 whitespace-nowrap  px-2 min-[3500px]:px-6 inline-block ">{{announcements}} </span>
+          <span class="flex-1 whitespace-nowrap  px-2 min-[3500px]:px-6 inline-block ">{{announcements}} </span>
        </div>
       </div>
     </div>
     <!-- Overlay -->
-    <div 
+    <div
     [ngStyle]="{
       'background': 'linear-gradient(' + 'to right' + ', ' + colors.primary_bg + ', ' + darkenColor(colors.primary_bg,5) + ')',
       'mix-blend-mode': 'multiply' }"
-    class="absolute top-0 h-full w-full opacity-60 z-10">
+    class="absolute top-0 h-fulpl w-full opacity-60 z-10">
     </div>
     <!-- Background Image -->
     <img *ngIf="showBackground" [src]="backgroundUrl??'assets/queue-display/background.png'" class="absolute top-0 h-full w-full object-cover opacity-20  z-0">

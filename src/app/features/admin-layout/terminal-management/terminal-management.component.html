@@ -1,7 +1,5 @@
 <div class="w-full h-full">
-  <div class="  rounded-3xl shadow-xl overflow-hidden relative">
-    <img src="assets/logo/vsuHeader.png" class="w-full h-full object-contain ">
-  </div>
+
   <div class="w-full py-4 px-6 my-4 flex justify-between rounded-lg bg-white shadow-md">
     <div>
       <h1 class="font-medium text-2xl  tracking-wide">Terminal Management</h1>
@@ -16,9 +14,9 @@
     <!-- Divsion Selection -->
     <div *ngIf="isSuperAdmin" class="flex  2xl:flex-col gap-3 2xl:flex-[1_1_0%]">
       <!-- Item -->
-      <button 
+      <button
       (click)="selectDivision(division)"
-      class=" {{selectedDivision == division.id ? 'bg-[var(--primary-dark)] text-white':'bg-white'}}  tracking-wide h-12 rounded-lg shadow-md hover:bg-[var(--primary)] hover:text-white cursor-pointer flex items-center justify-between px-4 font-medium" 
+      class=" {{selectedDivision == division.id ? 'bg-[var(--primary-dark)] text-white':'bg-white'}}  tracking-wide h-12 rounded-lg shadow-md hover:bg-[var(--primary)] hover:text-white cursor-pointer flex items-center justify-between px-4 font-medium"
       *ngFor="let division of divisions">
         {{division.name.toUpperCase()}} <span  class="material-icons hidden 2xl:block"> keyboard_arrow_right </span>
       </button>
@@ -26,10 +24,10 @@
     </div>
     <!-- Item Selection -->
     <div class="bg-white rounded-lg shadow-md flex-[4_4_0%] h-full">
-      <div class=" grid grid-cols-3 px-3 py-3 gap-3"> 
-        <button 
-        *ngFor="let terminal of terminals; let i = index" 
-        class="group transition-all hover:scale-110  {{terminal.status == 'maintenance' ? 'bg-yellow-50 border-yellow-500' :'bg-white border-[var(--primary)] hover:bg-[var(--primary-dark)] hover:text-white hover:border-[var(--primary-light)] '}} h-48 p-4 rounded-lg flex flex-col gap-2 shadow-md border-2 border-dashed border-black/10 ">
+      <div class=" grid grid-cols-2 2xl:grid-cols-3 portrait:grid-cols-1 px-3 py-3 gap-3">
+        <button
+        *ngFor="let terminal of terminals; let i = index"
+        class="group transition-all hover:scale-110  {{checkIfOnline(terminal) == 'maintenance' ? 'bg-yellow-50 border-yellow-500' :'bg-white border-[var(--primary)] hover:bg-[var(--primary-dark)] hover:text-white hover:border-[var(--primary-light)] '}} h-auto p-4 rounded-lg flex flex-col gap-2 shadow-md border-2 border-dashed border-black/10 ">
 
           <!-- Header -->
           <div class="flex gap-4 items-center">
@@ -37,7 +35,7 @@
             <div class="transition-all w-16 h-12 p-2 rounded-lg bg-[var(--primary-light)] group-hover:bg-yellow-200">
               <app-lottie-animation animation="computer"></app-lottie-animation>
             </div>
-            <div transition-all class="w-5 h-5 rounded-full {{statusMap[terminal.status]}} bottom-4 right-4"></div>
+            <div transition-all class="w-5 h-5 rounded-full {{statusMap[checkIfOnline(terminal)]}} bottom-4 right-4"></div>
             <div class="font-medium  tracking-wide text-xl flex items-center gap-2">
               TERMINAL <span class="font-medium text-4xl">{{i+1}}</span>
             </div>
@@ -45,30 +43,40 @@
           <!-- Body  -->
           <div class="flex-1 py-2 gap-1 w-full flex flex-col items-start ">
             <div>
-              <span class="font-medium">{{terminal.status == 'online' ? 'Attendant: ' : 'Last Attendant: '}} </span>
+              <span class="font-medium">{{checkIfOnline(terminal) == 'online' ? 'Attendant: ' : 'Last Attendant: '}} </span>
               <span class="opacity-75">{{terminal.attendant ?? 'Not used yet.'}}</span>
             </div>
             <div>
-              <span class="font-medium ">{{terminal.status == 'online' ? 'Current Session: ' : 'Last Session: '}} </span>
+              <span class="font-medium ">{{checkIfOnline(terminal) == 'online' ? 'Current Session: ' : 'Last Session: '}} </span>
               <span class="opacity-75">{{terminal.last_active ? (terminal.last_active | date:'MM-dd-yyyy h:mm a' ) : 'No sessions yet.'}}</span>
+            </div>
+            <div>
+              <span class="font-medium "> Client Type: </span>
+              <span class="opacity-75">{{getFormatName(terminal.specific) ?? 'General'}}</span>
             </div>
             <div class="flex w-full  mt-2">
               <div class="w-full flex justify-between">
-                <button *ngIf="terminal.status != 'In Use)'" (click)="selectTerminal(terminal);openDialog('delete')" class="rounded-lg px-2 flex items-center justify-center py-1 text-white bg-red-500 hover:bg-red-600 ">
+                <button *ngIf="checkIfOnline(terminal) != 'online'" (click)="selectTerminal(terminal);openDialog('delete')" class="rounded-lg px-2 flex items-center justify-center py-1 text-white bg-red-500 hover:bg-red-600 ">
                   <span  class="material-icons"> delete </span>
                 </button>
-                <div *ngIf="terminal.status == 'online'"></div>
-                <button (click)="selectTerminal(terminal);openDialog('maintenance')" class="rounded-lg px-6 py-1 text-white flex gap-2 {{statusMap[terminal.status]}}">
-                  <span  class="material-icons hidden 2xl:block"> swap_horiz </span> {{terminal.status == 'online' ? 'Online' : terminal.status != 'maintenance'? 'Available':'Maintenance'}}  
-                </button>
+                <div *ngIf="checkIfOnline(terminal) == 'online'"></div>
+                <div class="flex gap-2">
+                  <button
+                  *ngIf="checkIfOnline(terminal) != 'online'"
+                  (click)="selectTerminal(terminal);openSetClient()" class="rounded-lg px-6 py-1 text-white flex gap-2 bg-blue-500">
+                    {{ getFormatName(terminal.specific)  ?? 'Set Client'}}
+                  </button>
+                  <button (click)="selectTerminal(terminal);openDialog('maintenance')" class="rounded-lg px-6 py-1 text-white flex gap-2 {{statusMap[checkIfOnline(terminal)]}}">
+                    <span  class="material-icons hidden 2xl:block"> swap_horiz </span> {{checkIfOnline(terminal) == 'online' ? 'In Use' :checkIfOnline(terminal) != 'maintenance'? 'Available':'Maintenance'}}
+                  </button>
+                </div>
               </div>
             </div>
           </div>
         </button>
-        <button 
-        *ngIf="terminals.length <10"
+        <button
         (click)="addTerminal()"
-        class="bg-white tracking-wider h-48 font-thin rounded-lg gap-3 shadow-md  hover:bg-green-950 hover:text-white cursor-pointer flex justify-center border-2 border-solid border-black/10 items-center  " 
+        class="bg-white tracking-wider h-auto min-h-48 font-thin rounded-lg gap-3 shadow-md  hover:bg-green-950 hover:text-white cursor-pointer flex justify-center border-2 border-solid border-black/10 items-center  "
         >
         <span class="text-4xl font-medium">
           +
@@ -79,6 +87,13 @@
     </div>
   </div>
 </div>
+<!-- Set Client Modal -->
+<app-set-client
+*ngIf="setClientModal"
+[formats]="formats"
+[terminal]="selectedTerminal"
+(onClose)="closeSetClient($event)"
+/>
 <!-- Maintenance Modal -->
 <app-confirmation
     *ngIf="modalType== 'maintenance'"

@@ -1,10 +1,12 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+
+
+
+import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTabsModule } from '@angular/material/tabs';
 import { LottieAnimationComponent } from '../../../shared/components/lottie-animation/lottie-animation.component';
-import { UswagonAuthService } from 'uswagon-auth';
 import { UswagonCoreService } from 'uswagon-core';
 import { TerminalService } from '../../../services/terminal.service';
 import { ContentService } from '../../../services/content.service';
@@ -12,15 +14,22 @@ import { DivisionService } from '../../../services/division.service';
 import { ConfirmationComponent } from '../../../shared/modals/confirmation/confirmation.component';
 import { Subscription } from 'rxjs';
 import { QueueService } from '../../../services/queue.service';
+import { ServiceService } from '../../../services/service.service';
+import { LogsService } from '../../../services/logs.service';
+import { Format } from '../../admin-layout/format-management/types/format.types';
+import { FormatService } from '../../../services/format.service';
 
 
 interface Terminal{
   id:string;
   division_id:string;
   number:string;
-  status:string;  
+  get status():string;  
+  _status:string;  
   last_active?:string;
+  session_status?:string;
   attendant?:string;
+  specific?:string;
 }
 
 interface Division{
@@ -30,27 +39,30 @@ interface Division{
 
 
 interface Ticket {
-  id?:string;
-  division_id?:string;
-  number: number;
-  status?:string;
-  timestamp?:string;
-  type: 'priority' | 'regular';
-  fullname?:string;
+  id:string;
+  division_id:string;
+  number:number;
+  status:string;
+  timestamp:string;
+  type:string;
+  tag?:string;
+  metaType?:string;
+  fullname:string;
+  services:string;
   department_id?:string;
-  kiosk_id?:string;
-  gender?:string;
+  kiosk_id:string;
+  gender:'male'|'female'|'other';
   student_id?:string;
-  // timestamp: string;
+  collision?:string;
 }
 
 interface ClientDetails {
   name: string;
   date: string;
-  services: {
-    name: string;
-    description: string;
-  }[];
+  services:string[];
+  department?: string;
+  student_id?: string;
+  gender?:string;
 } 
 
 @Component({
@@ -75,24 +87,14 @@ export class DaTerminalmgmtComponent implements OnInit, OnDestroy {
   currentDate: string = '';
   timer: string = '00:00:00';
   timerStartTime: number | null = null;
-
+  selectedTicket?: Ticket; //selection manually
   division?:Division;
+  divisions:Division[]=[];
 
   terminateModal:boolean = false;
 
   tickets: Ticket[] = [
-    { number: 112, timestamp: '9/29/2024, 9:13:24 PM', type: 'priority' },
-    { number: 113, timestamp: '9/29/2024, 9:15:10 PM', type: 'priority' },
-    { number: 114, timestamp: '9/29/2024, 9:20:45 PM', type: 'regular' },
-    { number: 115, timestamp: '9/29/2024, 9:25:30 PM', type: 'regular' },
-    { number: 116, timestamp: '9/29/2024, 9:30:15 PM', type: 'priority' },
-    { number: 117, timestamp: '9/29/2024, 9:35:00 PM', type: 'priority' },
-    { number: 118, timestamp: '9/29/2024, 9:40:45 PM', type: 'regular' },
-    { number: 119, timestamp: '9/29/2024, 9:45:30 PM', type: 'regular' },
-    { number: 120, timestamp: '9/29/2024, 9:50:15 PM', type: 'regular' },
-    { number: 121, timestamp: '9/29/2024, 9:55:00 PM', type: 'regular' },
-    { number: 122, timestamp: '9/29/2024, 10:00:45 PM', type: 'regular' },
-    { number: 123, timestamp: '9/29/2024, 10:05:30 PM', type: 'regular' },
+    
   ];
 
   currentClientDetails: ClientDetails | null = null;
@@ -114,23 +116,43 @@ export class DaTerminalmgmtComponent implements OnInit, OnDestroy {
 
   actionLoading:boolean = false;
   terminals: Terminal[]=[];
+  services: any[]=[];
   statusMap:any = {
     'available' : 'bg-green-500',
     'maintenance' : 'bg-red-500',
     'online' : 'bg-orange-500',
   }
+timerProgress: any;
+
+  content:any;
 
 
   constructor( 
     private dvisionService:DivisionService,
     private API:UswagonCoreService,
     private queueService:QueueService,
+    private cdr:ChangeDetectorRef,
+    private formatService:FormatService,
+    private contentService:ContentService,
+    private logService:LogsService,
+    private serviceService:ServiceService,
     private terminalService:TerminalService) {}
 
   ngOnInit(): void {
     this.updateCurrentDate();
     this.dateInterval = setInterval(() => this.updateCurrentDate(), 60000);
     this.loadContent();
+
+    this.subscription = this.queueService.queue$.subscribe((queueItems: Ticket[]) => {
+      this.tickets = [...queueItems];
+      // Clear selection if selected ticket no longer exists in queue
+      if (this.selectedTicket && !queueItems.find(t => t.id === this.selectedTicket!.id)) {
+        this.selectedTicket = undefined;
+      }
+    });
+    this.statusInterval = setInterval(()=>{
+      this.cdr.detectChanges();
+    },1500)
   }
 
   ngOnDestroy(): void {
@@ -139,13 +161,46 @@ export class DaTerminalmgmtComponent implements OnInit, OnDestroy {
       this.subscription.unsubscribe();
     }
   }
+  formats:Format[] = [];
+
+   getDivisionName(id:string){
+    return this.divisions.find(division=>division.id==id)?.name;
+  }
+  
+  async loadFormats(){
+    this.formats = await this.formatService.getFrom(this.dvisionService.selectedDivision?.id!);
+    if(this.formats.length <=0){
+      this.formats = [
+        {
+          id:'priority',
+          name:'Priority',
+          prefix:'P'
+        },
+        {
+          id:'regular',
+          name:'Regular',
+          prefix:'R'
+        },
+      ]
+    }
+  }
+  
+  getFormatName(id?:string){
+    if(!id) return null;
+    return this.formats.find(format=>format.id == id)?.name;
+  }
+
 
   async loadContent(){
     this.API.setLoading(true);
     this.division = await this.dvisionService.getDivision() ;
+    this.divisions = await this.dvisionService.getDivisions();
     this.terminals = await this.terminalService.getAllTerminals();
+    this.content = await this.contentService.getContentSetting();
     
     this.lastSession = await this.terminalService.getActiveSession()
+    this.services = await this.serviceService.getAllSubServices();
+    await this.loadFormats();
     if(this.lastSession){
       this.selectedCounter = this.terminals.find(terminal=>terminal.id == this.lastSession.terminal_id);
       this.terminalService.refreshTerminalStatus(this.lastSession.id);
@@ -153,11 +208,20 @@ export class DaTerminalmgmtComponent implements OnInit, OnDestroy {
       const {attendedQueue,queue} =await this.queueService.getQueueOnDesk();
     
       this.currentTicket = queue ? {...queue!} : undefined;
+
+      this.currentClientDetails = {
+        name: this.currentTicket?.fullname || 'N/A',
+        date: this.currentTicket?.timestamp || this.currentDate,
+        services: this.services.filter(service=> this.currentTicket?.services.split(', ').includes(service.id)).map(service=>service.name),
+        student_id: this.currentTicket?.student_id || 'N/A',
+        department: this.currentTicket?.department_id || 'N/A',
+      };
+
      
       const lastQueue = await this.queueService.getLastQueueOnDesk();
   
       if(lastQueue)[
-        this.lastCalledNumber = (lastQueue.type=='priority' ? 'P' : 'R') +'-' + lastQueue.number.toString().padStart(3, '0')
+        this.lastCalledNumber = (lastQueue.tag) +'-' + lastQueue.number.toString().padStart(3, '0')
       ]
       if(this.currentTicket){
         this.startTimer();
@@ -174,45 +238,64 @@ export class DaTerminalmgmtComponent implements OnInit, OnDestroy {
       }
     }
     this.subscription = this.queueService.queue$.subscribe((queueItems: Ticket[]) => {
-      this.tickets = [...queueItems];
+      if(this.selectedCounter?.specific){
+        this.queueService.queue = queueItems.filter((queue)=>queue.type == this.selectedCounter?.specific)
+        this.tickets = [...this.queueService.queue];
+      }else{
+        this.tickets = [...this.queueService.queue];
+      }
     });
 
     this.queueService.listenToQueue();
 
     await this.queueService.getTodayQueues();
-   
+
+    await this.updateTerminalData();
+    this.API.addSocketListener('terminal-events', async(data)=>{
+      if(data.event =='terminal-events'){
+        await this.updateTerminalData();
+      }
+    })
 
     this.API.setLoading(false);  
-    this.statusInterval = setInterval(async ()=>{
-      const exisitingTerminals:string[] = [];
-      const updatedTerminals = await this.terminalService.getAllTerminals();
-      // Update existing terminals
-      updatedTerminals.forEach((updatedTerminal:any) => {
-        exisitingTerminals.push(updatedTerminal.id);
-        const existingTerminal = this.terminals.find(t => t.id === updatedTerminal.id);
-        if (existingTerminal) {
-          Object.assign(existingTerminal, updatedTerminal);
-        } else {
-          this.terminals.push(updatedTerminal);
-        }
-      });
-      // get last session
-      this.terminals = this.terminals.filter(terminal=> exisitingTerminals.includes(terminal.id))
-      if(this.lastSession){
-        const terminal =  this.terminals.find(terminal=>terminal.id == this.lastSession.terminal_id);
-        if(terminal?.status == 'maintenance'){
-          this.terminalService.terminateTerminalSession();
-          this.selectedCounter = undefined;
-          this.lastSession = undefined;
-          this.API.sendFeedback('error','Your terminal is for maintenance. You have been logout!',5000)
-        }
+  }
+
+  async updateTerminalData(){
+    const exisitingTerminals:string[] = [];
+    const updatedTerminals = await this.terminalService.getAllTerminals();
+
+    // Update existing terminals
+    updatedTerminals.forEach((updatedTerminal:Terminal) => {
+      exisitingTerminals.push(updatedTerminal.id);
+
+      const existingTerminal = this.terminals.find(t => t.id === updatedTerminal.id);
+      if (existingTerminal) {
+        Object.keys(updatedTerminal).forEach((key) => {
+          // Check if the property is a regular property (not a getter)
+          const descriptor = Object.getOwnPropertyDescriptor(updatedTerminal, key);
+          if (descriptor && !descriptor.get) {
+            existingTerminal[key as keyof Omit<Terminal, 'status'>] = updatedTerminal[key as keyof Omit<Terminal, 'status'>]!;
+          }
+        });
+      } else {
+        this.terminals.push(updatedTerminal);
       }
-    },1000)   
 
-      
-   
+    });
+    this.terminals = this.terminals.filter(terminal=> exisitingTerminals.includes(terminal.id))
 
-     
+    if(this.lastSession){
+      const terminal =  this.terminals.find(terminal=>terminal.id == this.lastSession.terminal_id);
+      if(terminal?.status == 'maintenance'){
+        this.terminalService.terminateTerminalSession();
+        this.selectedCounter = undefined;
+        this.lastSession = undefined;
+        this.selectedTicket = undefined;
+        this.currentTicket = undefined;
+        this.API.sendFeedback('error','Your terminal is for maintenance. You have been logout!',5000)
+      }
+    }
+    this.services = await this.serviceService.getAllSubServices();
   }
 
 
@@ -222,6 +305,20 @@ export class DaTerminalmgmtComponent implements OnInit, OnDestroy {
 
   closeTerminateModal(){
     this.terminateModal = false;
+  }
+  //slection of row manually
+  selectTicket(ticket: Ticket) {
+    if (this.currentTicket) {
+      this.API.sendFeedback('warning','Finish current transaction before selecting another ticket.',5000);
+      // this.actionLoading = false;
+      return;
+    }
+
+    if (this.selectedTicket?.id === ticket.id) {
+      this.selectedTicket = undefined;
+    } else {
+      this.selectedTicket = ticket;
+    }
   }
 
   /**
@@ -239,9 +336,13 @@ export class DaTerminalmgmtComponent implements OnInit, OnDestroy {
     }
     this.selectedCounter = counter;
     this.API.setLoading(true);
+    await this.queueService.getTodayQueues();
     await this.terminalService.startTerminalSession(counter.id);
     this.lastSession = await this.terminalService.getActiveSession()
     this.terminalService.refreshTerminalStatus(this.lastSession.id);
+    this.API.socketSend({event:'terminal-events'})
+    this.API.socketSend({event:'queue-events'})
+    this.API.socketSend({event:'admin-dashboard-events'})
     this.API.setLoading(false);
     const index = this.terminals.findIndex(terminal=>terminal.id == counter.id);
     this.API.sendFeedback('success',`You are now logged in to Terminal ${index + 1}`,5000);
@@ -258,111 +359,289 @@ export class DaTerminalmgmtComponent implements OnInit, OnDestroy {
     this.currentTicket = undefined;
     await this.terminalService.terminateTerminalSession();
     this.stopTimer();
+    this.API.socketSend({event:'terminal-events'})
+    this.API.socketSend({event:'queue-events'})
+    this.API.socketSend({event:'admin-dashboard-events'})
     this.resetActionButtons();
+    await this.updateTerminalData();
     this.API.setLoading(false);
     this.API.sendFeedback('warning','You have logged out from your terminal.',5000);
   }
 
-  /**
-   * Moves to the next client in the queue.
-   */
-  async nextClient() {
-    if( this.actionLoading ) return;
-    if (this.tickets.length > 0) {
-        this.actionLoading = true;
-      // if (nextTicket) {
-        this.currentTicket =  await  this.queueService.nextQueue();;
+  async priorityClient() {
+    if (this.actionLoading) return;
+
+    try {
+      
+      this.actionLoading = true;
+      
+      if(this.currentTicket?.type != 'priority'){
+        this.API.sendFeedback('warning','Finish regular transaction first.',5000);
+        this.actionLoading = false;
+        return;
+      }
+      // If there's a current transaction, finish it first
+      if (this.currentTicket) {
+        await this.queueService.resolveAttendedQueue('finished');
+        this.resetInterface();
+        this.API.socketSend({event:'queue-events'})
+        this.API.socketSend({event:'admin-dashboard-events'})
+        this.API.sendFeedback('success','Transaction successful!',5000);
+        
+        return;
+      }
+
+      const priorityTickets = this.tickets.filter(
+        ticket => ticket.type === 'priority' && 
+        (ticket.status === 'waiting' || ticket.status === 'bottom')
+      );
+ 
+
+      if (priorityTickets.length === 0) {
+        this.API.sendFeedback('warning', 'No priority clients in queue.', 5000);
+        this.actionLoading = false;
+        return;
+      }
+
+
+      // Use the type-based nextQueue method
+      const nextTicket = await this.queueService.nextQueue('priority');
+      this.API.socketSend({event:'queue-events'})
+      this.API.socketSend({event:'admin-dashboard-events'})
+      if (nextTicket) {
+        this.logService.pushLog('transaction-start',`started a transaction (priority).`);
+        this.currentTicket = nextTicket;
+        this.currentClientDetails = {
+          name: nextTicket.fullname || 'N/A',
+          date: nextTicket.timestamp || this.currentDate,
+          services: this.services.filter(service=> nextTicket.services.split(', ').includes(service.id)).map(service=>service.name),
+          student_id: nextTicket.student_id || 'N/A',
+          department: nextTicket.department_id || 'N/A',
+        };
+
+        // Update states
         this.isNextClientActive = false;
         this.isClientDoneActive = true;
         this.isCallNumberActive = true;
-        this.isManualSelectActive = false;
+        this.isManualSelectActive = true;
         this.isReturnTopActive = true;
         this.isReturnBottomActive = true;
-        
-       
 
-        // Set current client details
+        // Start timer and update display
+        this.startTimer();
+        // this.updateUpcomingTicket();
+        
+        this.API.socketSend({
+          event: 'number-calling',
+          division: this.division?.id,
+          message: `${this.currentTicket?.type =='priority' ? 'Priority':''} number ${this.currentTicket?.number} at counter ${this.selectedCounter?.number}`
+        })
+        this.API.sendFeedback('success', `Priority transaction started with client.`, 5000);
+      }
+    } catch (error) {
+      console.error('Priority client error:', error);
+      this.API.sendFeedback('error', 'Failed to process priority client. Please try again.', 5000);
+    } finally {
+      this.actionLoading = false;
+    }
+}
+
+
+
+  async nextClient() {
+    if (this.actionLoading) return;
+    try {
+      this.actionLoading = true;
+      if(this.currentTicket?.type == 'priority'){
+        this.API.sendFeedback('warning','Finish priority transaction first.',5000);
+        this.actionLoading = false;
+        return;
+      }
+
+      // If there's a current transaction, finish it first
+      if (this.currentTicket) {
+        await this.queueService.resolveAttendedQueue('finished');
+        this.resetInterface();
+        this.API.sendFeedback('success','Transaction successful!',5000);
+        this.actionLoading = false;
+        return;
+      }
+
+      if (this.tickets.length === 0) {
+        this.API.sendFeedback('warning', 'No clients in queue.', 5000);
+        this.actionLoading = false;
+        return;
+      }
+
+
+      // Use the selected ticket type if available
+      let nextTicket: Ticket | undefined;
+      if (this.selectedTicket && this.isManualSelectActive) {
+        // Use the existing queue type-based method
+
+        nextTicket = await this.queueService.nextQueue(this.selectedTicket.type);
+      } else {
+        // Get next ticket without type specification
+
+        nextTicket = await this.queueService.nextQueue();
+      }
+
+      if (nextTicket) {
+        this.logService.pushLog('transaction-start',`started a transaction (regular).`);
+        this.currentTicket = nextTicket;
         this.currentClientDetails = {
-          name: 'Jhielo A. Gonzales',
-          date: this.currentTicket?.timestamp!,
-          services: [
-            {
-              name: 'Request Documents',
-              description: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.',
-            },
-            {
-              name: 'File Documents',
-              description: 'Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.',
-            },
-            {
-              name: 'Make Payment',
-              description: 'Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.',
-            },
-          ],
+          name: nextTicket.fullname || 'N/A',
+          date: nextTicket.timestamp || this.currentDate,
+          services:this.services.filter(service=> nextTicket.services.split(', ').includes(service.id)).map(service=>service.name),
+          
+          student_id: nextTicket.student_id || 'N/A',
+          department: nextTicket.department_id || 'N/A',
         };
 
+        // Update states
+        this.isNextClientActive = false;
+        this.isClientDoneActive = true;
+        this.isCallNumberActive = true;
+        this.isManualSelectActive = true;
+        this.isReturnTopActive = true;
+        this.isReturnBottomActive = true;
+
+        // Clear selection
+        this.selectedTicket = undefined;
+
+        // Start timer and update display
         this.startTimer();
-      // }
+        // this.updateUpcomingTicket();
+        
+        this.API.sendFeedback('success', `Transaction started with client.`, 5000);
+        this.API.socketSend({
+          event: 'number-calling',
+          division: this.division?.id,
+          message: `${this.currentTicket?.metaType} number ${this.currentTicket?.number}. Proceed to counter ${this.selectedCounter?.number}`
+        })
+      } else {
+        this.API.sendFeedback('warning', 'Could not get next client.', 5000);
+      }
+
+    } catch (error) {
+      console.error('Next client error:', error);
+      this.API.sendFeedback('error', 'Failed to process client. Please try again.', 5000);
+    } finally {
       this.actionLoading = false;
-      this.API.sendFeedback('success', `Transaction started with client.`,5000);
     }
-    
-  }
+}
 
 
-  resetInterface(){
+  // Modified resetInterface method
+  resetInterface() {
     this.isClientDoneActive = false;
     this.isNextClientActive = true;
     this.isCallNumberActive = false;
-    this.isManualSelectActive = true;
+    this.isManualSelectActive = true;  // Keep manual selection mode active
     this.isReturnTopActive = false;
     this.isReturnBottomActive = false;
-    this.lastCalledNumber = (this.currentTicket?.type == 'priority' ? 'P' :'R') +'-' + this.currentTicket!.number.toString().padStart(3, '0');
-    this.currentTicket= undefined;
+    if (this.currentTicket) {
+      this.lastCalledNumber = (this.currentTicket.tag ) + '-' + 
+        this.currentTicket.number.toString().padStart(3, '0');
+    }
+    this.currentTicket = undefined;
     this.currentClientDetails = null;
+    // Don't clear selectedTicket here to maintain selection
     this.stopTimer();
   }
+
 
   /**
    * Marks the current client as done and updates states accordingly.
    */
+  
   async clientDone() {
-    if(this.actionLoading) return;
+    if (this.actionLoading) return;
     this.actionLoading = true;
-    await this.queueService.resolveAttendedQueue('finished');
-    this.resetInterface();
-    
-    this.actionLoading = false;
-    this.API.sendFeedback('success', `Transaction successful!`,5000);
+
+    try {
+      await this.queueService.resolveAttendedQueue('finished');
+      
+      // If we have a next selection and manual mode is active, process it
+      if (this.selectedTicket && this.isManualSelectActive) {
+        await this.nextClient();
+      } else {
+        this.resetInterface();
+      }
+      
+      this.API.sendFeedback('success', `Transaction successful!`, 5000);
+      this.logService.pushLog('transaction-end',`completed a transaction.`);
+    } catch (error) {
+      this.API.sendFeedback('error', 'Failed to complete transaction', 5000);
+    } finally {
+      this.actionLoading = false;
+    }
   }
+
+
 
   /**
    * Simulates calling the current number.
    */
   callNumber(): void {
     console.log(`Calling number ${this.currentTicket?.number}`);
-    this.API.sendFeedback('neutral', `Calling number ${this.currentTicket?.type =='priority' ? 'P':'R'}-${this.currentTicket?.number.toString().padStart(3, '0')}`,5000)
+    this.API.sendFeedback('neutral', `Calling number ${this.currentTicket?.tag}-${this.currentTicket?.number.toString().padStart(3, '0')}`,5000)
+    
     this.API.socketSend({
       event: 'number-calling',
-      message: `Calling  ${this.currentTicket?.type =='priority' ? 'priority':''} number ${this.currentTicket?.number} on Counter ${this.selectedCounter?.number}`,
-      division: this.division?.id
+      division: this.division?.id,
+      message: `${this.currentTicket?.metaType} number ${this.currentTicket?.number}. Proceed to counter ${this.selectedCounter?.number}`
     })
+    // this.isCallNumberActive = false;
   }
 
   /**
    * Toggles the manual select state.
    */
-  manualSelect(): void {
-    console.log('Manual select clicked');
-    this.isManualSelectActive = !this.isManualSelectActive;
+  async manualSelect() {
+   try{
+      const nextTicket = await this.queueService.manualSelect({...this.selectedTicket!})
+      if (nextTicket) {
+        this.currentTicket = nextTicket;
+        this.currentClientDetails = {
+          name: nextTicket.fullname || 'N/A',
+          date: nextTicket.timestamp || this.currentDate,
+          services:this.services.filter(service=> nextTicket.services.split(', ').includes(service.id)).map(service=>service.name),
+          
+          student_id: nextTicket.student_id || 'N/A',
+          department: nextTicket.department_id || 'N/A',
+        };
+
+        // Update states
+        this.isNextClientActive = false;
+        this.isClientDoneActive = true;
+        this.isCallNumberActive = true;
+        this.isManualSelectActive = true;
+        this.isReturnTopActive = true;
+        this.isReturnBottomActive = true;
+
+        // Clear selection
+        this.selectedTicket = undefined;
+
+        // Start timer and update display
+        this.startTimer();
+        // this.updateUpcomingTicket();
+        
+        this.API.sendFeedback('success', `Transaction started with client.`, 5000);
+        this.logService.pushLog('transaction-manual',`started a manual select transaction.`);
+        this.API.socketSend({
+          event: 'number-calling',
+          division: this.division?.id,
+          message: `${this.currentTicket?.metaType} number ${this.currentTicket?.number}. Proceed to counter ${this.selectedCounter?.number}`
+        })
+      } else {
+        this.API.sendFeedback('warning', 'Could not get next client.', 5000);
+      }
+   }catch(e){
+    this.API.sendFeedback('error', 'Unable to get next client.',5000);
+   }
   }
 
-  /**
-   * Returns the current ticket to the top of the queue.
-   */
-  returnTop(): void {
-    
-  }
 
   /**
    * Returns the current ticket to the bottom of the queue.
@@ -374,25 +653,60 @@ export class DaTerminalmgmtComponent implements OnInit, OnDestroy {
     this.resetInterface();
     this.stopTimer();
     this.actionLoading = false;
+    this.API.socketSend({event:'queue-events'})
+    this.API.socketSend({event:'admin-dashboard-events'})
     this.API.sendFeedback('warning', `Client has been put to bottom of queue.`,5000);
   }
 
+  checkIfOnline(terminal:Terminal){
+    const now = new Date(); 
+    const lastActive = new Date(terminal.last_active!);
+    const diffInMinutes = (now.getTime() - lastActive.getTime()) / 60000; 
+
+    if (diffInMinutes < 1.5 && terminal._status !== 'maintenance' && terminal.session_status !== 'closed') {
+        return 'online';
+    } else {
+        return terminal._status; 
+    }
+}
   /**
    * Handles the "No Show" action by moving to the next client.
    */
   async noShow() {
-    if(this.actionLoading) return;
-    this.actionLoading =true;
+    if (this.actionLoading) return;
+    if(!this.currentTicket){
+      return;
+    }
+    this.actionLoading = true;
+  
+    // Mark the current ticket as skipped
     await this.queueService.resolveAttendedQueue('skipped');
+  
+    // Reset the current client details
     this.currentClientDetails = null;
     this.resetInterface();
+  
+    // Update the upcoming ticket
+    // this.updateUpcomingTicket();
+  
     this.actionLoading = false;
-    this.API.sendFeedback('error', `Client has been removed from queue.`,5000);
+    this.API.socketSend({event:'queue-events'})
+    this.API.socketSend({event:'admin-dashboard-events'})
+    this.API.sendFeedback('error', `Client has been removed from queue.`, 5000);
   }
+  
 
   /**
    * Starts the timer to track the elapsed time for the current client.
    */
+  calculateTimerProgress(): number {
+    if (!this.timerStartTime) return 0;
+    const elapsedTime = Date.now() - this.timerStartTime;
+    const maxTime = 15 * 60 * 1000; // 15 minutes in milliseconds
+    return Math.max(0, 100 - (elapsedTime / maxTime * 100));
+  }
+
+  // Update startTimer method to include progress calculation
   private startTimer(): void {
     this.timerStartTime = Date.now();
     this.timerInterval = setInterval(() => {
@@ -402,10 +716,12 @@ export class DaTerminalmgmtComponent implements OnInit, OnDestroy {
         const minutes = Math.floor((elapsedTime % 3600000) / 60000);
         const seconds = Math.floor((elapsedTime % 60000) / 1000);
         this.timer = `${this.padZero(hours)}:${this.padZero(minutes)}:${this.padZero(seconds)}`;
+        this.timerProgress = this.calculateTimerProgress();
       }
     }, 1000);
   }
 
+  
   /**
    * Stops the timer and resets the timer state.
    */
@@ -417,6 +733,7 @@ export class DaTerminalmgmtComponent implements OnInit, OnDestroy {
     this.timer = '00:00:00';
     this.timerStartTime = null;
   }
+  
 
   /**
    * Pads a number with a leading zero if it's less than 10.

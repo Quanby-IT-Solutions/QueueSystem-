@@ -10,11 +10,16 @@ import { KioskService } from '../../../services/kiosk.service';
 import { DivisionService } from '../../../services/division.service';
 import { FeedbackComponent } from '../../../shared/modals/feedback/feedback.component';
 import { ServiceService } from '../../../services/service.service';
-import { Department, Division, Service } from '../types/kiosk-layout.types';
+import { Department, Division, Service, SubService } from '../types/kiosk-layout.types';
 import { DepartmentService } from '../../../services/department.service';
 import { SnackbarComponent } from '../../../shared/snackbar/snackbar.component';
 import { LottieAnimationComponent } from '../../../shared/components/lottie-animation/lottie-animation.component';
 import { ConfirmationComponent } from '../../../shared/modals/confirmation/confirmation.component';
+import { config } from '../../../../environment/config';
+import { ContentService } from '../../../services/content.service';
+import { FormatService } from '../../../services/format.service';
+import { Format } from '../../admin-layout/format-management/types/format.types';
+
 
 @Component({
   selector: 'app-kiosk-forms',
@@ -36,19 +41,23 @@ export class KioskFormsComponent implements OnInit, OnDestroy {
 
   queueNumber: string | null = null;
   selectedServices: Service[] = [];
-  selectedType: 'regular' | 'priority' = 'regular';
+  selectedType: 'regular' | 'priority'|string = 'regular';
   customerName: string = '';
+  group: string = '';
   gender: string = '';
   department: string = '';
   studentNumber: string = '';
 
   services:Service[]= [];
-  filteredServiceChecklist:Service[] = [...this.services];
+  subServices:SubService[]= [];
+  filteredServiceChecklist:SubService[] = [...this.subServices];
   searchTerm: string = '';
   isDropdownOpen: boolean = false;
   division?:Division;
 
+  formats:Format[]=[];
   departments:Department[] = [];
+  divisions:Division[] = [];
   serviceInterval:any;
   successDescription = '';
   priorityDetails = `<div class='flex flex-col leading-none py-2 gap-2'>
@@ -63,10 +72,14 @@ export class KioskFormsComponent implements OnInit, OnDestroy {
     private divisionService: DivisionService,
     private serviceService:ServiceService,
     private departmentService:DepartmentService,
+    private formatService:FormatService,
+    private contentService:ContentService, 
     private API: UswagonCoreService) {}
 
  
-  modal?:'priority'|'success';
+  config = config
+  modal?:'priority'|'success'|string;
+  content:any;
 
   openFeedback(type:'priority'|'success'){
     this.modal = type;
@@ -81,6 +94,13 @@ export class KioskFormsComponent implements OnInit, OnDestroy {
     if (this.isDropdownOpen) {
       this.filterChecklist(); // Ensure all items are shown when opened
     }
+  }
+
+  async updateSubServices(){
+    this.subServices = await this.serviceService.getSubServices(this.group);
+    this.isDropdownOpen = false;
+    this.selectedServices = [];
+
   }
 
 
@@ -100,36 +120,50 @@ export class KioskFormsComponent implements OnInit, OnDestroy {
     });
 
     if (this.kioskService.kiosk != undefined) {
-      this.divisionService.setDivision({
-        id: this.kioskService.kiosk.division_id,
-        name: this.kioskService.kiosk.division,
-      });
-      this.division = this.divisionService.selectedDivision;
+      this.kioskService.kiosk = await this.kioskService.getKiosk(this.kioskService.kiosk.id!);
+
+      this.division =await  this.divisionService.getDivision(this.kioskService.kiosk.division_id)
+      this.divisionService.setDivision(this.division!);
       this.queueService.getTodayQueues(true);
+      this.content = await this.contentService.getContentSetting(this.division!.id);
     } else {
       throw new Error('Invalid method');
     }
 
 
     this.services = await this.serviceService.getAllServices(this.divisionService.selectedDivision?.id!);
+    this.formats = await this.formatService.getFrom(this.divisionService.selectedDivision!.id);
+    if(this.formats.length <= 0){
+      this.formats = [
+        {
+          id: 'priority',
+          name:'priority',
+          prefix:'P'
+        },
+        {
+          id: 'regular',
+          name:'regular',
+          prefix:'R'
+        }
+      ]
+    }
     this.departments = await this.departmentService.getAllDepartments();
+    this.divisions = await this.divisionService.getDivisions();
     if(this.serviceInterval){
       clearInterval(this.serviceInterval)
     }
-    this.serviceInterval = setInterval(async()=>{
-      this.services = await this.serviceService.getAllServices(this.divisionService.selectedDivision?.id!);
-      this.departments = await this.departmentService.getAllDepartments();
-    },2000)
-    this.resetQueueNumberIfNewDay();
-  }
 
-  handleButtonClick(type: 'regular' | 'priority'): void {
+    this.queueService.listenToQueue();
+  }
+  
+
+  handleButtonClick(type: string): void {
     this.isChecklistVisible = true;
     this.selectedType = type;
   }
 
   async toggleSelection(service_id: string) {
-    const service = this.services.find(item => item.id === service_id);
+    const service = this.subServices.find(item => item.id === service_id);
     if (service) {
 
       if (!this.selectedServices.find(item=>item.id == service_id)) {
@@ -141,7 +175,7 @@ export class KioskFormsComponent implements OnInit, OnDestroy {
   }
 
   filterChecklist() {
-    this.filteredServiceChecklist = this.services.filter(item =>
+    this.filteredServiceChecklist = this.subServices.filter(item =>
       item.name.toLowerCase().includes(this.searchTerm.toLowerCase())
     );
   }
@@ -174,6 +208,7 @@ export class KioskFormsComponent implements OnInit, OnDestroy {
   }
 
   async submitForm() {
+    this.isDropdownOpen = false;
     if(this.isLoading){
       return;
     }
@@ -202,23 +237,41 @@ export class KioskFormsComponent implements OnInit, OnDestroy {
     const number = await this.queueService.addToQueue({
       fullname: this.customerName.trim(),
       type: this.selectedType,
+      tag: this.selectedType[0].toUpperCase(),
       gender: this.gender.toLowerCase() as 'male' | 'female' | 'other',
       services: this.selectedServices.map(item=>item.id!),
       student_id: this.studentNumber.trim() == '' ? undefined : this.studentNumber.trim(),
       department_id: this.department.trim() == '' ? undefined : this.department.trim(),
     });
-    this.selectedServices = this.services
+    this.API.socketSend({event:'queue-events'})
+    this.API.socketSend({event:'admin-dashboard-events'})
+    this.successDescription = `Your current position is <span class='font-medium'>${this.formats.find((format)=>format.id == this.selectedType)?.prefix}-${number.toString().padStart(3,'0')}</span>`
+    const code = `${this.formats.find((format)=>format.id == this.selectedType)?.prefix}-${number.toString().padStart(3,'0')}`;
+
+    this.kioskService.thermalPrintUSB({
+      number:code,
+      name: this.customerName,
+      gender:this.gender,
+      id:this.studentNumber.trim() == '' ? undefined : this.studentNumber.trim(),
+      location: this.department.trim() == '' ? undefined : this.department.trim(),
+      date: this.currentDate.toLocaleDateString(),
+      time:this.currentTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      services: this.selectedServices.map(service=> service.name)
+    })
+    // Reset
+    this.selectedServices = this.subServices
     .filter(item => item.selected)
     this.isChecklistVisible = true;
     this.isFormVisible = false;
     this.gender = '';
+    this.department = '';
     this.customerName = '';
     this.studentNumber = '';
-    this.successDescription = `Your current position is <span class='font-medium'>${this.selectedType === 'regular' ? 'R' : 'P'}-${number.toString().padStart(3,'0')}</span>`
-    await this.printPDF(`${this.selectedType === 'regular' ? 'R' : 'P'}-${number.toString().padStart(3,'0')}`);
+    // Loading to false
     this.isLoading =false;
-    this.openFeedback( this.selectedType === 'regular' ? 'success':'priority');
-   }catch(e){
+    // Send feedback
+    this.openFeedback( this.selectedType != 'priority' ? 'success':'priority');
+   }catch(e:any){
     this.isLoading =false;
     this.API.sendFeedback('error','Something went wrong.',5000);
    }
@@ -228,138 +281,40 @@ export class KioskFormsComponent implements OnInit, OnDestroy {
   }
 
 
-  generateQueueNumber(): string {
-    const today = new Date().toDateString();
-    const queueKey = `${this.departmentName}_${today}`;
-    let departmentQueueData = JSON.parse(localStorage.getItem(queueKey) || '{}');
 
-    if (!departmentQueueData.date) {
-      departmentQueueData = { date: today, lastRegularQueueNumber: 0, lastPriorityQueueNumber: 0 };
-    }
 
-    if (this.selectedType === 'regular') {
-      departmentQueueData.lastRegularQueueNumber += 1;
-      localStorage.setItem(queueKey, JSON.stringify(departmentQueueData));
-      return `R-${departmentQueueData.lastRegularQueueNumber}`;
-    } else {
-      departmentQueueData.lastPriorityQueueNumber += 1;
-      localStorage.setItem(queueKey, JSON.stringify(departmentQueueData));
-      return `P-${departmentQueueData.lastPriorityQueueNumber}`;
-    }
-  }
+//   async printImage(code: string) {
+//     const ticketWidth = 500;  // 483 pixels wide
+//     const ticketHeight = 690; // 371 pixels tall
+//     const margin = 20; // Add margin in pixels
 
-  resetQueueNumberIfNewDay(): void {
-    const today = new Date().toDateString();
-    const queueKey = `${this.departmentName}_${today}`;
-    let departmentQueueData = JSON.parse(localStorage.getItem(queueKey) || '{}');
+//     // Create a temporary container for the content
+//     const container = document.createElement('div');
+//     container.style.width = `${ticketWidth}px`;
+//     container.style.height = `${ticketHeight}px`;
+//     container.style.position = 'absolute';
+//     container.style.visibility = 'hidden';
 
-    if (departmentQueueData.date !== today) {
-      localStorage.setItem(queueKey, JSON.stringify({ date: today, lastRegularQueueNumber: 0, lastPriorityQueueNumber: 0 }));
-    }
-  }
+//     document.body.appendChild(container);
 
-  async printPDF(code:string): Promise<void> {
-    const ticketWidth = 483;  // 483 pixels wide
-    const ticketHeight = 371; // 371 pixels tall
-    const contentWidth = 80;  // Keep content width as before (in mm)
-    const margin = 20; // Add margin in pixels
-    const scaleFactor = ticketWidth / contentWidth; // Scale factor to convert mm to pixels
-
-    let yPosition = 0;
-    const marginLeft = (ticketWidth - (contentWidth * scaleFactor)) / 2; // Center the content
-
-    const doc = new jsPDF({
-      orientation: 'landscape',
-      unit: 'px',
-      format: [ticketWidth, ticketHeight]
-    });
-
-    try {
-      // Background Logo
-      const logoUrl = './assets/logo/vsu.png';
-      const logoData = await this.getBase64Image(logoUrl);
-      const transparentLogoData = await this.makeImageTransparent(logoData, 0.1);
-
-      const logoWidth = 300;
-      const logoHeight = 300;
-      const logoX = (ticketWidth - logoWidth) / 2;
-      const logoY = 50;
-      doc.addImage(transparentLogoData, 'PNG', logoX, logoY, logoWidth, logoHeight);
-
-      // Header with Queue Number - Adjusted to respect margins
-      doc.setFillColor(95, 141, 78); // #5F8D4E
-      const headerWidth = 400; // Fixed header width
-      const headerX = (ticketWidth - headerWidth) / 2; // Center the header
-      doc.roundedRect(headerX, margin, headerWidth, 50, 10, 10, 'F');
-      doc.setTextColor(255, 255, 255);
-      doc.setFontSize(48);
-      doc.setFont('helvetica', 'bold');
-      doc.text(code, ticketWidth / 2, margin + 35, { align: 'center' });
-
-      // Reset text color to black for the rest of the content
-      doc.setTextColor(0, 0, 0);
-
-      yPosition = margin + 80;
-
-      // Welcome text
-      doc.setFontSize(24);
-      doc.setFont('helvetica', 'normal');
-      doc.text("Welcome, you're currently in the queue", ticketWidth / 2, yPosition, { align: 'center' });
-      yPosition += 40;
-
-      // Horizontal line
-      doc.setDrawColor(200, 200, 200);
-      doc.line(margin + 20, yPosition, ticketWidth - (margin + 20), yPosition);
-      yPosition += 30;
-
-      // Customer details
-      doc.setFontSize(20);
-      const contentStartX = margin + 40; // Add extra space from margin
-      const valueStartX = contentStartX + 100; // Adjust value position
-
-      const details = [
-        { label: 'Name:', value: this.customerName || 'John Doe' },
-        { label: 'Services:', value: this.showServiceNames() || 'No services selected' },
-        { label: 'Time:', value: this.currentTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) },
-        { label: 'Date:', value: this.currentDate.toLocaleDateString() }
-      ];
-
-      details.forEach(detail => {
-        doc.setFont('helvetica', 'bold');
-        doc.text(`${detail.label}`, contentStartX, yPosition);
-        doc.setFont('helvetica', 'normal');
-        const wrappedValue = doc.splitTextToSize(detail.value, ticketWidth - valueStartX - margin - 40);
-        doc.text(wrappedValue, valueStartX, yPosition);
-        yPosition += 30 * (wrappedValue.length);
-      });
-
-      yPosition += 30;
-
-      // Footer text
-      doc.setFontSize(16);
-      doc.text('Your number will be called shortly.', ticketWidth / 2, ticketHeight - margin - 20, { align: 'center' });
-
-      // Generate PDF as Blob
-      const pdfBlob = doc.output('blob');
-
-      // Create a temporary URL for the Blob
-      const pdfUrl = URL.createObjectURL(pdfBlob);
-
-      // Create a temporary anchor element and trigger download
-      const downloadLink = document.createElement('a');
-      downloadLink.href = pdfUrl;
-      downloadLink.download = `queue_ticket_${this.queueNumber}.pdf`;
-      document.body.appendChild(downloadLink);
-      downloadLink.click();
-      document.body.removeChild(downloadLink);
-
-      // Clean up the temporary URL
-      URL.revokeObjectURL(pdfUrl);
-
-    } catch (error) {
-      console.error('Error generating PDF:', error);
-    }
-  }
+//     try {
+//         this.kioskService.thermalPrint({
+//           number:code,
+//           name: this.customerName,
+//           gender:this.gender,
+//           id:this.studentNumber.trim() == '' ? undefined : this.studentNumber.trim(),
+//           location: this.department.trim() == '' ? undefined : this.department.trim(),
+//           date: this.currentDate.toLocaleDateString(),
+//           time:this.currentTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+//           services: this.selectedServices.map(service=> service.name)
+//         })
+//     } catch (error) {
+//         // alert();
+//     } finally {
+//         // Clean up the temporary container
+//         document.body.removeChild(container);
+//     }
+// }
 // Helper function to convert image to base64
 
   private getBase64Image(url: string): Promise<string> {

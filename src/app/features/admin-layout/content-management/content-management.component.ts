@@ -5,10 +5,10 @@ import { ToggleComponent } from '../../../shared/components/toggle/toggle.compon
 import { UswagonAuthService } from 'uswagon-auth';
 import { ContentService } from '../../../services/content.service';
 import { UswagonCoreService } from 'uswagon-core';
-import { MatDialog } from '@angular/material/dialog';
 import { ConfirmationComponent } from '../../../shared/modals/confirmation/confirmation.component';
 import { QueueDisplayComponent } from '../../queueing-layout/queue-display/queue-display.component';
 import { DivisionService } from '../../../services/division.service';
+import { LogsService } from '../../../services/logs.service';
 
 interface ContentColors {
   primary_bg: string,
@@ -23,7 +23,7 @@ interface ContentCollapsables {
   uploads: boolean,
   widgets:boolean,
   colors:boolean,
-  announcements:boolean,
+  announcements:boolean
 }
 
 interface ContentToggles {
@@ -64,13 +64,14 @@ export class ContentManagementComponent implements OnInit {
   constructor(
     private divisionService:DivisionService,
     private auth:UswagonAuthService, 
+    private logService:LogsService,
     private contentService:ContentService,   
     private API:UswagonCoreService){}
 
 
   isSuperAdmin:boolean = this.auth.getUser().role == 'superadmin';
 
-  showEditSection:boolean = true;
+  showEditSection:boolean = false;
 
   toggles:ContentToggles= {
     announcements:false,
@@ -100,7 +101,7 @@ export class ContentManagementComponent implements OnInit {
   files:ContentFiles= {}
 
   inputFields:ContentFields={
-    announcements : ''
+    announcements : '',
   }
   
   factorySettings:ContentSettings = {
@@ -249,7 +250,8 @@ export class ContentManagementComponent implements OnInit {
         if(this.toggles.videoURL){
           this.inputFields.youtubeURL = content.video
         }
-        
+
+
         this.inputFields.announcements = content.announcements ?? '';
       
         this.API.setLoading(false);
@@ -298,6 +300,7 @@ export class ContentManagementComponent implements OnInit {
         if(this.toggles.videoURL){
           this.inputFields.youtubeURL = content.video
         }
+
         this.inputFields.announcements = content.announcements ?? '';
       }
       this.previousSettings ={
@@ -357,6 +360,7 @@ export class ContentManagementComponent implements OnInit {
   }
 
   confirmDialog(type:'publish'| 'revert'){
+
     this.modalType = type;
   }
 
@@ -398,6 +402,7 @@ export class ContentManagementComponent implements OnInit {
   async publishChanges(){
     if(this.selectedDivision == undefined) return;
     this.modalType = undefined;
+   
     this.API.setLoading(true);
     try{
       await this.contentService.updateContentSettings({
@@ -425,8 +430,10 @@ export class ContentManagementComponent implements OnInit {
         'event': 'content-changes'
       })
       this.API.setLoading(false);
+      this.logService.pushLog('content-change',`published a content change on ${this.getDivisionName()}`);
       this.API.sendFeedback('success','Content has been updated successfully!', 5000)
     }catch(e:any){
+      console.log(e.message)
       this.API.sendFeedback('error','Something went wrong.', 5000)
     }
     

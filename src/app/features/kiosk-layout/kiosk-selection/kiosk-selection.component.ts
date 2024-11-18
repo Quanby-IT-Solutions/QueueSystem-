@@ -5,6 +5,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { QueueService } from '../../../services/queue.service';
 import { KioskService } from '../../../services/kiosk.service';
+import { config } from '../../../../environment/config';
 
 @Component({
   selector: 'app-kiosk-selection',
@@ -18,6 +19,8 @@ export class KioskSelectionComponent {
   // Stores the entered code for kiosk access
   enteredCode: string = '';
   logging_in:boolean = false;
+
+  config = config
 
   // Inject the Router and UserService in the constructor for navigation and user validation
   constructor(private router: Router, private queueService: QueueService, private kioskService:KioskService) {}

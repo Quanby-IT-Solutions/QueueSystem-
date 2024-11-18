@@ -113,7 +113,7 @@ export class ContentService {
   //   }
   // }
 
-  async updateContentSettings( settings: {division_id: string ,selectedFiles: { [key: string]: File | undefined  }, colors:{[key:string]:string}, widgets:{weather: boolean,time: boolean,currency: boolean,} , 
+  async updateContentSettings( settings: { division_id: string ,selectedFiles: { [key: string]: File | undefined  }, colors:{[key:string]:string}, widgets:{weather: boolean,time: boolean,currency: boolean,} , 
     announcement_on:boolean, background_on:boolean,
     videoOption:string, videoUrl?:string, announcements?:string} ){
     const {background_on, announcement_on,division_id,selectedFiles,colors,widgets,videoOption,videoUrl, announcements} = settings
@@ -131,11 +131,11 @@ export class ContentService {
           await this.API.uploadFile(selectedFiles[variable]!, location);
           uploadedFiles[variable] = location;
         }
-      }catch(e){
+      }catch(e:any){
         for(const variable in uploadedFiles){
            await this.API.disposeFile(uploadedFiles[variable]!);
         }
-        throw new Error('Error uploading files.');
+        throw new Error(e.message);
       }
     }
 
@@ -157,13 +157,14 @@ export class ContentService {
             ...uploadedFiles,
             ...widgets,
             ...url,
-            ...{announcements: announcements, background_on: background_on, announcement_on: announcement_on}
+            ...{
+              announcements: announcements, background_on: background_on, announcement_on: announcement_on}
            
           },
           conditions: `WHERE division_id  = '${division_id}'`
         });
         if(!updateResponse.success){
-          throw new Error('Something went wrong.');
+          throw new Error(updateResponse.output);
         }
       }else{
         const id = this.API.createUniqueID32();
@@ -177,15 +178,17 @@ export class ContentService {
             ...uploadedFiles,
             ...widgets,
             ...url,
-            ...{announcements: announcements, background_on: background_on, announcement_on: announcement_on}
+            ...{
+              announcements: announcements, background_on: background_on, announcement_on: announcement_on}
           },
         });
         if(!createResponse.success){
-          throw new Error('Something went wrong.');
+          
+          throw new Error(createResponse.output);
         }
       }
     }else{
-      throw new Error('Something went wrong.');
+      throw new Error(response.output);
     }
   }
 

@@ -22,10 +22,12 @@ import { KioskService } from '../../../services/kiosk.service';
 import { TerminalService } from '../../../services/terminal.service';
 import { ServiceService } from '../../../services/service.service';
 import { firstValueFrom } from 'rxjs';
+import type { WorkBook } from 'xlsx';
 // Import section
 import { jsPDF } from 'jspdf';
 import 'jspdf-autotable';
 import { map } from 'rxjs/operators';
+import { FormatService } from '../../../services/format.service';
 
 interface Division{
   id:string;
@@ -61,13 +63,29 @@ interface StaffPerformance {
   }[];
 }
 
+
+interface DeskAttendantPerformanceMetrics {
+  fullname: string,
+  division_name: string,
+  attendantId: string;
+  totalCheckIns: number;
+  averageCheckInTime: number;
+  totalCheckInsToday: number;
+  totalCheckInsThisWeek: number;
+  averageTimeService: string;
+}
+
 interface KioskStatus {
   id: string;
   location: string;
   status: string;
-  ticketsIssued: number;
-  lastMaintenance: string;
+  ticketCount: number;
+  type: 'kiosk' | 'terminal';
+  kioskName?: string;
+  terminalNumber?: string;
 }
+
+
 
 @Component({
   selector: 'app-admin-dashboard',
@@ -119,6 +137,16 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
   updateTimeInterval: any;
   isRefreshing: boolean = false;
 
+  deskAttendantMetrics: DeskAttendantPerformanceMetrics[] = [];
+  metricsLoading: boolean = false;
+
+      
+  paginatedStaffPerformance: any[] = [];
+  deskAttendantCurrentPage: number = 1; 
+  deskAttendantTotalPages: number = 1; 
+
+
+
   constructor(
     private API: UswagonCoreService,
     private divisionService: DivisionService,
@@ -127,11 +155,13 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
     private kioskService: KioskService,
     private terminalService: TerminalService,
     private serviceService: ServiceService,
+    private formatService:FormatService,
     private auth: UswagonAuthService,
     private cdr: ChangeDetectorRef
   ) {}
 
   ngOnInit() {
+  
     this.currentUser = { firstName: 'User' };
     this.loadContents();
     this.staffPerformance$.subscribe(staff => {
@@ -140,11 +170,247 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
       }
     });
 
+    this.loadTerminalsAndKiosks();
+    this.loadDeskAttendants();
     this.startRealtimeUpdates();
     this.updateLastUpdatedTime();
     this.refreshData();
   }
 
+
+
+
+
+private async loadTerminalsAndKiosks() {
+  const kioskData = await this.API.read({
+      selectors: [
+          'k.id',
+          'k.number as kioskName',
+          'd.name as location',
+          'k.status'
+      ],
+      tables: 'kiosks k LEFT JOIN divisions d ON k.division_id = d.id',
+      conditions: ''
+  });
+
+  const terminalData = await this.API.read({
+      selectors: [
+          't.id',
+          't.number as terminalNumber',
+          'd.name as location',
+          't.status'
+      ],
+      tables: 'terminals t LEFT JOIN divisions d ON t.division_id = d.id',
+      conditions: ''
+  });
+
+  const kioskTicketCounts = await Promise.all(
+      kioskData.output.map(async (kiosk: any) => {
+          const ticketData = await this.API.read({
+              selectors: ['COUNT(id) as ticketCount'],
+              tables: 'queue',
+              conditions: `WHERE kiosk_id = '${kiosk.id}'`
+          });
+
+          const ticketCount = ticketData.success && ticketData.output.length > 0
+              ? parseInt(ticketData.output[0].ticketCount, 10)
+              : 0;
+
+          return {
+              id: kiosk.id,
+              location: kiosk.location,
+              status: kiosk.status === 'available' ? 'Operational' : 'Out of Service',
+              ticketCount,
+              type: 'kiosk' as const,
+              kioskName: kiosk.kioskName
+          };
+      })
+  );
+
+  const terminalTicketCounts = await Promise.all(
+      terminalData.output.map(async (terminal: any) => {
+          const sessionData = await this.API.read({
+              selectors: ['COUNT(id) as sessionCount'],
+              tables: 'terminal_sessions',
+              conditions: `WHERE terminal_id = '${terminal.id}'`
+          });
+
+          const ticketCount = sessionData.success && sessionData.output.length > 0
+              ? parseInt(sessionData.output[0].sessionCount, 10)
+              : 0;
+
+          return {
+              id: terminal.id,
+              location: terminal.location,
+              status: terminal.status === 'available' ? 'Operational' : 'Out of Service',
+              ticketCount,
+              type: 'terminal' as const,
+              terminalNumber: terminal.terminalNumber
+          };
+      })
+  );
+
+  const allData: KioskStatus[] = [...kioskTicketCounts, ...terminalTicketCounts];
+
+  this.kioskStatus$ = of(allData);
+  this.updateKioskPagination();
+}
+
+
+
+  
+
+  private async loadDeskAttendants() {
+    const deskAttendantData = await this.API.read({
+      selectors: [
+        'da.id as attendantId',  
+        'da.username',           
+        'da.fullname',           
+        'd.name as division_name' 
+      ],
+      tables: 'desk_attendants da LEFT JOIN divisions d ON da.division_id = d.id',
+      conditions: ''
+    });
+  
+    console.log('API response for desk attendants:', deskAttendantData);
+  
+    if (deskAttendantData.success && deskAttendantData.output.length > 0) {
+      this.staffPerformance$ = of(
+        deskAttendantData.output.map((item: any) => ({
+          id: item.attendantId,
+          name: item.fullname,          
+          office: item.division_name,     
+          ticketsServed: 0,               
+          totalCheckins: 0,               
+          avgServiceTime: 'N/A'           
+        }))
+      );
+  
+      console.log('Mapped desk attendants:', deskAttendantData.output);
+  
+      this.staffTotalPages = Math.ceil(deskAttendantData.output.length / 5);
+      this.updateDeskAttendantPage();
+  
+      for (const attendant of deskAttendantData.output) {
+        console.log(`Fetching terminal sessions for attendantId: ${attendant.attendantId}`);
+        await this.fetchTerminalSessions(attendant.attendantId, attendant.fullname, attendant.division_name);
+      }
+  
+      console.log('Final desk attendant metrics:', this.deskAttendantMetrics);
+    } else {
+      console.warn('No desk attendants found or API response unsuccessful.');
+    }
+  }
+  
+  
+  
+  
+  async fetchTerminalSessions(attendantId: string, fullName: string, division_name: string) {
+    try {
+      const response = await this.API.read({
+        selectors: ['*'],
+        tables: 'terminal_sessions',
+        conditions: `WHERE attendant_id = '${attendantId}'`,
+      });
+  
+      console.log(`API response for terminal sessions (attendantId: ${attendantId}):`, response);
+  
+      if (response.success && response.output.length > 0) {
+        const sessions = response.output;
+        const metrics = this.calculateMetrics(sessions, fullName, division_name, attendantId);
+        this.deskAttendantMetrics.push(metrics);
+        console.log(`Calculated metrics for attendantId ${attendantId}:`, metrics);
+      } else {
+        console.warn(`No terminal sessions found for attendantId: ${attendantId}`);
+      }
+    } catch (error) {
+      console.error(`Error fetching terminal sessions for attendantId: ${attendantId}`, error);
+    }
+  }
+
+  
+  calculateMetrics(sessions: any[], fullname: string, division_name: string, attendantId: string): DeskAttendantPerformanceMetrics {
+    const totalCheckIns = sessions.length;
+    const checkInTimesByDate: Record<string, number[]> = {};
+  
+    sessions.forEach((session) => {
+      const startTime = new Date(session.start_time);
+      const dateKey = startTime.toISOString().split('T')[0];
+      const checkInTimeInMinutes = startTime.getHours() * 60 + startTime.getMinutes();
+  
+      if (!checkInTimesByDate[dateKey]) {
+        checkInTimesByDate[dateKey] = [];
+      }
+      checkInTimesByDate[dateKey].push(checkInTimeInMinutes);
+    });
+  
+    const dailyAverages: number[] = Object.values(checkInTimesByDate).map((times) => {
+      const totalMinutes = times.reduce((sum, time) => sum + time, 0);
+      return totalMinutes / times.length;
+    });
+  
+    const overallAverageCheckInTimeInMinutes =
+      dailyAverages.reduce((sum, avg) => sum + avg, 0) / dailyAverages.length;
+  
+    const totalDuration = sessions.reduce((acc, session) => {
+      const startTime = new Date(session.start_time).getTime();
+      const lastActive = new Date(session.last_active).getTime();
+      return acc + (lastActive - startTime);
+    }, 0);
+  
+    const averageDurationMs = totalDuration / totalCheckIns;
+    const averageServiceMinutes = Math.floor(averageDurationMs / 60000);
+    const averageServiceSeconds = Math.floor((averageDurationMs % 60000) / 1000);
+    const averageTimeService = `${averageServiceMinutes}:${averageServiceSeconds.toString().padStart(2, '0')} mins`;
+  
+    const totalCheckInsToday = sessions.filter(session =>
+      new Date(session.start_time).toDateString() === new Date().toDateString()).length;
+  
+    const totalCheckInsThisWeek = sessions.filter(session => {
+      const sessionDate = new Date(session.start_time);
+      const currentDate = new Date();
+      const weekStart = new Date(currentDate.setDate(currentDate.getDate() - currentDate.getDay()));
+      const weekEnd = new Date(weekStart);
+      weekEnd.setDate(weekEnd.getDate() + 6);
+      return sessionDate >= weekStart && sessionDate <= weekEnd;
+    }).length;
+  
+    const metrics = {
+      attendantId,
+      fullname,
+      division_name,
+      totalCheckIns,
+      averageCheckInTime: overallAverageCheckInTimeInMinutes,
+      totalCheckInsToday,
+      totalCheckInsThisWeek,
+      averageTimeService
+    };
+  
+    console.log(`Metrics for attendantId ${attendantId}:`, metrics);
+    return metrics;
+  }
+  
+  
+  
+
+
+  updateDeskAttendantPage() {
+    this.staffPerformance$.pipe(take(1)).subscribe(staffData => {
+      const start = (this.staffCurrentPage - 1) * 5;
+      const end = start + 5;
+      this.paginatedStaffPerformance = staffData.slice(start, end);
+    });
+  }
+  
+  onDeskAttendantPageChange(direction: 'prev' | 'next') {
+    if (direction === 'prev' && this.staffCurrentPage > 1) {
+      this.deskAttendantCurrentPage--;
+    } else if (direction === 'next' && this.deskAttendantCurrentPage < this.deskAttendantTotalPages) {
+      this.deskAttendantCurrentPage++;
+    }
+    this.updateDeskAttendantPage();
+  }
+  
 
 
   ngAfterViewInit() {
@@ -161,9 +427,12 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   private startRealtimeUpdates() {
-    this.refreshInterval = setInterval(() => {
-      this.refreshData();
-    }, 30000); // 30 seconds
+   this.API.addSocketListener('admin-dashboard-events' ,(data)=>{
+      if(data.event == 'admin-dashboard-events' ){
+        this.refreshData();
+      }
+   })
+   
   }
 
   async refreshData() {
@@ -181,8 +450,8 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
 
       // Update all observables and states
       this.queueAnalytics$ = this.getMockQueueAnalytics();
-      this.staffPerformance$ = this.getMockStaffPerformance();
-      this.kioskStatus$ = this.getMockKioskStatus();
+      // this.staffPerformance$ = this.getMockStaffPerformance();
+      // this.kioskStatus$ = this.getMockKioskStatus();
       this.updateOverallMetrics();
       this.updateKioskPagination();
 
@@ -212,26 +481,54 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
     }
   }
 
+
+
   async downloadReport() {
     try {
-      const doc = new jsPDF();
-      const margins = 15;
+      // Import xlsx dynamically to reduce initial bundle size
+      const XLSX = await import('xlsx');
+      
+      // Create workbook
+      const wb = XLSX.utils.book_new();
 
-      // Header
-      doc.setFontSize(20);
-      doc.text('Queue Management System Report', margins, 20);
+      
 
-      doc.setFontSize(10);
-      doc.text(`Generated: ${new Date().toLocaleString()}`, margins, 30);
+      // Todays Queue
+      
+      let queueRows = this.queueService.allTodayQueue;
+      if(!this.isSuperAdmin){
+        queueRows = queueRows.filter(queue=>queue.division_id == this.divisionService.selectedDivision!.id);
+      }
+      const kiosks = await this.kioskService.getAll();
+      const services  = await this.serviceService.getAllSubServices();
+      let formats = await this.formatService.getAll();
+      if(formats.length <=0 ){
+        formats = [
+          {id:'priority', name:'Priority', prefix:'P'},
+          {id:'regular', name:'Regular', prefix:'R'},
+        ]
+      }
+      const queueList = [
+       [ 'ID', 'Division', 'Kiosk', 'Client Name','Client Gender' ,'Services Chosen', 'Ticket Number','Client Type'],
+       ...queueRows.map(row=>[
+          row.id,
+          this.divisions.find(division=>division.id == row.division_id)?.name,
+         kiosks.find((kiosk:any)=>kiosk.id == row.kiosk_id)!.code,
+         row.fullname,
+         row.gender,
+         row.services.split(', ').map(id=> services.find((service:any)=>service.id == id)?.name).join(','),
+         row.number,
+         formats.find(format=> format.id == row.type)?.name
+       ])
+      ];
 
-      // Overall Metrics Section
-      doc.setFontSize(12);
-      doc.text('Overall Metrics', margins, 40);
+      const queueDataSheet = XLSX.utils.aoa_to_sheet(queueList);
+      XLSX.utils.book_append_sheet(wb, queueDataSheet, 'Today Queue');
 
-      // Get all metrics data
+      // Overall Metrics Sheet
       const metrics = await firstValueFrom(this.overallMetrics$);
       const metricsData = [
-        // Division metrics
+        ['Metric', 'Value', 'Period'],
         ...metrics.map(metric => [
           metric.title,
           metric.value.toString(),
@@ -244,129 +541,50 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
           ['Total Services', this.totalServices.toString(), 'active services']
         ] : [])
       ];
-
-      (doc as any).autoTable({
-        startY: 45,
-        head: [['Metric', 'Value', 'Period']],
-        body: metricsData,
-        theme: 'striped',
-        styles: {
-          fontSize: 10,
-          cellPadding: 5,
-        },
-        headStyles: {
-          fillColor: [66, 139, 202],
-          textColor: 255,
-          fontSize: 10,
-          fontStyle: 'bold',
-        },
-        columnStyles: {
-          0: { cellWidth: 80 },
-          1: { cellWidth: 40 },
-          2: { cellWidth: 60 }
-        }
-      });
-
-      // Rest of your code remains the same...
-      // Queue Status
+      const metricsSheet = XLSX.utils.aoa_to_sheet(metricsData);
+      XLSX.utils.book_append_sheet(wb, metricsSheet, 'Overall Metrics');
+  
+      // Queue Status Sheet
       const queueData = await firstValueFrom(this.queueAnalytics$);
       if (queueData?.length) {
-        doc.addPage();
-        doc.setFontSize(12);
-        doc.text('Queue Status', margins, 20);
-
-        (doc as any).autoTable({
-          startY: 25,
-          head: [['Office', 'Current Ticket', 'Waiting', 'Avg Wait Time', 'Status']],
-          body: queueData.map(q => [
-            q.office,
-            q.currentTicket.toString(),
-            q.waitingCount.toString(),
-            q.avgWaitTime,
-            q.status
-          ]),
-          theme: 'striped',
-          styles: {
-            fontSize: 10,
-            cellPadding: 5,
-          },
-          headStyles: {
-            fillColor: [66, 139, 202],
-            textColor: 255,
-            fontSize: 10,
-            fontStyle: 'bold',
-          }
-        });
+        const queueSheet = XLSX.utils.json_to_sheet(queueData.map(q => ({
+          'Office': q.office,
+          'Current Ticket': q.currentTicket,
+          'Waiting': q.waitingCount,
+          'Average Wait Time': q.avgWaitTime,
+          'Status': q.status
+        })));
+        XLSX.utils.book_append_sheet(wb, queueSheet, 'Queue Status');
       }
-
-      // Staff Performance
+  
+      // Staff Performance Sheet
       const staffData = await firstValueFrom(this.staffPerformance$);
       if (staffData?.length) {
-        doc.addPage();
-        doc.setFontSize(12);
-        doc.text('Staff Performance Metrics', margins, 20);
-
-        (doc as any).autoTable({
-          startY: 25,
-          head: [['Staff Name', 'Office', 'Tickets Served', 'Avg Service Time', 'Rating']],
-          body: staffData.map(s => [
-            s.name,
-            s.office,
-            s.ticketsServed.toString(),
-            s.avgServiceTime,
-            `${s.customerRating}/5`
-          ]),
-          theme: 'striped',
-          styles: {
-            fontSize: 10,
-            cellPadding: 5,
-          },
-          headStyles: {
-            fillColor: [66, 139, 202],
-            textColor: 255,
-            fontSize: 10,
-            fontStyle: 'bold',
-          }
-        });
+        const staffSheet = XLSX.utils.json_to_sheet(staffData.map(s => ({
+          'Staff Name': s.name,
+          'Office': s.office,
+          'Tickets Served': s.ticketsServed,
+          'Average Service Time': s.avgServiceTime,
+          // 'Rating': `${s.customerRating}/5`
+        })));
+        XLSX.utils.book_append_sheet(wb, staffSheet, 'Staff Performance');
       }
-
-      // Kiosk Status
+  
+      // Kiosk Status Sheet
       const kioskData = await firstValueFrom(this.kioskStatus$);
       if (kioskData?.length) {
-        doc.addPage();
-        doc.setFontSize(12);
-        doc.text('Kiosk Status Overview', margins, 20);
-
-        (doc as any).autoTable({
-          startY: 25,
-          head: [['ID', 'Location', 'Status', 'Tickets Issued', 'Last Maintenance']],
-          body: kioskData.map(k => [
-            k.id,
-            k.location,
-            k.status,
-            k.ticketsIssued.toString(),
-            k.lastMaintenance
-          ]),
-          theme: 'striped',
-          styles: {
-            fontSize: 10,
-            cellPadding: 5,
-          },
-          headStyles: {
-            fillColor: [66, 139, 202],
-            textColor: 255,
-            fontSize: 10,
-            fontStyle: 'bold',
-          }
-        });
+        const kioskSheet = XLSX.utils.json_to_sheet(kioskData.map(k => ({
+          'ID': k.id,
+          'Location': k.location,
+          'Status': k.status,
+        
+        })));
+        XLSX.utils.book_append_sheet(wb, kioskSheet, 'Kiosk Status');
       }
-
-      // Summary
-      doc.addPage();
-      doc.setFontSize(12);
-      doc.text('System Summary', margins, 20);
-
+  
+      // Summary Sheet
       const summaryData = [
+        ['Metric', 'Value'],
         ['Report Period', this.selectedFilter.toUpperCase()],
         ['Total Transactions', metrics.find(m => m.title === 'Total Transactions')?.value.toString() || '0'],
         ['Registrar Division', metrics.find(m => m.title === 'Registrar Division')?.value.toString() || '0'],
@@ -378,42 +596,26 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
         ['System Status', 'OPERATIONAL'],
         ['Last Updated', this.lastUpdated]
       ];
-
-      (doc as any).autoTable({
-        startY: 25,
-        head: [['Metric', 'Value']],
-        body: summaryData,
-        theme: 'striped',
-        styles: {
-          fontSize: 10,
-          cellPadding: 5,
-        },
-        headStyles: {
-          fillColor: [66, 139, 202],
-          textColor: 255,
-          fontSize: 10,
-          fontStyle: 'bold',
-        }
-      });
-
-      // Save the PDF
-      const fileName = `queue-management-report-${new Date().toISOString().split('T')[0]}.pdf`;
-      doc.save(fileName);
-
+      const summarySheet = XLSX.utils.aoa_to_sheet(summaryData);
+      XLSX.utils.book_append_sheet(wb, summarySheet, 'Summary');
+  
+      // Generate Excel file
+      const fileName = `queue-management-report-${new Date().toISOString().split('T')[0]}.xlsx`;
+      XLSX.writeFile(wb, fileName);
+  
       this.showToast('Report downloaded successfully');
     } catch (error) {
       console.error('Error generating report:', error);
       this.showToast('Failed to download report', 'error');
     }
   }
+
+
   toggleAutoRefresh() {
     if (this.autoRefreshEnabled) {
       this.startRealtimeUpdates();
     } else {
-      if (this.refreshInterval) {
-        clearInterval(this.refreshInterval);
-        this.refreshInterval = null;
-      }
+      this.API.addSocketListener('admin-dashboard-events', ()=>{});
     }
   }
 
@@ -470,7 +672,6 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
     // Retrieve datasets based on selectedMetric
     const datasets = this.overallMetrics$.pipe(take(1)).subscribe(metrics => {
       const filteredMetrics = metrics.filter((metric) => {
-        // If no specific metric is selected, show all, otherwise only the selected one.
         return this.selectedMetric ? metric.title === this.selectedMetric.title : true;
       });
 
@@ -539,45 +740,7 @@ const datasets = filteredMetrics.map((metric) => {
     ]);
   }
 
-  getMockStaffPerformance(): Observable<StaffPerformance[]> {
-    return of([
-      { name: 'Jon Doe', office: 'Cashier', ticketsServed: 20, avgServiceTime: '10 mins', customerRating: 4.8, status: 'Active', isExpanded: false, dailyPerformance: [] },
-      { name: 'Jane Doe', office: 'Registrar', ticketsServed: 25, avgServiceTime: '8 mins', customerRating: 4.9, status: 'Active', isExpanded: false, dailyPerformance: [] },
-      { name: 'Alice Smith', office: 'Accounting', ticketsServed: 18, avgServiceTime: '12 mins', customerRating: 4.7, status: 'Active', isExpanded: false, dailyPerformance: [] },
-      { name: 'Bob Johnson', office: 'Cashier', ticketsServed: 22, avgServiceTime: '9 mins', customerRating: 4.6, status: 'Active', isExpanded: false, dailyPerformance: [] },
-      { name: 'Charlie Brown', office: 'Registrar', ticketsServed: 23, avgServiceTime: '11 mins', customerRating: 4.5, status: 'Active', isExpanded: false, dailyPerformance: [] },
-    ]);
-  }
 
-  getMockKioskStatus(): Observable<KioskStatus[]> {
-    return of([
-      { id: 'K01', location: 'Main Hall', status: 'Operational', ticketsIssued: 500, lastMaintenance: '2023-09-20' },
-      { id: 'K02', location: 'Branch A', status: 'Low Paper', ticketsIssued: 300, lastMaintenance: '2023-09-25' },
-      { id: 'K03', location: 'Branch B', status: 'Out of Service', ticketsIssued: 0, lastMaintenance: '2023-09-10' },
-      { id: 'K04', location: 'Branch C', status: 'Operational', ticketsIssued: 700, lastMaintenance: '2023-10-01' },
-      { id: 'K05', location: 'Branch D', status: 'Operational', ticketsIssued: 650, lastMaintenance: '2023-10-05' },
-      { id: 'K06', location: 'Branch E', status: 'Out of Service', ticketsIssued: 0, lastMaintenance: '2023-10-15' },
-      { id: 'K07', location: 'Branch F', status: 'Operational', ticketsIssued: 450, lastMaintenance: '2023-10-20' },
-      { id: 'K08', location: 'Branch G', status: 'Low Paper', ticketsIssued: 200, lastMaintenance: '2023-10-22' },
-      { id: 'K09', location: 'Branch H', status: 'Operational', ticketsIssued: 550, lastMaintenance: '2023-10-25' },
-      { id: 'K10', location: 'Branch I', status: 'Operational', ticketsIssued: 400, lastMaintenance: '2023-10-28' },
-
-    ]);
-  }
-
-  // async updateOverallMetrics() {
-
-  //   const metrics =  this.getMockOverallMetrics();
-  //   const updatedMetrics = metrics.map((metric) => ({
-  //     ...metric,
-  //     value: this.calculateMetricValue(metric.data),
-  //   }));
-  //   this.overallMetrics$ = of(updatedMetrics);
-  //   this.overallMetrics$.pipe(take(1)).subscribe((metrics) => {
-  //     this.destroyCharts();
-  //     this.initializeCharts(metrics);
-  //   });
-  // }
 
   async updateOverallMetrics() {
     const perDivision = this.divisions.map((division) => ({
@@ -712,24 +875,29 @@ const datasets = filteredMetrics.map((metric) => {
   }
 
   countItemsPerMonth(division_id?:string) {
-    let items = this.queueService.allQueue;
-    if(division_id){
-      items = items.filter(item=> item.division_id == division_id);
-    }
-    const countByWeek = [0, 0, 0, 0]; // Initialize an array for the 4 weeks of the month
+      let items = this.queueService.allQueue;
+
+      if (division_id) {
+          items = items.filter(item => item.division_id === division_id);
+      }
+
+      const countByWeek = [0, 0, 0, 0, 0]; // Initialize an array for the 5 weeks of the month
       const now = new Date();
+      const currentYear = now.getFullYear();
+      const currentMonth = now.getMonth(); // getMonth() returns 0-11
 
       items.forEach((item) => {
-        const date = new Date(item.timestamp);
-        const year = date.getFullYear();
-        const month = String(date.getMonth() + 1).padStart(2, '0'); // Get the month and pad with zero
+          const date = new Date(item.timestamp);
+          const year = date.getFullYear();
+          const month = date.getMonth(); // 0-11
 
-        if (year === now.getFullYear() && month === String(now.getMonth() + 1).padStart(2, '0')) {
-          // Get the week number of the month (1-4)
-          const week = Math.ceil((date.getDate() + 6) / 7) - 1; // Zero-based index for array
-          countByWeek[week] += 1; // Increment the count for that week
-        }
+          if (year === currentYear && month === currentMonth) {
+              // Calculate the week number of the month (0-4)
+              const week = Math.floor(date.getDate() / 7); // Calculate week (0-4)
+              countByWeek[week] += 1; // Increment the count for that week
+          }
       });
+
       return countByWeek;
   }
   countItemsPerYear(division_id?:string) {
@@ -797,99 +965,7 @@ const datasets = filteredMetrics.map((metric) => {
     }
   }
 
-  // initializeCharts(metrics: any[]) {
 
-  //   this.destroyCharts();
-
-  //   this.canvasElements.forEach((canvasElement, index) => {
-  //     const ctx = canvasElement.nativeElement.getContext('2d');
-  //     const metric = metrics[index];
-  //     const labels = this.getFilteredLabels();
-
-  //     if (!metric || !metric.data) {
-  //       console.warn('Metric data is missing:', metric);
-  //       return;
-  //     }
-
-  //     const gradient = ctx.createLinearGradient(0, 0, 0, 200);
-  //     gradient.addColorStop(0, 'rgba(34, 193, 195, 0.3)');
-  //     gradient.addColorStop(1, 'rgba(253, 187, 45, 0.1)');
-
-  //     const chart = new Chart(ctx, {
-  //       type: 'line',
-  //       data: {
-  //         labels: labels,
-  //         datasets: [{
-  //           label: metric.title,
-  //           data: this.getFilteredData(metric.data),
-  //           fill: true,
-  //           backgroundColor: gradient,
-  //           borderColor: '#22C1C3',
-  //           borderWidth: 3,
-  //           pointBackgroundColor: '#22C1C3',
-  //           pointRadius: 4,
-  //           pointHoverRadius: 6,
-  //           tension: 0.4,
-  //         }],
-  //       },
-  //       options: {
-  //         responsive: true,
-  //         maintainAspectRatio: false,
-  //         animation: {
-  //           duration: 1000, // Smooth 1-second transition for updates
-  //         },
-  //         plugins: {
-  //           legend: {
-  //             display: true,
-  //             position: 'top',
-  //             labels: {
-  //               color: '#333',
-  //               font: {
-  //                 size: 14,
-  //               },
-  //             },
-  //           },
-  //           tooltip: {
-  //             backgroundColor: '#f5f5f5',
-  //             bodyColor: '#333',
-  //             borderColor: '#ddd',
-  //             borderWidth: 1,
-  //             titleColor: '#666',
-  //           },
-  //         },
-  //         scales: {
-  //           x: {
-  //             display: true,
-  //             ticks: {
-  //               color: '#555',
-  //               font: {
-  //                 size: 12,
-  //               },
-  //             },
-  //             grid: {
-  //               color: 'rgba(200, 200, 200, 0.2)',
-  //             },
-  //           },
-  //           y: {
-  //             display: true,
-  //             ticks: {
-  //               color: '#555',
-  //               font: {
-  //                 size: 12,
-  //               },
-  //             },
-  //             grid: {
-  //               color: 'rgba(200, 200, 200, 0.2)',
-  //             },
-  //           },
-  //         },
-  //       },
-  //     });
-
-
-  //     this.charts.push(chart);
-  //   });
-  // }
 
   initializeCharts(metrics: any[]) {
     this.destroyCharts();
@@ -987,7 +1063,7 @@ const datasets = filteredMetrics.map((metric) => {
     } else if (this.selectedFilter === 'week') {
       return this.getLast7Days();
     } else if (this.selectedFilter === 'month') {
-      return ['Week 1', 'Week 2', 'Week 3', 'Week 4'];
+      return ['Week 1', 'Week 2', 'Week 3', 'Week 4','Week 5'];
     } else {
       return ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
     }
@@ -1038,32 +1114,15 @@ const datasets = filteredMetrics.map((metric) => {
     await this.queueService.getAllTodayQueues();
     await this.queueService.geAllAttendedQueues();
     this.queueAnalytics$ = this.getMockQueueAnalytics();
-    this.staffPerformance$ = this.getMockStaffPerformance();
-    this.kioskStatus$ = this.getMockKioskStatus();
+    // this.staffPerformance$ = this.getMockStaffPerformance();
+    // this.kioskStatus$ = this.getMockKioskStatus();
     this.updateOverallMetrics();
     this.updateKioskPagination();
     this.API.setLoading(false);
     if(this.dashboardInterval){
       clearInterval(this.dashboardInterval)
     }
-    this.dashboardInterval = setInterval( async()=>{
-      await this.queueService.getAllQueues();
-      await this.queueService.getAllTodayQueues();
-      this.queueAnalytics$ = this.getMockQueueAnalytics();
-      this.staffPerformance$ = this.getMockStaffPerformance();
-      this.kioskStatus$ = this.getMockKioskStatus();
-      this.updateKioskPagination();
-      if(this.lastOverallTransaction !== this.queueService.allQueue.length){
-        this.lastOverallTransaction = this.queueService.allQueue.length;
-        this.updateOverallMetrics();
-      }
-
-      if(!this.dataLoaded){
-        this.dataLoaded = true;
-
-      }
-    },2000)
-
+    this.startRealtimeUpdates();
     this.cdr.detectChanges();
   }
 
@@ -1089,11 +1148,11 @@ const datasets = filteredMetrics.map((metric) => {
   }
 
   updateKioskPagination() {
-    this.kioskStatus$.pipe(take(1)).subscribe(kioskData => {
-      const start = (this.kioskCurrentPage - 1) * 5;
-      const end = start + 5;
+    this.kioskStatus$.subscribe(kioskData => {
+      const start = (this.kioskCurrentPage - 1) * this.kioskItemsPerPage;
+      const end = start + this.kioskItemsPerPage;
       this.paginatedKioskStatus = kioskData.slice(start, end);
-      this.totalKioskPages = Math.ceil(kioskData.length / 5);
+      this.totalKioskPages = Math.ceil(kioskData.length / this.kioskItemsPerPage);
     });
   }
 

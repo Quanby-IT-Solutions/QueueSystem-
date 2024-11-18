@@ -18,6 +18,23 @@ interface Counter {
   personName?: string;
 }
 
+interface Queue{
+  id:string;
+  division_id:string;
+  number:number;
+  status:string;
+  timestamp:string;
+  type:string;
+  tag?:string;
+  metaType?:string;
+  fullname:string;
+  services:string;
+  department_id?:string;
+  kiosk_id:string;
+  gender:'male'|'female'|'other';
+  student_id?:string;
+  collision?:string;
+}
 interface AttendedQueue{
   id:string;
   desk_id:string;
@@ -26,14 +43,15 @@ interface AttendedQueue{
   finished_on?:string;
   status:string;
   terminal_id?:string;
+  queue?:Queue;
   number?:number;
-  type?:'priority' | 'regular';
 }
 
 interface UpNextItem {
   avatar: string;
   ticketNumber: string;
   personName: string;
+  type:string;
 }
 
 interface WeatherItem {
@@ -129,13 +147,36 @@ export class QueueDisplayComponent implements OnInit, AfterViewInit, OnChanges, 
   weatherCurrencySwitchTimer:number = 6000;
   videoSwitchTimer:number = 8000;
 
+  counterSwitchTimer:number = 5000;
+  counterInterval:any ;
+  slice = 10;
+  offset = 0;
+
+  transitionCounters(){
+    this.counterInterval = setInterval(()=>{
+      if(this.countOnlineCounters() >  this.offset + this.slice){
+        this.offset = this.slice + this.offset;
+      }else{
+        this.offset = 0;
+      }
+    },this.counterSwitchTimer)
+  }
+
   // Control flags: 1 is "on", 0 is "off"
   upNextItems: UpNextItem[] = [
-    { avatar: '/assets/queue-display/Male_2.png', ticketNumber: 'P-217', personName: 'Kristin Watson' },
-    { avatar: '/assets/queue-display/Male_1.png', ticketNumber: 'P-218', personName: 'Al Francis Salceda' },
-    { avatar: '/assets/queue-display/Female_2.png', ticketNumber: 'R-247', personName: 'Joey Bichara' },
-    { avatar: '/assets/queue-display/female_1.png', ticketNumber: 'R-217', personName: 'Kenneth Felix Belga' },
+    { avatar: '/assets/queue-display/Male_2.png', ticketNumber: 'P-217', personName: 'Kristin Watson' ,type:'priority'},
+    { avatar: '/assets/queue-display/Male_1.png', ticketNumber: 'P-218', personName: 'Al Francis Salceda',type:'priority' },
+    { avatar: '/assets/queue-display/Female_2.png', ticketNumber: 'R-247', personName: 'Joey Bichara' ,type:'regular'},
+    { avatar: '/assets/queue-display/female_1.png', ticketNumber: 'R-217', personName: 'Kenneth Felix Belga',type:'regular' },
   ];
+  
+
+  getPriorityItems(items:UpNextItem[]){
+   return items.filter(next=> next.type == 'priority')
+  }
+  getRegularItems(items:UpNextItem[]){
+   return items.filter(next=> next.type == 'regular')
+  }
 
   attendedQueue:AttendedQueue[]=[];
 
@@ -173,13 +214,17 @@ export class QueueDisplayComponent implements OnInit, AfterViewInit, OnChanges, 
 
   loading:boolean = false;
   
+
+  view:number = 0;
+  
   constructor(
     private divisionService:DivisionService,
     private queueService:QueueService,
     private terminalService:TerminalService,
     private thirdPartyService: ThirdPartyService,
     private API:UswagonCoreService,
-    private sanitizer: DomSanitizer
+    private sanitizer: DomSanitizer,
+    private route:ActivatedRoute
   ) {}
 
   // NG FUNCTIONS
@@ -190,12 +235,42 @@ export class QueueDisplayComponent implements OnInit, AfterViewInit, OnChanges, 
     // clearInterval(this.intervalVideo);
     clearInterval(this.intervalWeather);
     clearInterval(this.intervalSwitchter);
+    clearInterval(this.counterInterval);
     this.subscription?.unsubscribe();
     this.API.addSocketListener('number-calling',(data)=>{})
+    this.API.addSocketListener('queue-events',(data)=>{})
+  }
+
+  playNote(frequency:number) {
+    const audioCtx = new (window.AudioContext)();
+    const oscillator = audioCtx.createOscillator();
+    oscillator.type = 'sine'; // You can change to 'square' or 'triangle' for different sounds
+    oscillator.frequency.setValueAtTime(frequency, audioCtx.currentTime);
+    const gainNode = audioCtx.createGain();
+    gainNode.gain.setValueAtTime(-0.5, audioCtx.currentTime); // Set volume level
+    oscillator.connect(gainNode)
+    oscillator.connect(audioCtx.destination);
+    oscillator.start();
+    oscillator.stop(audioCtx.currentTime + 0.6); // Play for 300 ms
+  }
+
+   playNotes() {
+    // setTimeout(() => this.playNote(783.99), 0); // Play G
+    // setTimeout(() => this.playNote(587.33), 600); // Play B after 400 ms
+    // setTimeout(() => this.playNote( 587.33), 800); // Play D after 800 ms
+    // setTimeout(() => this.playNote(783.99), 1200); // Play G again after 1200 ms
+    setTimeout(() => this.playNote(783.99), 0); // Play G again after 1200 ms
+    setTimeout(() => this.playNote( 587.33), 500); // Play D after 800 ms
+    // setTimeout(() => this.playNote(493.88), 1000); // Play B after 400 ms
+    // setTimeout(() => this.playNote(392), 1000); // Play G
   }
 
   ngOnInit(): void {
+    this.view = this.route.snapshot.queryParams['view'];
+    // this.playNotes();
     const init = speechSynthesis.getVoices()
+
+    this.transitionCounters();
     
     this.API.addSocketListener('number-calling', (data:any)=>{
       if(data.event == 'number-calling' && data.division == this.division?.id){
@@ -203,10 +278,13 @@ export class QueueDisplayComponent implements OnInit, AfterViewInit, OnChanges, 
           // Find a female voice (you may need to check which voices are available)
         const femaleVoice = voices.find(voice => voice.name.includes('Zira'));
         const utterance = new SpeechSynthesisUtterance(data.message);
+        utterance.volume = 3;
         if (femaleVoice) {
           utterance.voice = femaleVoice;
-      }
-        speechSynthesis.speak(utterance);
+        }
+        // this.playNotes();
+         speechSynthesis.speak(utterance)
+      
       }
     });
     this.getSafeYoutubeUrl(this.videoUrl);
@@ -321,13 +399,18 @@ export class QueueDisplayComponent implements OnInit, AfterViewInit, OnChanges, 
   }
 
   safeYoutubeUrl?:SafeResourceUrl;
+  safeYoutubeUrlMute?:SafeResourceUrl;
 
+  
   getSafeYoutubeUrl(url?:string) {
     if (this.isValidYouTubeUrl(url ??'')) {
       const videoId = this.getYouTubeVideoId(url!);
       const embedUrl = `https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1&loop=1&controls=0&playlist=${videoId}`;
+      const embedUrlMute = `https://www.youtube-nocookie.com/embed/${videoId}?mute=1&autoplay=1&loop=1&controls=0&playlist=${videoId}`;
       this.safeYoutubeUrl = this.sanitizer.bypassSecurityTrustResourceUrl(embedUrl);
+      this.safeYoutubeUrlMute = this.sanitizer.bypassSecurityTrustResourceUrl(embedUrlMute);
     } else{
+      this.safeYoutubeUrlMute = undefined;
       this.safeYoutubeUrl = undefined;
     }
   }
@@ -364,6 +447,23 @@ export class QueueDisplayComponent implements OnInit, AfterViewInit, OnChanges, 
   ngOnChanges(changes: SimpleChanges): void {
     if(!this.isPreview)  this.loadQueue();  
     this.getSafeYoutubeUrl(this.videoUrl);
+    if(this.isPreview){
+      this.counters = [
+        { number: 1, ticketNumber: `P-32`, personName: 'Domeng Valdez',id:'',status:'online' },
+        { number : 1, ticketNumber: `P-31`, personName: 'Maria Clara',id:'',status:'online' },
+        { number : 1, ticketNumber: `P-34`, personName: 'Domeng Cruz',id:'',status:'online' },
+        { number : 1, ticketNumber: `P-30`, personName: 'Juan Valdez',id:'',status:'online' },
+        { number : 1, ticketNumber: `P-49`, personName: 'Marga Madrid',id:'',status:'online' },
+        { number : 1, ticketNumber: `P-50`, personName: 'Jo Ann',id:'',status:'online' },
+        { number : 1, ticketNumber: `P-20`, personName: 'John Mark',id:'',status:'online' },
+      ];
+      this.upNextItems =[
+        { avatar: '/assets/queue-display/Male_2.png', ticketNumber: `P-217`, personName: 'Kristin Watson', type:'priority'},
+        { avatar: '/assets/queue-display/Male_1.png', ticketNumber: `P-218`, personName: 'Al Francis Salceda', type:'priority' },
+        { avatar: '/assets/queue-display/Female_2.png', ticketNumber: `R-247`, personName: 'Joey Bichara', type:'regular' },
+        { avatar: '/assets/queue-display/female_1.png', ticketNumber: `R-217`, personName: 'Kenneth Felix Belga' , type:'regular'},
+      ];
+    }
     // if(this.videoPlayer != null)
     // this.videoPlayer.nativeElement.src=this.videoUrl??'assets/queue-display/vsu.mp4';
   
@@ -437,6 +537,8 @@ export class QueueDisplayComponent implements OnInit, AfterViewInit, OnChanges, 
       return;
     }
 
+
+
     this.loading= true;
     this.dataLoaded = false;
     if(this.subscription){
@@ -448,66 +550,73 @@ export class QueueDisplayComponent implements OnInit, AfterViewInit, OnChanges, 
 
 
     this.divisionService.setDivision(this.division);
-    this.queueService.listenToQueue();
     
     this.subscription = this.queueService.queue$.subscribe((queueItems: any[]) => {
       this.upNextItems = queueItems.reduce((prev: UpNextItem[], item: any) => {
         return [...prev, {
-          avatar: item.gender === 'male' ? '/assets/queue-display/Male_2.png' : '/assets/queue-display/Female_2.png',
-          ticketNumber: `${item.type === 'regular' ? 'R' : 'P'}-${item.number.toString().padStart(3, '0')}`,
-          personName: item.fullname
+          avatar: item.gender === 'male' ? '/assets/queue-display/Male_2.png' : item.gender =='female' ? '/assets/queue-display/Female_2.png' :'/assets/default.jpg',
+          ticketNumber: `${item.tag}-${item.number.toString().padStart(3, '0')}`,
+          personName: item.fullname,
+          type : item.type,
         }];
 
       }, []);
       
     });
-
+     this.queueService.listenToQueue();
     await this.queueService.getTodayQueues();
+    await this.loadTerminalData();
+    this.API.addSocketListener('queue-events',async(data:any)=>{
+      if(data.event == 'queue-events'){
 
-    this.terminalInterval = setInterval(async ()=>{
-      let existingTerminals:string[] = []
-      this.attendedQueue = await this.queueService.geAllAttendedQueues();
-      const updatedTerminals = await this.terminalService.getAllTerminals();
-      // Update existing terminals
-      updatedTerminals.forEach((updatedTerminal:any) => {
-        existingTerminals.push(updatedTerminal.id);
-        const existingTerminal = this.counters.find(t => t.id === updatedTerminal.id);
-        const ticket = this.attendedQueue.find(t=> t.terminal_id ==  updatedTerminal.id);
-  
-        if (existingTerminal) {
-          // Update properties of the existing terminal
-          Object.assign(existingTerminal, {
-            id: updatedTerminal.id,
-            status: updatedTerminal.status,
-            ticketNumber: ticket ==undefined ? undefined : (ticket.type=='priority'?'P':'R') + '-'+ ticket.number!.toString().padStart(3, '0'),
-            personName: updatedTerminal.fullname,
-            number:updatedTerminal.number
-          });
-        } else {
-          // Optionally handle new terminals
-          this.counters.push({
-            id: updatedTerminal.id,
-            status: updatedTerminal.status,
-            ticketNumber: ticket ==undefined ? undefined : (ticket.type=='priority'?'P':'R') + '-'+ ticket.number!.toString().padStart(3, '0'),
-            personName: updatedTerminal.fullname,
-            number:updatedTerminal.number
-          });
-        }
-      });
-      this.counters = this.counters.filter((counter)=>existingTerminals.includes(counter.id));
-      if(!this.dataLoaded){
-        this.loading = false;
-        this.dataLoaded = true;
+        await this.loadTerminalData();
       }
-    },1000)   
-    
+    });    
+  }
 
-    
-    
+  async loadTerminalData(){
+    let existingTerminals:string[] = []
+        this.attendedQueue = await this.queueService.getActiveAttendedQueues();
+        // console.log(this.attendedQueue);
+        const updatedTerminals = await this.terminalService.getAllTerminals();
+        // Update existing terminals
+        updatedTerminals.forEach((updatedTerminal:any) => {
+          existingTerminals.push(updatedTerminal.id);
+          const existingTerminal = this.counters.find(t => t.id === updatedTerminal.id);
+          const ticket = this.attendedQueue.find(t=> t.terminal_id ==  updatedTerminal.id);
+
+          if (existingTerminal) {
+            // Update properties of the existing terminal
+            Object.assign(existingTerminal, {
+              id: updatedTerminal.id,
+              status: updatedTerminal.status,
+              ticketNumber: ticket ==undefined ? undefined : (ticket.queue!.tag) + '-'+ ticket.number!.toString().padStart(3, '0'),
+              personName: updatedTerminal.fullname,
+              number:updatedTerminal.number
+            });
+          } else {
+            // Optionally handle new terminals
+            this.counters.push({
+              id: updatedTerminal.id,
+              status: updatedTerminal.status,
+              ticketNumber: ticket ==undefined ? undefined : (ticket.queue!.tag) + '-'+ ticket.number!.toString().padStart(3, '0'),
+              personName: updatedTerminal.fullname,
+              number:updatedTerminal.number
+            });
+          }
+        });
+        this.counters = this.counters.filter((counter)=>existingTerminals.includes(counter.id));
+        if(!this.dataLoaded){
+          this.loading = false;
+          this.dataLoaded = true;
+        }
   }
   
   countOnlineCounters(){
     return this.counters.filter(counter=>counter.status =='online').length;
+  }
+  getOnlineCounters(){
+    return this.counters.filter(counter=>counter.status =='online');
   }
 
 

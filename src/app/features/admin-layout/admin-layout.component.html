@@ -1,18 +1,18 @@
-<div class="relative flex w-screen h-screen overflow-hidden">
+<div class="relative flex w-screen h-full overflow-hidden">
   <!-- Sidebar -->
   <app-sidebar [role]="role"></app-sidebar>
 
   <!-- Loading Overlay -->
   <div *ngIf="isLoading" class="absolute z-50 flex flex-col items-center justify-center w-full h-full overflow-hidden bg-white cursor-wait">
-    <app-lottie-animation class="w-72 h-72 2xl:w-96 2xl:h-96 animate-pop" animation="loader"></app-lottie-animation>
+    <app-lottie-animation class="w-72 h-72 2xl:w-96 2xl:h-96 animate-pop" animation="pcso"></app-lottie-animation>
     <div *ngIf="!showUploadProgress()" class="text-xl tracking-wider animate-bounce animate-pop">Please Wait</div>
     <div *ngIf="showUploadProgress()" class="text-xl tracking-wider animate-bounce animate-pop">Uploading File ... ({{showUploadProgress()}})%</div>
   </div>
 
   <!-- Main Content -->
-  <div class="relative flex flex-col flex-1 overflow-auto bg-gray-100">
+  <div class="relative flex flex-col flex-1 overflow-auto bg-gray-50">
     <app-header class="z-30"></app-header>
-    <div class="flex-1 w-full px-6 py-6 2xl:px-14">
+    <div class="flex-1 w-full px-6 pb-6  2xl:px-10">
       <router-outlet></router-outlet>
     </div>
   </div>

@@ -6,6 +6,7 @@ import { UswagonAuthModule, UswagonAuthService } from 'uswagon-auth';
 import { ConfirmationComponent } from '../modals/confirmation/confirmation.component';
 import { TerminalService } from '../../services/terminal.service';
 import { config } from '../../../environment/config';
+import { LogsService } from '../../services/logs.service';
 
 interface MenuItem {
   title: string;
@@ -22,21 +23,23 @@ interface MenuItem {
   styleUrls: ['./sidebar.component.css']
 })
 export class SidebarComponent implements OnInit {
-  appTitle =  config.texts.title;
+  appTitle =  config.texts.atitle;
   appDescription = 'Queue Management System';
   isExpanded = true;
   logoutOpen = false;
   isMobile = false;
 
+  constructor(private logService:LogsService){}
+
 
   @Input() role: string = 'admin';
-  
+
   private router = inject(Router);
 
   private auth = inject(UswagonAuthService);
 
   private terminalService = inject(TerminalService);
-  
+
   menuItems: MenuItem[] = []
 
   ngOnInit() {
@@ -47,6 +50,7 @@ export class SidebarComponent implements OnInit {
       { title: 'Terminal Management', route: '/admin/terminal', active: false, icon: 'computer' },
       { title: 'Kiosk Management', route: '/admin/kiosk-management', active: false, icon: 'touch_app' },
       { title: 'Service Management', route: '/admin/service-management', active: false, icon: 'description' },
+      { title: 'Prefix Management', route: '/admin/format-management', active: false, icon: 'tag' },
     ]: [
       { title: 'Dashboard', route: '/desk-attendant/dashboard', active: true, icon: 'dashboard' },
       { title: 'Terminal', route: '/desk-attendant/terminalmgmt', active: false, icon: 'computer' },
@@ -54,7 +58,7 @@ export class SidebarComponent implements OnInit {
 
     if(this.auth.accountLoggedIn()=='superadmin'){
       this.menuItems.push(
-         { title: 'Department Management', route: '/admin/department-management', active: false, icon: 'apartment' }
+         { title: 'Branch Management', route: '/admin/branch-management', active: false, icon: 'apartment' }
       )
     }
     this.checkScreenSize();
@@ -90,6 +94,7 @@ export class SidebarComponent implements OnInit {
   }
 
   logout(){
+    this.logService.pushLog('user-logout', 'logged out.');
     this.terminalService.terminateTerminalSession();
     this.auth.logout();
   }

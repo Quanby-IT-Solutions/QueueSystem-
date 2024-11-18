@@ -2,31 +2,64 @@ import { Injectable } from '@angular/core';
 import { UswagonAuthService } from 'uswagon-auth';
 import { UswagonCoreService } from 'uswagon-core';
 import { DivisionService } from './division.service';
+import { HttpClient } from '@angular/common/http';
+import { environment } from '../../environment/environment';
+import { every, firstValueFrom } from 'rxjs';
+import { LogsService } from './logs.service';
+import { CrudService } from './crud.service';
 
 
-interface Kiosk{
-  id:string;
-  division_id:string;
-  division:string;
-  number:number;
-  status:string;
-  last_online:string;
+export interface Kiosk{
+  id?:string;
+  number?:number;
+  division_id?:string;
+  printer_ip:string;
+  code:string;
+  division?:string;
+  last_online?:string;
+  status?:string;
 }
-
 @Injectable({
   providedIn: 'root'
 })
-export class KioskService {
+export class KioskService extends CrudService<Kiosk>{
 
   constructor(
+    private logService:LogsService,
+    private http:HttpClient,
     private divisionService: DivisionService,
-    private API:UswagonCoreService, private auth:UswagonAuthService) { }
+    private API:UswagonCoreService, private auth:UswagonAuthService) { 
+      super(API);
+      super.setTable('kiosks');
+    }
 
   // KIOSK specific
 
   public kiosk?:Kiosk;
   user:any = this.auth.getUser();
   isSuperAdmin:boolean = this.auth.accountLoggedIn() == 'superadmin';
+
+
+
+  async thermalPrint(data:any){
+    this.API.socketSend({
+      event: 'printing',
+      printer_ip: this.kiosk?.printer_ip,
+      number: data.number,
+      name: data.name,
+      gender:data.gender,
+      id:data.id,
+      location:data.location,
+      date:data.date,
+      time:data.time,
+      services: data.services
+    })
+  }
+
+  async thermalPrintUSB(data:any){
+    // Implement thermal printing via USB 
+    
+  }
 
   async kioskLogin(code:string){
     const response = await this.API.read({
@@ -49,16 +82,16 @@ export class KioskService {
         throw new Error('Invalid kiosk code.');
       }
     }else{
-      throw new Error('Something went wrong.');
+      throw new Error(response.output);
     }
   }
 
 
- async addKiosk(code:string){
+ async addKiosk(kiosk:Kiosk){
   const checkResponse = await this.API.read({
     selectors:['*'],
     tables:'kiosks',
-    conditions:`WHERE code = '${code}'`
+    conditions:`WHERE code = '${kiosk.code}'`
   })
 
   if(checkResponse.success){
@@ -75,7 +108,8 @@ export class KioskService {
      values:{
        id:id,
        division_id: currentDivision!.id,
-       code:code,
+       code:kiosk.code,
+       printer_ip: kiosk.printer_ip,
        status:'available'
      }
    });
@@ -83,6 +117,7 @@ export class KioskService {
    if(!response.success){
      throw new Error('Something went wrong');
    }
+   this.logService.pushLog('new-kiosk', 'added a kiosk');
  }
 
  async updateKioskStatus(id:string, status: 'available'|'maintenance'){
@@ -97,35 +132,40 @@ export class KioskService {
    if(!response.success){
      throw new Error('Unable to add terminal');
    }
+
  }
 
- async updateKiosk(id:string, code:string){
-  const checkResponse = await this.API.read({
-    selectors:['*'],
-    tables:'kiosks',
-    conditions:`WHERE code = '${code}'`
-  })
-
-  if(checkResponse.success){
-    if(checkResponse.output.length>0){
-      throw new Error('This code is already in use!');
+ async updateKiosk(kiosk:Kiosk, touched:boolean){
+  if(touched){
+    const checkResponse = await this.API.read({
+      selectors:['*'],
+      tables:'kiosks',
+      conditions:`WHERE code = '${kiosk.code}'`
+    })
+  
+    if(checkResponse.success){
+      if(checkResponse.output.length>0){
+        throw new Error('This code is already in use!');
+      }
+    }else{
+      throw new Error('Something went wrong');
     }
-  }else{
-    throw new Error('Something went wrong');
   }
 
 
   const response = await this.API.update({
     tables: 'kiosks',
     values:{
-      code:code
+      code:kiosk.code,
+      printer_ip: kiosk.printer_ip,
     }  ,
-    conditions: `WHERE id = '${id}'`
+    conditions: `WHERE id = '${kiosk.id}'`
   });
 
   if(!response.success){
     throw new Error('Something went wrong.');
   }
+  this.logService.pushLog('update-kiosk', 'updated a kiosk');
 }
  async deleteKiosk(id:string){
    const response = await this.API.delete({
@@ -136,8 +176,9 @@ export class KioskService {
    if(!response.success){
      throw new Error('Unable to delete kiosk');
    }
+   this.logService.pushLog('delete-kiosk', 'deleted a kiosk');
  }
-
+ 
   async getAllKiosks(division_id:string){
 
      const response = await this.API.read({
@@ -180,6 +221,25 @@ export class KioskService {
     } catch (error) {
       console.error('Error fetching kiosks:', error);
       return [];
+    }
+  }
+
+  async getKiosk(id:string):Promise<Kiosk> {
+    try {
+      const response = await this.API.read({
+        selectors: ['divisions.name as division, kiosks.*'],
+        tables: 'kiosks, divisions',
+        conditions: `WHERE kiosks.id = '${id}' AND divisions.id = kiosks.division_id`
+      });
+
+      if (response.success) {
+        return response.output[0];
+      } else {
+        throw new Error('Something went wrong');
+      }
+    } catch (error) {
+      console.error('Error fetching kiosks:', error);
+      throw new Error('Something went wrong');
     }
   }
 

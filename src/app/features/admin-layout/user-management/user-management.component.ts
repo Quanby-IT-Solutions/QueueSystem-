@@ -6,6 +6,7 @@ import { CreateAccountModalComponent } from "./create-account-modal/create-accou
 import { UswagonAuthService } from 'uswagon-auth';
 import { LottieAnimationComponent } from '../../../shared/components/lottie-animation/lottie-animation.component';
 import { environment } from '../../../../environment/environment';
+import { ConfirmationComponent } from '../../../shared/modals/confirmation/confirmation.component';
 
 interface User {
   role: string;
@@ -39,7 +40,7 @@ interface PerformanceMetrics {
   templateUrl: './user-management.component.html',
   styleUrls: ['./user-management.component.css'],
   standalone: true,
-  imports: [CommonModule, FormsModule, CreateAccountModalComponent, LottieAnimationComponent],
+  imports: [CommonModule, FormsModule, CreateAccountModalComponent, LottieAnimationComponent, ConfirmationComponent],
 })
 export class UserManagementComponent implements OnInit {
   users: User[] = [];
@@ -50,19 +51,20 @@ export class UserManagementComponent implements OnInit {
   totalPages: number = 1;
   searchQuery = '';
     performanceMetrics: PerformanceMetrics = {
-    totalCheckIns: 43212,
-    averageCheckInTime: 43212,
-    totalCheckInsToday: 1345,
-    totalCheckInsThisWeek: 12124,
-    averageTimeService: '7:30 mins',
+    totalCheckIns: 0,
+    averageCheckInTime: 0,
+    totalCheckInsToday: 0,
+    totalCheckInsThisWeek: 0,
+    averageTimeService: 'Not Available',
     rating: 4
   };
   currentUser: User | null = null;
   showModal = false;
   selectedUser: User | null = null;
   isSuperAdmin: boolean = this.auth.accountLoggedIn() === 'superadmin';
-
   divisions: Divisions[] = [];
+  showDeleteConfirmation: boolean = false;
+  userToDelete: User | null = null;
 
   constructor(private API: UswagonCoreService, private auth: UswagonAuthService) {}
 
@@ -76,8 +78,12 @@ export class UserManagementComponent implements OnInit {
     this.users = users;
     this.filteredUsers = [...this.users];
     this.updatePagination();
+    if (this.users.length > 0) {
+      this.setCurrentUser(this.users[0]);
+    }
     this.API.setLoading(false);
   }
+  
 
   updatePagination() {
     this.totalPages = Math.ceil(this.filteredUsers.length / this.pageSize);
@@ -108,7 +114,7 @@ export class UserManagementComponent implements OnInit {
       user.fullname.toLowerCase().includes(query) ||
       user.division.toLowerCase().includes(query)
     );
-    this.currentPage = 1; // Reset to the first page after searching
+    this.currentPage = 1; 
     this.updatePagination();
   }
 
@@ -138,7 +144,6 @@ export class UserManagementComponent implements OnInit {
       ? 'WHERE divisions.id = desk_attendants.division_id'
       : `WHERE divisions.id = desk_attendants.division_id AND divisions.id = '${this.auth.getUser().division_id}'`;
 
-    // Fetch users from both desk attendants and administrators in parallel
     const [deskAttendantData, adminData] = await Promise.all([
       this.API.read({
         selectors: ['desk_attendants.*, divisions.name as division'],
@@ -154,7 +159,6 @@ export class UserManagementComponent implements OnInit {
 
     let users: User[] = [];
 
-    // Combine and process users concurrently using map and async functions.
     if (deskAttendantData.success) {
       const deskAttendants = deskAttendantData.output.map((user: any) => this.processUser(user, 'Desk attendant'));
       users.push(...await Promise.all(deskAttendants));
@@ -181,47 +185,99 @@ export class UserManagementComponent implements OnInit {
       division: user.division || 'Not Available',
       is_online: user.is_online,
       role: role,
-      number: user.number || '' // Defaulting to an empty string if 'number' is not available.
+      number: user.number || '' 
     };
   }
+
   
 
   getImageURL(file: string): string | undefined {
     return this.API.getFileURL(file);
   }
 
- 
+  metricsLoading: boolean = false;
 
   setCurrentUser(user: User) {
-    this.currentUser = user;
+    this.metricsLoading = true;
+    setTimeout(() => {
+      this.currentUser = user;
+      this.metricsLoading = false;
+    }, 300); // Adjust the timeout to match the animation duration
+    if (user) {
+      this.fetchTerminalSessions(user.id);
+    } else {
+      this.resetMetrics();
+    }
   }
+  
+  
 
   createNewAccount() {
     this.selectedUser = null;
     this.showModal = true;
   }
 
-  async deleteUser(user: User) {
-    const confirmed = confirm(`Are you sure you want to delete ${user.fullname}?`);
-    if (!confirmed) return;
+ 
 
+  // async deleteUser(user: User) {
+  //   const confirmed = confirm(`Are you sure you want to delete ${user.fullname}?`);
+  //   if (!confirmed) return;
+
+  //   try {
+  //     const response = await this.API.delete({
+  //       tables: user.role === 'Desk attendant' ? 'desk_attendants' : 'administrators',
+  //       conditions: `WHERE id = '${user.id}'`
+  //     });
+
+  //     if (response && response.success) {
+  //       this.users = this.users.filter(u => u.id !== user.id);
+  //       this.filteredUsers = this.filteredUsers.filter(u => u.id !== user.id);
+  //       this.API.sendFeedback('success', 'User has been deleted!', 5000);
+  //       console.log('User deleted successfully:', user.fullname);
+  //     } else {
+  //       alert(`Failed to delete user: ${response.output || 'Unknown error'}`);
+  //     }
+  //   } catch (error) {
+  //     console.error('Error occurred during user deletion:', error);
+  //   }
+  // }
+
+  
+
+  confirmDeleteUser(user: User) {
+    this.userToDelete = user;
+    this.showDeleteConfirmation = true;
+  }
+
+  async onConfirmDelete() {
+    if (!this.userToDelete) return;
+    this.showDeleteConfirmation = false;
+  
     try {
       const response = await this.API.delete({
-        tables: user.role === 'Desk attendant' ? 'desk_attendants' : 'administrators',
-        conditions: `WHERE id = '${user.id}'`
+        tables: this.userToDelete.role === 'Desk attendant' ? 'desk_attendants' : 'administrators',
+        conditions: `WHERE id = '${this.userToDelete.id}'`
       });
-
+  
       if (response && response.success) {
-        this.users = this.users.filter(u => u.id !== user.id);
-        this.filteredUsers = this.filteredUsers.filter(u => u.id !== user.id);
+        this.users = this.users.filter(u => u.id !== this.userToDelete!.id);
+        this.filteredUsers = this.filteredUsers.filter(u => u.id !== this.userToDelete!.id);
         this.API.sendFeedback('success', 'User has been deleted!', 5000);
-        console.log('User deleted successfully:', user.fullname);
+        console.log('User deleted successfully:', this.userToDelete.fullname);
       } else {
         alert(`Failed to delete user: ${response.output || 'Unknown error'}`);
       }
     } catch (error) {
       console.error('Error occurred during user deletion:', error);
+    } finally {
+      this.userToDelete = null;
     }
+  }
+  
+
+  onCancelDelete() {
+    this.showDeleteConfirmation = false;
+    this.userToDelete = null;
   }
 
   viewUserDetails(user: User) {
@@ -251,4 +307,112 @@ export class UserManagementComponent implements OnInit {
     this.selectedUser = user;
     this.showModal = true;
   }
+
+
+  async fetchTerminalSessions(userId: string) {
+    try {
+      const response = await this.API.read({
+        selectors: ['*'],
+        tables: 'terminal_sessions',
+        conditions: `WHERE attendant_id = '${userId}'`,
+      });
+  
+      if (response.success && response.output.length > 0) {
+        const sessions = response.output;
+        this.performanceMetrics = this.calculateMetrics(sessions);
+      } else {
+        this.resetMetrics(); 
+        console.error('No terminal sessions found for this user:', response.output);
+      }
+    } catch (error) {
+      console.error('Error fetching terminal sessions for user:', error);
+    }
+  }
+
+  formatTime(minutes: number): string {
+    if (!minutes || isNaN(minutes)) {
+      return '0';
+    }
+  
+    const totalMinutes = Math.round(minutes);
+    const hours = Math.floor(totalMinutes / 60);
+    const mins = totalMinutes % 60;
+    const period = hours >= 12 ? 'PM' : 'AM';
+    const formattedHours = hours % 12 || 12; 
+  
+    return `${formattedHours}:${mins.toString().padStart(2, '0')} ${period}`;
+  }
+  
+
+ 
+  calculateMetrics(sessions: any[]): PerformanceMetrics {
+    const totalCheckIns = sessions.length;
+    const checkInTimesByDate: Record<string, number[]> = {};
+
+    sessions.forEach((session) => {
+      const startTime = new Date(session.start_time);
+      const dateKey = startTime.toISOString().split('T')[0]; 
+      const checkInTimeInMinutes = startTime.getHours() * 60 + startTime.getMinutes(); 
+  
+      if (!checkInTimesByDate[dateKey]) {
+        checkInTimesByDate[dateKey] = [];
+      }
+      checkInTimesByDate[dateKey].push(checkInTimeInMinutes);
+    });
+  
+    const dailyAverages: number[] = Object.values(checkInTimesByDate).map((times) => {
+      const totalMinutes = times.reduce((sum, time) => sum + time, 0);
+      return totalMinutes / times.length;
+    });
+  
+    const overallAverageCheckInTimeInMinutes =
+      dailyAverages.reduce((sum, avg) => sum + avg, 0) / dailyAverages.length;
+  
+    const totalDuration = sessions.reduce((acc, session) => {
+      const startTime = new Date(session.start_time).getTime();
+      const lastActive = new Date(session.last_active).getTime();
+      const sessionDuration = lastActive - startTime; 
+      return acc + sessionDuration;
+    }, 0);
+  
+    const averageDurationMs = totalDuration / totalCheckIns;
+    const averageServiceMinutes = Math.floor(averageDurationMs / 60000);
+    const averageServiceSeconds = Math.floor((averageDurationMs % 60000) / 1000);
+    const averageTimeService = `${averageServiceMinutes}:${averageServiceSeconds.toString().padStart(2, '0')} mins`;
+  
+    const totalCheckInsToday = sessions.filter(session =>
+      new Date(session.start_time).toDateString() === new Date().toDateString()).length;
+  
+    const totalCheckInsThisWeek = sessions.filter(session => {
+      const sessionDate = new Date(session.start_time);
+      const currentDate = new Date();
+      const weekStart = new Date(currentDate.setDate(currentDate.getDate() - currentDate.getDay()));
+      const weekEnd = new Date(weekStart);
+      weekEnd.setDate(weekEnd.getDate() + 6);
+      return sessionDate >= weekStart && sessionDate <= weekEnd;
+    }).length;
+  
+    return {
+      totalCheckIns,
+      averageCheckInTime: overallAverageCheckInTimeInMinutes, 
+      totalCheckInsToday,
+      totalCheckInsThisWeek,
+      averageTimeService,
+      rating: 4,
+    };
+  }
+  
+  resetMetrics() {
+    this.performanceMetrics = {
+      totalCheckIns: 0,
+      averageCheckInTime: 0,
+      totalCheckInsToday: 0,
+      totalCheckInsThisWeek: 0,
+      averageTimeService: '0',
+      rating: 0,
+    };
+  }
+
+  
+
 }

@@ -1,177 +1,185 @@
-<section class="relative flex flex-col items-start min-h-screen overflow-hidden bg-lime-900">
-  <!-- Background Image that remains fixed -->
+<section class="relative flex flex-col items-start min-h-full overflow-hidden">
 
   <img
       loading="lazy"
-      src="https://cdn.builder.io/api/v1/image/assets/TEMP/2cba961d66b8f4ac84a7ea33550174a78410d2d66f219587d45cabb6030b81fa?placeholderIfAbsent=true&apiKey=f35c25b17acb406083beeda46a28c843"
-      class="fixed inset-0 object-cover w-full h-full"
-      alt="Background image of the queueing management system" />
-  <!-- Dark overlay with opacity adjustment -->
-  <div class="fixed inset-0 bg-black bg-opacity-40"></div>
+      src="./assets/specifics/pcso/pcsobg.png"
+      class="fixed inset-0 object-cover w-full h-full "
+      alt="Background image of the queueing management system" /> -->
 
-  <!-- Decorative SVG Shape on the right that stays fixed -->
-  <svg 
-        class="fixed right-0 top-0 w-[500px] h-full max-md:w-[300px]"
-       xmlns="http://www.w3.org/2000/svg"
-       viewBox="0 0 100 150"
-       preserveAspectRatio="none">
-    <polygon points="0,0 55,0 100,55 55,150 0,150" fill="#7a9a01" transform="scale(-1, 1) translate(-100, 0)" />
-  </svg>
-
-  <!-- Bottom-right image that stays fixed -->
-  <img
-  
-  loading="lazy"
-  src="./assets/login/statue.png"
-  class="fixed bottom-0 right-0 object-cover w-[555px] h-auto max-md:w-[200px] max-md:h-[200px]"
-  alt="Statue Image" />
+    <div class="fixed inset-0 bg-gradient-to-b from-[#FED602] from-0% via-[#B59903] via-17% to-[#6D5C04] to-35% opacity-40"></div>
 
 
-  <div class="relative z-10 flex flex-col items-start w-full h-screen max-w-full max-md:pr-3">
-    <div class="relative flex flex-col justify-between w-full h-full pt-8 pl-10 max-md:pl-3">
-      <div class="flex h-full gap-8 max-md:flex-col">
-        <!-- Text Content on the left side, aligned to bottom -->
-        <div class="flex flex-col justify-end w-6/12 h-full max-md:w-full">
-          <!-- Top Left: Logo and University Name -->
-          <div class="absolute top-20 left-20 max-md:left-5">
-            <header class="flex items-center gap-3 text-3xl font-bold text-white max-md:text-2xl">
-              <img loading="lazy"
-              [src]="config.assets.logo"
-              class="object-contain w-[45px] aspect-[0.97]"
-                   alt="Visayas State University logo" />
-              <h1 class="w-auto">{{config.texts.title.toUpperCase()}}</h1>
-            </header>
-          </div>
+    <!-- <div class="fixed inset-0 bg-gradient-to-r from-[#001133] from-0% via-[#001133] via-20% to-[#DCDC01] opacity-100"></div> -->
 
-          <!-- Bottom Left: Queueing System Info and Address, pinned at the very bottom -->
-          <div class="flex flex-col mb-20 ml-10 text-white max-md:mb-2">
-            <h2 class="text-3xl font-bold max-md:text-2xl">
-              QUEUEING MANAGEMENT SYSTEM
-            </h2>
-            <p class="mt-2 text-lg leading-7">
-              Efficient Flow, Seamless Service: <br /> Your Queueing Management Solution!
-            </p>
-            <address class="flex items-start gap-4 mt-6 text-lg max-md:mt-4">
-              <div class="flex gap-2">
-                <img 
-                    (click)="openExternalLink('https://www.vsu.edu.ph')"
-                    loading="lazy"
-                     src="https://cdn.builder.io/api/v1/image/assets/TEMP/31fd4b9ea34a63e228f8fb604a3f1d884d27b4160be7793af8d53e0b65722f39?placeholderIfAbsent=true&apiKey=f35c25b17acb406083beeda46a28c843"
-                     class="cursor-pointer object-contain w-[40px] aspect-square"
-                     alt="Social media icon 1" />
-                <img 
-                    (click)="openExternalLink('https://www.facebook.com/visayasstateu/')"
-                    loading="lazy"
-                     src="https://cdn.builder.io/api/v1/image/assets/TEMP/f9b5f4d23117931c46243310db6d001dd0cee5d96cc7fa3c2b2dac839e06a4e6?placeholderIfAbsent=true&apiKey=f35c25b17acb406083beeda46a28c843"
-                     class="cursor-pointer object-contain w-[35px] aspect-square"
-                     alt="Social media icon 2" />
-              </div>
-              <div class="flex items-center gap-2 text-base font-medium text-white">
-                <img 
-                    (click)="openExternalMap()"
-                    loading="lazy"
-                     src="https://cdn.builder.io/api/v1/image/assets/TEMP/0c78319bb686a1aa34bb1c1e9338e1d06a351a9b327ddf5c26cc06e7ee034993?placeholderIfAbsent=true&apiKey=f35c25b17acb406083beeda46a28c843"
-                     class="cursor-pointer object-contain w-[25px] aspect-[0.72]"
-                     alt="Location pin icon" />
-                <span
-                (click)="openExternalMap()"
-                class="cursor-pointer"
-                >{{config.texts.location}}</span>
-              </div>
-            </address>
-          </div>
+
+
+  <!-- Main content container -->
+  <div class="fixed flex items-center justify-start inset-10">
+    <!-- Blue container with YouTube background -->
+    <div class="absolute w-[1150px] hidden xl:block rounded-l-lg rounded-r-[30%] shadow-lg overflow-hidden z-1">
+      <!-- 1. YouTube Background (bottommost layer) -->
+      <!-- <div class="absolute inset-0 w-full h-full z-1">
+        <iframe
+          #youtubePlayer
+          class="absolute w-full h-full scale-150 -translate-x-1/2 -translate-y-1/2 top-1/2 left-1/2"
+          [src]="videoUrl"
+          title="YouTube video player"
+          frameborder="0"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+        ></iframe>
+      </div> -->
+
+      <!-- Gradient Overlay -->
+      <div class="absolute inset-0 bg-gradient-to-r from-[#000033] from-20% via-[#000033] via-30% to-[#0033cc] z-2"></div>
+
+      <!-- <div class="absolute inset-0 bg-gradient-to-b from-[#003299]/50 to-[#001133]/50 z-2"></div> -->
+      <div class="relative z-10 flex flex-col p-12">
+        <!-- Header -->
+        <header class="flex items-center gap-3 mb-4">
+          <img loading="lazy"
+               [src]="config.assets.logo"
+               class="relative object-contain w-[45px] aspect-[0.97]"
+               alt="PCSO logo" />
+          <h1 class="relative text-3xl font-bold text-white">PHILIPPINES CHARITY SWEEPSTAKES OFFICE</h1>
+        </header>
+
+
+        <!-- Main Image -->
+        <div class="flex items-center  justify-start w-full my-8 ml-20">
+          <img
+            loading="lazy"
+            src="./assets/specifics/pcso/pcso-big.png"
+            class="w-[40%] h-auto scale-x-[-1] " 
+            alt="PCSO Logo" />
         </div>
 
-        <div class="relative z-10 flex flex-col w-6/12 h-full mr-20 max-md:w-full">
-          <div class="relative flex flex-col items-center justify-center h-full pt-16 pb-16 ml-12 grow max-md:ml-0">
-            <!-- Login Form -->
-            <div class="flex relative flex-col px-9 py-12 bg-white rounded-3xl shadow-lg w-[400px] 2xl:w-[500px] max-md:px-4 max-md:w-[90%]">
-              <form class="flex flex-col w-full 2xl:space-y-8 space-y-6">
-                <h3 class="text-2xl 2xl:text-3xl font-medium text-neutral-800 text-center">
-                  Account Log in
-                </h3>
-
-                <div class="relative">
-                  <!-- <input id="username" type="text"
-                         class="w-full px-4 py-3 text-lg text-left transition duration-200 border rounded-lg shadow-sm text-neutral-700 bg-zinc-100 border-zinc-300 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                         placeholder="Enter Username or email" /> -->
-                  <uswagon-auth-input 
-                  id="username"
-                  [class]="'w-full px-4 py-3 text-lg text-left transition duration-200 border rounded-lg shadow-sm text-neutral-700 bg-zinc-100 border-zinc-300 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 z-0'"
-                  placeholder="Enter Username or email"
-                  type="text"  [name]="'identifier'" [aliases]="['username']" [required]="true" />
-                  <span class="absolute inset-y-0 flex items-center pointer-events-none right-3 z-10 text-zinc-400">
-                    <i class="fa fa-user"></i>
-                  </span>
-                </div>
-
-                <div class="relative">
-                  <uswagon-auth-input 
-                  id="username"
-                  [class]="'w-full px-4 py-3 text-lg text-left transition duration-200 border rounded-lg shadow-sm text-neutral-700 bg-zinc-100 border-zinc-300 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 z-0'"
-                  placeholder="Enter password"
-                  type="password"  [name]="'password'" [required]="true" />
-                  <span class="absolute inset-y-0 flex items-center pointer-events-none right-3 text-zinc-400">
-                    <i class="fa fa-lock"></i>
-                  </span>
-                </div>
-
-                <div class="flex items-center space-x-2 text-lg text-neutral-700">
-                  <input [(ngModel)]="rememberMe" type="checkbox" id="remember"
-                         class="w-5 h-5 text-green-600 transition duration-200 rounded border-zinc-300 focus:ring-green-500" />
-                  <label for="remember" class="select-none">Remember me</label>
-                </div>
-
-                <div 
-                  (click)="login()"
-                        class="w-full py-3 cursor-pointer text-lg font-bold flex justify-center text-white transition duration-200 bg-[var(--primary)] rounded-lg shadow-md hover:bg-[var(--primary-hover)]">
-                  LOG IN
-              </div>
-
-            
-
-                <!-- Small Buttons for Roles -->
-                <div *ngIf="!selectedRole" class="flex flex-wrap justify-center gap-3 mt-4">
-                  <button type="button" class="px-4 py-2 text-sm font-semibold text-green-700 bg-green-100 rounded-full hover:bg-green-200 focus:outline-none"
-                          onclick="location.href='/login?role=admin'" tabindex="0">
-                    Admin
-                  </button>
-                  <button type="button" class="px-4 py-2 text-sm font-semibold text-green-700 bg-green-100 rounded-full hover:bg-green-200 focus:outline-none"
-                          onclick="location.href='/kiosk'" tabindex="1">
-                    Kiosk
-                  </button>
-                  <button type="button" class="px-4 py-2 text-sm font-semibold text-green-700 bg-green-100 rounded-full hover:bg-green-200 focus:outline-none"
-                          onclick="location.href='/login?role=desk_attendants'" tabindex="2">
-                    Desk Attendant
-                  </button>
-                  <button type="button" class="px-4 py-2 text-sm font-semibold text-green-700 bg-green-100 rounded-full hover:bg-green-200 focus:outline-none"
-                          onclick="location.href='/queueing-display'" tabindex="3">
-                    Queue Display
-                  </button>
-                </div>
-              </form>
+        <!-- Content -->
+        <div class="flex flex-col text-white">
+          <h2 class="text-4xl font-bold">
+            QUEUEING MANAGEMENT SYSTEM
+          </h2>
+          <p class="mt-2 text-xl">
+            Efficient Flow, Seamless Service: <br /> Your Queueing Management Solution!
+          </p>
+          <div class="flex items-center gap-4 mt-6">
+            <img (click)="openExternalLink('https://www.pcso.gov.ph')"
+                 loading="lazy"
+                 src="https://cdn.builder.io/api/v1/image/assets/TEMP/31fd4b9ea34a63e228f8fb604a3f1d884d27b4160be7793af8d53e0b65722f39"
+                 class="w-[35px] cursor-pointer"
+                 alt="Website icon" />
+            <img (click)="openExternalLink('https://www.facebook.com/pcsoofficialsocialmedia/')"
+                 loading="lazy"
+                 src="https://cdn.builder.io/api/v1/image/assets/TEMP/f9b5f4d23117931c46243310db6d001dd0cee5d96cc7fa3c2b2dac839e06a4e6"
+                 class="w-[35px] cursor-pointer"
+                 alt="Facebook icon" />
+            <div class="flex items-center gap-2">
+              <img
+                   loading="lazy"
+                   src="https://cdn.builder.io/api/v1/image/assets/TEMP/0c78319bb686a1aa34bb1c1e9338e1d06a351a9b327ddf5c26cc06e7ee034993"
+                   class="w-[25px] cursor-pointer"
+                   alt="Location icon" />
+              <span (click)="openExternalMap()" class="text-lg cursor-pointer">
+                {{config.texts.location}}
+              </span>
             </div>
           </div>
         </div>
       </div>
     </div>
+
+    <!-- Login form container - positioned in front -->
+    <div class="relative xl:ml-[910px] mx-auto my-auto z-10">
+      <div class="w-[400px] bg-white rounded-3xl shadow-lg p-8">
+        <form class="flex flex-col space-y-6">
+          <h3 class="text-2xl font-medium text-center text-neutral-800">
+            Account Log in
+          </h3>
+
+          <!-- Username Input -->
+          <div class="relative">
+            <uswagon-auth-input
+              id="username"
+              [class]="'w-full px-4 py-3 text-lg text-left transition duration-200 border rounded-lg shadow-sm text-neutral-700 bg-zinc-100 border-zinc-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 z-0'"
+              placeholder="Enter Username or email"
+              type="text"
+              [name]="'identifier'"
+              [aliases]="['username']"
+              [required]="true" />
+            <span class="absolute inset-y-0 z-10 flex items-center pointer-events-none right-3 text-zinc-400">
+              <i class="fa fa-user"></i>
+            </span>
+          </div>
+
+          <!-- Password Input -->
+          <div class="relative">
+            <uswagon-auth-input
+              id="password"
+              [class]="'w-full px-4 py-3 text-lg text-left transition duration-200 border rounded-lg shadow-sm text-neutral-700 bg-zinc-100 border-zinc-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 z-0'"
+              placeholder="Enter password"
+              type="password"
+              [name]="'password'"
+              [required]="true" />
+            <span class="absolute inset-y-0 flex items-center pointer-events-none right-3 text-zinc-400">
+              <i class="fa fa-lock"></i>
+            </span>
+          </div>
+
+          <!-- Remember Me -->
+          <div class="flex items-center space-x-2">
+            <input [(ngModel)]="rememberMe" type="checkbox" id="remember"
+                   class="w-5 h-5 text-blue-600 rounded border-zinc-300 focus:ring-blue-500" />
+            <label for="remember" class="text-neutral-700">Remember me</label>
+          </div>
+
+          <!-- Login Button -->
+          <button
+            (click)="login()"
+            class="w-full py-3 text-lg font-bold text-white bg-[#003299] rounded-lg hover:bg-[--primary]">
+            LOG IN
+          </button>
+
+          <!-- Role Buttons -->
+          <div *ngIf="!selectedRole" class="flex flex-wrap justify-center gap-2">
+            <button type="button"
+                    class="px-4 py-2 text-sm font-semibold text-[--primary] bg-[--primary-bg-light] rounded-full hover:bg-blue-200"
+                    onclick="location.href='/login?role=admin'">
+              Admin
+            </button>
+            <button type="button"
+                    class="px-4 py-2 text-sm font-semibold text-[--primary] bg-[--primary-bg-light] rounded-full hover:bg-blue-200"
+                    onclick="location.href='/kiosk'">
+              Kiosk
+            </button>
+            <button type="button"
+                    class="px-4 py-2 text-sm font-semibold text-[--primary] bg-[--primary-bg-light] rounded-full hover:bg-blue-200"
+                    onclick="location.href='/login?role=desk_attendants'">
+              Desk Attendant
+            </button>
+            <button type="button"
+                    class="px-4 py-2 text-sm font-semibold text-[--primary] bg-[--primary-bg-light] rounded-full hover:bg-blue-200"
+                    onclick="location.href='/queueing-display'">
+              Queue Display
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
   </div>
 
-
   <div *ngIf="getAuthFeedback()"
-  class="absolute bottom-4 right-4 z-50 flex flex-col gap-4 ">
+  class="absolute z-50 flex flex-col gap-4 bottom-4 right-4 ">
      <ng-container  >
          <div  class="animate-pop flex items-center gap-10 min-w-96 justify-between bg-white rounded-xl  w-auto shadow-md border-2 border-solid {{borderColorMap[getAuthFeedback()!.type]}} h-auto py-2 pl-4 pr-4">
-             <div class="flex gap-4 items-center">
-                 <div class="w-14 h-14 flex items-center">
+             <div class="flex items-center gap-4">
+                 <div class="flex items-center w-14 h-14">
                      <app-lottie-animation animation="{{lottieMap[getAuthFeedback()!.type]}}" [loop]="false"></app-lottie-animation>
                  </div>
                  <div class="text-{{bgColorMap[getAuthFeedback()!.type]}}-500  text-lg font-medium text-center">
                      {{getAuthFeedback()!.message}}
                  </div>
              </div>
-             <div (click)="closeFeedback()" class="flex items-center rounded-full p-1 bg-gray-200 hover:bg-gray-100 cursor-pointer">
-                 <span  class="material-icons text-lg leading-none"> close </span>
+             <div (click)="closeFeedback()" class="flex items-center p-1 bg-gray-200 rounded-full cursor-pointer hover:bg-gray-100">
+                 <span  class="text-lg leading-none material-icons"> close </span>
              </div>
          </div>
          <audio [volume]="0.4" [src]="getAuthFeedback()!.type !='success' ? 'assets/audio/pop-notif.wav': 'assets/audio/notif.mp3'" autoplay preload="auto"></audio>

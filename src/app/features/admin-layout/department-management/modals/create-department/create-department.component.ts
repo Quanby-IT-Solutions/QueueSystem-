@@ -4,6 +4,7 @@ import { DepartmentService } from '../../../../../services/department.service';
 import { UswagonCoreService } from 'uswagon-core';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
+import { LogsService } from '../../../../../services/logs.service';
 
 @Component({
   selector: 'app-create-department',
@@ -19,7 +20,9 @@ export class CreateDepartmentComponent {
   errorMessage?:string;
   submittingForm:boolean = false;
 
-  constructor(private API:UswagonCoreService, private departmentService:DepartmentService){}
+  constructor(private API:UswagonCoreService,
+    private logService: LogsService,
+    private departmentService:DepartmentService){}
 
   item:Department =  {
     name:'',
@@ -42,6 +45,7 @@ export class CreateDepartmentComponent {
   }
 
   async submitForm(){
+    if(this.submittingForm) return;
     this.submittingForm = true;
     if(this.item.name.trim() == ''){
       this.errorMessage = 'This field is required.';
@@ -51,17 +55,21 @@ export class CreateDepartmentComponent {
       this.errorMessageTimeout = setTimeout(()=>{
         this.errorMessage = undefined;
       },5000)
+      this.submittingForm = false;
       return;
     }
     try{
       if(this.item.id){
         await this.departmentService.updateDepartment(this.item.id,this.item.name);
+        
       }else{
         await this.departmentService.addDepartment(
           this.item.name
         )
       }
+      this.submittingForm =false;
     }catch(e:any){
+      this.submittingForm = false;
       this.API.sendFeedback('error', e.message,5000);
       return;
     }

@@ -1,10 +1,14 @@
-import { Injectable, OnInit } from '@angular/core';
+
+import { Injectable } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
 import { UswagonAuthService } from 'uswagon-auth';
 import { UswagonCoreService } from 'uswagon-core';
 import { KioskService } from './kiosk.service';
 import { DivisionService } from './division.service';
 import { DatePipe } from '@angular/common';
+import { LogsService } from './logs.service';
+import { FormatService } from './format.service';
+import { Format } from '../features/admin-layout/format-management/types/format.types';
 
 
 
@@ -14,12 +18,16 @@ interface Queue{
   number:number;
   status:string;
   timestamp:string;
-  type:'regular'|'priority';
+  type:string;
+  tag?:string;
+  metaType?:string;
   fullname:string;
+  services:string;
   department_id?:string;
   kiosk_id:string;
   gender:'male'|'female'|'other';
   student_id?:string;
+  collision?:string;
 }
 
 interface AttendedQueue{
@@ -38,18 +46,24 @@ interface AttendedQueue{
 })
 export class QueueService  {
 
-  constructor(private API:UswagonCoreService,private auth:UswagonAuthService, 
+  constructor(
+    private formatService:FormatService,
+    private API:UswagonCoreService,private auth:UswagonAuthService, private logService:LogsService ,
     private divisionService:DivisionService,
     private kioskService:KioskService) {}
 
 
-  private lastRegularQueueNumber:number = 0;
-  private lastPriorityQueueNumber:number = 0;
+  private queueNumber:{[key:string]:number} = {
+    'priority': 0,
+    'regular': 0,
+  };
   public queue:Queue[]=[];
   public allQueue:Queue[]= [];
   public allTodayQueue:Queue[]= [];
   public attendedQueues:AttendedQueue[]= [];
   private takenQueue:string[]= [];
+
+  private lastTimestamp:number = new Date().getTime();
   public attendedQueue?:AttendedQueue;
   private queueSubject = new BehaviorSubject<Queue[]>([]);
   public queue$ = this.queueSubject.asObservable();
@@ -59,11 +73,6 @@ export class QueueService  {
   listenToQueue(){
     this.API.addSocketListener('live-queue-events-listener', (message)=>{
       if(message.division!= this.divisionService.selectedDivision!.id) return;
-
-      if(message.event =='queue-counter' ){
-        this.lastRegularQueueNumber = message.lastRegularQueueNumber as number;
-        this.lastPriorityQueueNumber = message.lastPriorityQueueNumber as number;
-      }
       if(message.event =='take-from-queue'){
         this.takenQueue.push(message.queue_id);
         this.getTodayQueues();
@@ -78,43 +87,20 @@ export class QueueService  {
     });
   }
 
-  private incrementQueueNumber(type:'regular'|'priority',division:string){
-    if(type == 'regular'){
-      this.lastRegularQueueNumber += 1;
-    }else{
-      this.lastPriorityQueueNumber += 1;
-    }
-    this.API.socketSend({
-      event: 'queue-counter',
-      division:division,
-      lastRegularQueueNumber: this.lastRegularQueueNumber,
-      lastPriorityQueueNumber: this.lastPriorityQueueNumber
-    });
-  }
 
-  private decrementQueueNumber(type:'regular'|'priority',division:string){
-    if(type == 'regular'){
-      this.lastRegularQueueNumber -= 1;
-    }else{
-      this.lastPriorityQueueNumber -= 1;
-    }
-    this.API.socketSend({
-      event: 'queue-counter',
-      division:division,
-      lastRegularQueueNumber: this.lastRegularQueueNumber,
-      lastPriorityQueueNumber: this.lastPriorityQueueNumber
-    });
-  }
-
-  private updateQueue(division:string){
+  private updateQueue(type:string , division:string){
     this.API.socketSend({
       event: 'update-queue',
       division:division
     });
+    this.queueNumber[type]+=1;
   }
 
-  private takeFromQueue(){
-    const queue = this.queue.shift()!;
+  private takeFromQueue(id?:string){
+    const availableQueue = this.queue.filter(queue => !this.takenQueue.includes(queue.id))
+   if(id){
+    const queue = availableQueue.find(queue=>queue.id ==id);
+    if(queue == undefined) return undefined;
     this.takenQueue.push(queue.id);
     this.API.socketSend({
       event: 'take-from-queue',
@@ -122,6 +108,17 @@ export class QueueService  {
       queue_id:queue.id,
     });
     return queue;
+   }else{
+    const queue = availableQueue.shift();
+    if(queue == undefined) return undefined;
+    this.takenQueue.push(queue.id);
+    this.API.socketSend({
+      event: 'take-from-queue',
+      division:queue.division_id,
+      queue_id:queue.id,
+    });
+    return queue;
+   }
   }
 
   private resolveTakenQueue(queue_id:any){
@@ -137,57 +134,59 @@ export class QueueService  {
   async addToQueue(
     info:{department_id?:string,
           fullname:string, 
-          type:'regular'|'priority', 
+          type:string,
+          tag:string,
           gender:'male'|'female'|'other'
           student_id?:string,
           services:string[],
         })
   {
     const id = this.API.createUniqueID32();
-    const  now=  new Date();
-    this.incrementQueueNumber(info.type,this.kioskService.kiosk?.division_id!);
-    const response = await this.API.create({
-      tables: 'queue',
-      values:{
-        id: id,
-        division_id: this.kioskService.kiosk?.division_id,
-        kiosk_id:this.kioskService.kiosk?.id,
-        department_id: info.department_id,
-        fullname: info.fullname,
-        number: info.type == 'regular' ? this.lastRegularQueueNumber: this.lastPriorityQueueNumber,
-        type: info.type,
-        gender: info.gender,
-        status:'waiting',
-        timestamp: new DatePipe('en-US').transform(now, 'yyyy-MM-dd HH:mm:ss.SSSSSS'),
-        student_id: info.student_id
-      }
-    });
-   for(let service_id of info.services){
-    const intent_id = this.API.createUniqueID32();
-    // Add services
-    const servicesResponse = await this.API.create({
-      tables: 'client_intents',
-      values:{
-        id: intent_id,
-        queue_id: id,
-        service_id: service_id
-      }
-    });
-    if(!servicesResponse.success){
-      this.decrementQueueNumber(info.type,this.kioskService.kiosk?.division_id!);
-      throw new Error('Something went wrong.')
-    }
-   }
-    
+    const  now =  new Date();
+    const formattedDate = `${now.getMonth() + 1}/${now.getDate()}/${now.getFullYear()}`;
+    this.lastTimestamp = now.getTime();
 
-    
-    if(!response.success){
-      this.decrementQueueNumber(info.type,this.kioskService.kiosk?.division_id!);
-      throw new Error('Something went wrong.');
-    }else{
-      this.updateQueue(this.kioskService.kiosk?.division_id!);
-      return info.type == 'regular' ?  this.lastRegularQueueNumber:this.lastPriorityQueueNumber;
+    // this.takeQueueNumber(info.type,this.kioskService.kiosk?.division_id!);
+    let collision = true;
+    while(collision){
+      try{
+          const response = await this.API.create({
+            tables: 'queue',
+            values:{
+              id: id,
+              division_id: this.kioskService.kiosk?.division_id,
+              kiosk_id:this.kioskService.kiosk?.id,
+              department_id: info.department_id,
+              fullname: info.fullname,
+              number: this.queueNumber[info.type],
+              type: info.type,
+              gender: info.gender,
+              services:  info.services.join(', '),
+              status:'waiting',
+              timestamp: new DatePipe('en-US').transform(now, 'yyyy-MM-dd HH:mm:ss.SSSSSS'),
+              student_id: info.student_id,
+              collision:  `${formattedDate}:${this.kioskService.kiosk?.id}:${info.type}-${this.queueNumber[info.type]}` ,
+            }
+          });
+          if(!response.success){
+            // this.returnQueueNumber(info.type,this.kioskService.kiosk?.division_id!);
+            throw new Error('Something went wrong.');
+          }else{
+            collision =false;
+            const lastNumber =this.queueNumber[info.type];
+            this.updateQueue(info.type,this.kioskService.kiosk?.division_id!);
+            return lastNumber;
+          }
+        }catch(e:any){
+          if(e.message.includes('Server Error')){
+            throw new Error('Something went wrong')
+          }
+          this.queueNumber[info.type] +=1
+        }
     }
+    const lastNumber = this.queueNumber[info.type];
+    return lastNumber;
+    
   }
 
   async addQueueToAttended(queue:Queue){
@@ -196,7 +195,7 @@ export class QueueService  {
       const sessionResponse = await this.API.read({
         selectors: ['id'],
         tables: 'terminal_sessions',
-        conditions: `WHERE attendant_id = '${user.id}'`
+        conditions: `WHERE attendant_id = '${user.id}' ORDER BY last_active DESC`
       });
   
       if(!sessionResponse.success)throw new Error(sessionResponse.output);
@@ -227,7 +226,7 @@ export class QueueService  {
       this.attendedQueue = attended;
       if(!createResponse.success) throw new Error(createResponse.output);
     }catch(e:any){
-      throw new Error('Something went wrong. Please try again');
+      throw new Error(e.message);
     }
   }
   
@@ -248,26 +247,42 @@ export class QueueService  {
               number:  this.attendedQueue.queue?.number,
               type:  this.attendedQueue.queue?.type,
               gender:  this.attendedQueue.queue?.gender,
+              services:  this.attendedQueue.queue?.services,
               status:'bottom',
               timestamp: new DatePipe('en-US').transform(now, 'yyyy-MM-dd HH:mm:ss.SSSSSS'),
               student_id:  this.attendedQueue.queue?.student_id,
+              collision: this.attendedQueue.queue?.collision?.split('>')[0] + ">"+ now.getTime(),
             }
           });
           if(!createResponse.success){
             throw new Error(createResponse.output);
-          }
+          }this.logService.pushLog('transaction-bottom',`put a transaction to bottom of queue.`);
         } 
         if(remark=='return'){
-          const updateResponse = await this.API.update({
+          const createResponse = await this.API.create({
             tables: 'queue',
             values:{
+              id: this.API.createUniqueID32(),
+              division_id: this.attendedQueue.queue?.division_id,
+              kiosk_id: this.attendedQueue.queue?.kiosk_id,
+              department_id:  this.attendedQueue.queue?.department_id,
+              fullname:  this.attendedQueue.queue?.fullname,
+              number:  this.attendedQueue.queue?.number,
+              type:  this.attendedQueue.queue?.type,
+              gender:  this.attendedQueue.queue?.gender,
+              services:  this.attendedQueue.queue?.services,
               status:'waiting',
-            },
-            conditions:`WHERE id = '${this.attendedQueue.queue_id}'`
+              timestamp: this.attendedQueue.queue?.timestamp,
+              student_id:  this.attendedQueue.queue?.student_id,
+              collision: this.attendedQueue.queue?.collision?.split('>')[0] + ">"+ now.getTime(),
+            }
           });
-          if(!updateResponse.success){
-            throw new Error(updateResponse.output);
+          if(!createResponse.success){
+    
+            throw new Error(createResponse.output);
           }
+
+          this.logService.pushLog('transaction-returned',`returned transaction.`);
         }
         const updateResponse = await this.API.update({
           tables: 'attended_queue',
@@ -282,23 +297,127 @@ export class QueueService  {
         this.resolveTakenQueue(this.attendedQueue.id);
         this.attendedQueue = undefined;
         await this.getTodayQueues();
+
       }
     }catch(e:any){
-      alert(e.message);
+
       throw new Error('Something went wrong. Please try again');
     }
   }
+  async getNextPriorityQueue(): Promise<Queue | undefined> {
+    try {
+      // Get priority tickets that are waiting or at bottom
+      const priorityTickets = this.queue.filter(
+        ticket => ticket.type === 'priority' && 
+        (ticket.status === 'waiting' || ticket.status === 'bottom')
+      );
 
-  async nextQueue(){
-    try{
-      // this.API.setLoading(true);
-      if(this.queue.length <= 0) return;
-      const queue =  this.takeFromQueue();
-      await this.addQueueToAttended(queue);
-      this.resolveTakenQueue(queue.id);
-      await this.getTodayQueues();
-      return queue;
-    }catch(e){
+      if (priorityTickets.length === 0) return undefined;
+
+      const nextPriorityTicket = priorityTickets[0];
+      // Move this priority ticket to front of queue
+      this.queue = [
+        nextPriorityTicket,
+        ...this.queue.filter(t => t.id !== nextPriorityTicket.id)
+      ];
+      
+      return this.nextQueue();
+    } catch (error) {
+      console.error('Error getting priority queue:', error);
+      return undefined;
+    }
+  }
+
+  async takeFromQueueByType(type: string): Promise<Queue | undefined> {
+    const availableQueue = this.queue.filter(queue => !this.takenQueue.includes(queue.id))
+    const targetQueue = availableQueue.find(q => 
+      q.type === type && 
+      (q.status === 'waiting' || q.status === 'bottom')
+    );
+
+    if (!targetQueue) return undefined;
+
+    // Remove the target queue from the main queue
+    this.queue = availableQueue.filter(q => q.id !== targetQueue.id);
+    this.takenQueue.push(targetQueue.id);
+    
+    // Send socket event
+    this.API.socketSend({
+      event: 'take-from-queue',
+      division: targetQueue.division_id,
+      queue_id: targetQueue.id,
+    });
+
+    return targetQueue;
+  }
+
+  
+
+  // Modify your nextQueue method to accept a type parameter
+  async nextQueue(type?: string): Promise<Queue | undefined> {
+    try {
+      if (this.queue.length <= 0) return;
+
+      let nextQueue: Queue | undefined;
+    
+      let success = false;
+      while(!success){
+        if (type) {
+          nextQueue = await this.takeFromQueueByType(type);
+        } else {
+          nextQueue = this.takeFromQueue();
+        }
+
+        if (!nextQueue) {
+          success = true;
+          return undefined;
+        }
+        try{
+          await this.addQueueToAttended(nextQueue);
+          this.resolveTakenQueue(nextQueue.id);
+          await this.getTodayQueues();
+          success = true
+        }catch(e:any){
+          if(e.message.includes('Server Error')) throw new Error('Something went wrong');
+        }
+      }
+      
+    
+      
+      return nextQueue;
+    } catch (e) {
+      throw new Error('Something went wrong.');
+    }
+  }
+
+  async manualSelect(queue:Queue): Promise<Queue | undefined> {
+    try {
+      if (this.queue.length <= 0) return;
+
+      let nextQueue: Queue | undefined;
+    
+      let success = false;
+      while(!success){
+        nextQueue = this.takeFromQueue(queue.id);
+
+        if (!nextQueue) {
+          success = true;
+          return undefined;
+        }
+        try{
+          await this.addQueueToAttended(nextQueue);
+          this.resolveTakenQueue(nextQueue.id);
+          await this.getTodayQueues();
+          success = true
+        }catch(e:any){
+          if(e.message.includes('Server Error')) throw new Error('Something went wrong');
+        }
+      }
+      
+    
+      
+      return nextQueue;
+    } catch (e) {
       throw new Error('Something went wrong.');
     }
   }
@@ -315,6 +434,7 @@ export class QueueService  {
       this.allQueue = response.output;
       return response.output;
     }else{
+      
       throw new Error('Unable to fetch queue');
     }
   }
@@ -324,35 +444,54 @@ export class QueueService  {
     const response = await this.API.read({
       selectors: ['*'],
       tables: 'queue',
-      conditions: `WHERE division_id = '${this.divisionService.selectedDivision!.id}' AND timestamp::date = CURRENT_DATE ${filter}` 
+      conditions: `WHERE division_id = '${this.divisionService.selectedDivision!.id}' AND CAST(timestamp AS DATE) = CAST(GETDATE() AS DATE) ${filter} ORDER BY timestamp DESC` 
     });
     if(response.success){
       const queue = response.output as Queue[];
-      this.lastPriorityQueueNumber =queue.filter(queue=> queue.type == 'priority').length;
-      this.lastRegularQueueNumber =queue.filter(queue=> queue.type == 'regular').length;
+      const formats:Format[] =  await this.formatService.getFrom(this.divisionService.selectedDivision!.id);
+      const formatMap:{[key:string]:Format} = {
+        'priority':{
+          id:'0',
+          name: 'priority',
+          prefix:'P'
+        },
+        'regular':{
+          id:'0',
+          name: 'regular',
+          prefix:'R'
+        },
+      };
+      this.queueNumber['priority'] = queue.filter(queue=> queue.type == 'priority' && queue.status == 'waiting').length + 1;
+      this.queueNumber['regular'] = queue.filter(queue=> queue.type == 'regular' && queue.status == 'waiting').length + 1;
+      if(formats.length > 0){
+        for(let format of formats){
+          this.queueNumber[format.id!] = queue.filter(queue=> queue.type == format.id && queue.status == 'waiting').length + 1;
+          formatMap[format.id!] = format;
+        }
+      }
+
+
+     
 
       const sortedQueue = queue.sort((a,b)=>{ 
 
         if(a.status == 'bottom' && b.status =='bottom'){
           return new Date( a.timestamp).getTime() - new Date( b.timestamp).getTime();
         }
-        if (a.type === 'priority' && b.type === 'regular') {
-          if(a.status == 'bottom'){
-            return new Date( a.timestamp).getTime() - new Date( b.timestamp).getTime();
-          }else{
-            return -1
-          }
-        };
-        if (a.type === 'regular' && b.type === 'priority') return 1;
-
-
+       
         return new Date( a.timestamp).getTime() - new Date( b.timestamp).getTime();
       });
       const filteredQueue = sortedQueue.filter(queue=>!this.takenQueue.includes(queue.id));
       
+      for(let i = 0; i < filteredQueue.length;i++){
+        filteredQueue[i].tag = formatMap[filteredQueue[i].type].prefix
+        if(filteredQueue[i].type != 'priority' && filteredQueue[i].type != 'regular'){
+          filteredQueue[i].metaType = formatMap[filteredQueue[i].type].name;
+        }
+      }
+      this.queue = filteredQueue;
       this.queueSubject.next(filteredQueue);
 
-      this.queue = filteredQueue;
       return this.queue;
     }else{
       throw new Error('Unable to fetch queue');
@@ -365,31 +504,49 @@ export class QueueService  {
     const response = await this.API.read({
       selectors: ['*'],
       tables: 'queue',
-      conditions: `WHERE timestamp::date = CURRENT_DATE ${filter}` 
+      conditions: `WHERE  CAST(timestamp AS DATE) = CAST(GETDATE() AS DATE) ${filter} ORDER BY timestamp DESC` 
     });
     if(response.success){
       const queue = response.output as Queue[];
-      this.lastPriorityQueueNumber =queue.filter(queue=> queue.type == 'priority').length;
-      this.lastRegularQueueNumber =queue.filter(queue=> queue.type == 'regular').length;
+      const formats:Format[] =  await this.formatService.getFrom(this.divisionService.selectedDivision!.id);
+      const formatMap:{[key:string]:Format} = {
+        'priority':{
+          id:'0',
+          name: 'priority',
+          prefix:'P'
+        },
+        'regular':{
+          id:'0',
+          name: 'regular',
+          prefix:'R'
+        },
+      };
+      this.queueNumber['priority'] = queue.filter(queue=> queue.type == 'priority' && queue.status == 'waiting').length + 1;
+      this.queueNumber['regular'] = queue.filter(queue=> queue.type == 'regular' && queue.status == 'waiting').length + 1;
+      if(formats.length > 0){
+        for(let format of formats){
+          formatMap[format.id!] = format;
+          this.queueNumber[format.id!] = queue.filter(queue=> queue.type == format.id && queue.status == 'waiting').length + 1;
+        }
+      }
+
+    
 
       const sortedQueue = queue.sort((a,b)=>{ 
 
         if(a.status == 'bottom' && b.status =='bottom'){
           return new Date( a.timestamp).getTime() - new Date( b.timestamp).getTime();
         }
-        if (a.type === 'priority' && b.type === 'regular') {
-          if(a.status == 'bottom'){
-            return new Date( a.timestamp).getTime() - new Date( b.timestamp).getTime();
-          }else{
-            return -1
-          }
-        };
-        if (a.type === 'regular' && b.type === 'priority') return 1;
-
-
+       
         return new Date( a.timestamp).getTime() - new Date( b.timestamp).getTime();
       });
       const filteredQueue = sortedQueue.filter(queue=>!this.takenQueue.includes(queue.id));
+      for(let i = 0; i < filteredQueue.length;i++){
+        filteredQueue[i].tag = formatMap[filteredQueue[i].type].prefix
+        if(filteredQueue[i].type != 'priority' && filteredQueue[i].type != 'regular'){
+          filteredQueue[i].metaType = formatMap[filteredQueue[i].type].name;
+        }
+      }
       this.allTodayQueue = filteredQueue;
       return filteredQueue;
     }else{
@@ -405,7 +562,7 @@ export class QueueService  {
         tables: 'attended_queue, queue,terminal_sessions',
         conditions: `
           WHERE attended_queue.queue_id = queue.id
-         AND terminal_sessions.id = attended_queue.desk_id
+          AND terminal_sessions.id = attended_queue.desk_id
           ORDER BY timestamp DESC
         `
       });
@@ -424,35 +581,94 @@ export class QueueService  {
     }
   }
 
+  async getActiveAttendedQueues(){
+    try{
+      const response = await this.API.read({
+        selectors: ['terminal_sessions.*,queue.*,attended_queue.* '],
+        tables: 'attended_queue, queue,terminal_sessions',
+        conditions: `
+          WHERE attended_queue.queue_id = queue.id
+          AND terminal_sessions.id = attended_queue.desk_id
+          AND attended_queue.status = 'ongoing'
+          ORDER BY timestamp DESC
+        `
+      });
+      if(response.success){
+        this.attendedQueues = [];
+        let formats = await this.formatService.getFrom(this.divisionService.selectedDivision!.id);
+        if(formats.length <=0){
+          formats = [
+            {id:'priority',name:'priority',prefix:'P'},
+            {id:'regular',name:'regular',prefix:'R'},
+          ]
+        }
+        for(let attended of response.output){
+          const format  = formats.find((_format:any)=> _format.id == attended.type)!;
+          this.attendedQueues.push({...attended, queue: {...attended, id: attended.queue_id, type:format.id, tag:format.prefix, metaType: format.name}})
+        }
+        return this.attendedQueues;
+      }else{
+        throw new Error(response.output);
+      }
+    }catch(e:any){
+      throw new Error('Something went wrong.');
+    }
+  }
+
 
   async getQueueOnDesk(){
     const user = this.auth.getUser();
+
     try{
       const response = await this.API.read({
         selectors: ['queue.status as queue_status,queue.*, attended_queue.*'],
         tables: 'attended_queue, queue, terminal_sessions',
         conditions: `
           WHERE attended_queue.queue_id = queue.id AND queue.division_id = '${this.divisionService.selectedDivision?.id}' 
-          AND terminal_sessions.attendant_id = '${user.id}'  AND attended_queue.status = 'ongoing'
+          AND terminal_sessions.id = attended_queue.desk_id
+          AND terminal_sessions.attendant_id = '${user.id}'  AND attended_queue.status = 'ongoing' ORDER BY attended_on DESC
         `
       });
       if(response.success){
         if(response.output.length> 0){
+          let format;
+          if(response.output[0].type != 'priority' || response.output[0].type != 'regular'){
+            format = await this.formatService.get(response.output[0].type);
+          }else{
+            format = {
+              id: '0',
+              name: response.output[0].type,
+              prefix: response.output[0].type == 'priority'? 'P':'R'
+            }
+          }
+          if(!format){
+            this.attendedQueue = undefined;
+            return {
+              attendedQueue:this.attendedQueue,
+              queue:undefined
+            };
+          }
           this.attendedQueue  = {
             ...response.output[0],
             queue:{
               id:response.output[0].queue_id,
               status:response.output[0].queue_status,
-              ...response.output[0]
+              ...response.output[0],
+              tag: format.prefix, 
+              type:format.id,
+              metaType: format.name,
             }
           }
-          response.output[0];
+
           return {
             attendedQueue:this.attendedQueue,
             queue: {
               id:response.output[0].queue_id,
               status:response.output[0].queue_status,
-              ...response.output[0]
+              ...response.output[0],
+              tag: format.prefix, 
+              type:format.id,
+              metaType: format.name,
             } as Queue
           };
         }else{
@@ -485,10 +701,26 @@ export class QueueService  {
       });
       if(response.success){
         if(response.output.length> 0){
+          let format;
+          if(response.output[0].type != 'priority' || response.output[0].type != 'regular'){
+            format = await this.formatService.get(response.output[0].type);
+          }else{
+            format = {
+              id: '0',
+              name: response.output[0].type,
+              prefix: response.output[0].type == 'priority'? 'P':'R'
+            }
+          }
+          if(!format){
+            return undefined;
+          }
           return  {
             id:response.output[0].queue_id,
-            status:response.output[0].queue_statusm,
-            ...response.output[0]
+            status:response.output[0].queue_status,
+            ...response.output[0],
+            tag: format.prefix, 
+            type:format.id,
+            metaType: format.name,
           } as Queue
         }else{
           return undefined;
