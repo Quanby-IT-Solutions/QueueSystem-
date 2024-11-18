@@ -230,35 +230,35 @@
     </section>
 
     <!-- Action Buttons Section -->
-    <section class="grid grid-cols-2 md:grid-cols-4 gap-2">
+    <section class="grid grid-cols-2 md:grid-cols-5 gap-2">
       <button 
         (click)="nextClient()" 
         [disabled]="actionLoading"
         class="bg-green-600 text-white py-2 rounded-md font-medium shadow-md hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed w-full flex items-center justify-center gap-2">
         <span class="material-icons text-sm">
-          {{currentTicket?.type == 'regular' ? 'check_circle' : 'arrow_forward' }}
+          {{currentTicket && currentTicket.type != 'priority' ? 'check_circle' : 'arrow_forward' }}
         </span>
         <span class="landscape:block portrait:hidden">
-          {{ currentTicket?.type != undefined && currentTicket?.type != 'priority' ? 'Done' : 'Next Client' }}
+          {{ currentTicket && currentTicket.type != 'priority' ? 'Done' : 'Next Client' }}
         </span>
         <span class="landscape:hidden portrait:block">
-          {{ currentTicket?.type != undefined && currentTicket?.type != 'priority'? 'Done' : 'Next' }}
+          {{ currentTicket &&  currentTicket.type != 'priority'? 'Done' : 'Next' }}
         </span>
       </button>
-      <!-- <button 
+      <button 
         (click)="priorityClient()" 
         [disabled]="actionLoading"
         class="bg-orange-500 text-white py-2 rounded-md font-medium shadow-md hover:bg-orange-600 disabled:opacity-50 disabled:cursor-not-allowed w-full flex items-center justify-center gap-2">
         <span class="material-icons text-sm">
-          {{ currentTicket?.type === 'priority' ? 'check_circle' : 'stars' }}
+          {{ currentTicket && currentTicket.type === 'priority' ? 'check_circle' : 'stars' }}
         </span>
         <span class="landscape:block portrait:hidden">
-          {{ currentTicket?.type == 'priority' ? 'Done' : 'Priority Client' }}
+          {{ currentTicket && currentTicket.type == 'priority' ? 'Done' : 'Priority Client' }}
         </span>
         <span class="landscape:hidden portrait:block">
-          {{ currentTicket?.type == 'priority' ? 'Done' : 'Priority' }}
+          {{ currentTicket && currentTicket.type == 'priority' ? 'Done' : 'Priority' }}
         </span>
-      </button> -->
+      </button>
       <button 
         (click)="noShow()" 
         [disabled]="actionLoading"

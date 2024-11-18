@@ -33,7 +33,6 @@ export class KioskFormsComponent implements OnInit, OnDestroy {
 
   departmentName: string = '';
   currentPeriod: string = 'AM';
-  currentTime: Date = new Date();
   currentDate: Date = new Date();
   isChecklistVisible: boolean = false;
   isFormVisible: boolean = false;
@@ -59,6 +58,7 @@ export class KioskFormsComponent implements OnInit, OnDestroy {
   departments:Department[] = [];
   divisions:Division[] = [];
   serviceInterval:any;
+  timeInterval:any;
   successDescription = '';
   priorityDetails = `<div class='flex flex-col leading-none py-2 gap-2'>
     Please ensure that you have VALID ID to be considered as priority. <div class="text-sm px-6  text-red-900/85 ">* Without ID desk attendants are ALLOWED to put you at the bottom of queue.</div>
@@ -112,9 +112,15 @@ export class KioskFormsComponent implements OnInit, OnDestroy {
     if(this.serviceInterval){
       clearInterval(this.serviceInterval)
     }
+    if(this.timeInterval){
+      clearInterval(this.timeInterval);
+    }
   }
 
   async ngOnInit() {
+    this.timeInterval = setInterval(()=>{
+      this.currentDate = new Date();
+    },1000)
     this.route.queryParams.subscribe(params => {
       this.departmentName = params['department'] || 'Department Name';
     });
@@ -220,18 +226,18 @@ export class KioskFormsComponent implements OnInit, OnDestroy {
   if(this.selectedServices.length <=0){
     this.API.sendFeedback('error','Please select a service!', 5000);
     this.isLoading =false;
-    throw new Error();
+    return
   }
 
   if(this.customerName.trim() == ''){
     this.API.sendFeedback('error','Fullname is required!',5000);
        this.isLoading =false;
-    throw new Error();
+    return
   }
   if(this.gender.trim() == ''){
     this.API.sendFeedback('error','Gender is required!',5000);
     this.isLoading =false;
-    throw new Error();
+    return
   }
    try{
     const number = await this.queueService.addToQueue({
@@ -255,7 +261,7 @@ export class KioskFormsComponent implements OnInit, OnDestroy {
       id:this.studentNumber.trim() == '' ? undefined : this.studentNumber.trim(),
       location: this.department.trim() == '' ? undefined : this.department.trim(),
       date: this.currentDate.toLocaleDateString(),
-      time:this.currentTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      time:this.currentDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       services: this.selectedServices.map(service=> service.name)
     })
     // Reset

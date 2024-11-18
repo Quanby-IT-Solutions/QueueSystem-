@@ -1,4 +1,4 @@
-<div class="relative flex w-screen h-screen overflow-hidden">
+<div class="relative flex w-screen h-full overflow-hidden">
   <!-- Sidebar -->
   <app-sidebar [role]="role"></app-sidebar>
 
@@ -12,7 +12,7 @@
   <!-- Main Content -->
   <div class="relative flex flex-col flex-1 overflow-auto bg-gray-50">
     <app-header class="z-30"></app-header>
-    <div class="flex-1 w-full px-6 py-6 2xl:px-8">
+    <div class="flex-1 w-full px-6 pb-6  2xl:px-10">
       <router-outlet></router-outlet>
     </div>
   </div>

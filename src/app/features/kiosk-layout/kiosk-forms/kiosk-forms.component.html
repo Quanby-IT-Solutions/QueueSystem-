@@ -17,12 +17,12 @@
     <h1 class="mb-2 text-center registrar-title text-[var(--primary)] sm:mb-0">{{this.division?.name?.toUpperCase()}}</h1>
     <div class="flex items-center gap-2 text-[var(--primary)] sm:gap-4">
       <div class="flex flex-col items-end">
-        <time class="text-3xl font-semibold sm:text-4xl">{{ currentTime | date:'h:mm' }}</time>
-        <span class="text-sm font-medium sm:text-md">{{ currentTime | date:'a'  }}</span>
+        <time class="text-3xl font-semibold sm:text-4xl">{{ currentDate | date:'h:mm' }}</time>
+        <span class="text-sm font-medium sm:text-md">{{ currentDate | date:'a'  }}</span>
       </div>
       <div class="h-[30px] w-[2px] text-[var(--primary)] sm:h-[40px]"></div>
       <div class="flex flex-col text-left uppercase">
-        <span class="text-2xl font sm:text-3xl">{{ currentTime | date:'EEEE' }}</span>
+        <span class="text-2xl font sm:text-3xl">{{ currentDate | date:'EEEE' }}</span>
         <span class="text-sm sm:text-md">{{ currentDate | date:'MMMM d, yyyy' }}</span>
       </div>
     </div>
@@ -161,18 +161,19 @@
                 <label for="name" class="block mb-1 text-sm font-medium text-gray-600">Name <span class="text-red-500">*</span></label>
                 <input  [(ngModel)]="customerName" id="name" type="text" placeholder="Type your name (eg. Juan Cruz)" name="name" class="w-full px-3 py-2 text-sm bg-white border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-green-500">
               </div>
-              <!-- <div>
-                <label for="department" class="block mb-1 text-sm font-medium text-gray-600">Branch (Optional)</label>
-                <select [(ngModel)]="department" name="department" id="department" class="w-full px-3 py-2 text-sm bg-white border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-green-500">
-                  <option value="">Select Branch</option>
-                  <option *ngFor="let department of divisions" [value]="department.name" >{{department.name}}</option>
-                </select>
-              </div> -->
+             
             </div>
-            <!-- <div class="mt-4">
+            <div class="mt-4">
               <label for="studentNumber" class="block mb-1 text-sm font-medium text-gray-600">Student number (optional)</label>
               <input [(ngModel)]="studentNumber" name="studentNumber" id="studentNumber" type="text" placeholder="Ex. VSU-2020-8467-91" class="w-full px-3 py-2 text-sm bg-white border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-green-500">
-            </div> -->
+            </div>
+            <div>
+              <label for="department" class="block mb-1 text-sm font-medium text-gray-600">Department (Optional)</label>
+              <select [(ngModel)]="department" name="department" id="department" class="w-full px-3 py-2 text-sm bg-white border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-green-500">
+                <option value="">Select Department</option>
+                <option *ngFor="let department of departments" [value]="department.name" >{{department.name}}</option>
+              </select>
+            </div>
 
 
             <div  class="flex justify-center flex-wrap gap-8 p-10 mt-10">

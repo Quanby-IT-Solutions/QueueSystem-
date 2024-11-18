@@ -39,7 +39,7 @@
 </div>
 
 <div *ngIf="loading" class="main-container flex flex-col justify-center items-center relative aspect-[3840/2180]">
-  <app-lottie-animation class="animate-pop loader" animation="pcso"></app-lottie-animation>
+  <app-lottie-animation class="animate-pop loader" animation="loader"></app-lottie-animation>
   <div
   class="animate-pop loader-text">Loading...</div>
 </div>
@@ -61,12 +61,12 @@
           [ngStyle]="{
             'border-color': colors.primary_text + '80',
           }"
-          [src]="logoUrl ??'assets/specifics/pcso/pcso-logo.svg'" alt="University Logo" class="banner-logo w-28 h-28 min-[3500px]:w-96 min-[3500px]:h-96 border-dashed border-2 min-[3500px]:border-8   rounded-full shadow-md object-cover">
+          [src]="logoUrl ??'assets/logo/vsu.png'" alt="University Logo" class="banner-logo w-28 h-28 min-[3500px]:w-96 min-[3500px]:h-96 border-dashed border-2 min-[3500px]:border-8   rounded-full shadow-md object-cover">
           <div class="banner-text flex flex-col justify-center   min-[3500px]:gap-3">
             <h1 class="banner-title  min-[3500px]:leading-none  font-semibold tracking-wider min-[3500px]:tracking-wider text-shadow"
               [ngStyle]="{'color': colors.primary_text}">{{division!.name.toUpperCase()}}</h1>
             <h1 class="banner-label text-white tracking-wider min-[3500px]:tracking-widest text-shadow"
-              [ngStyle]="{'color': colors.primary_text}">Philippine Charity Sweepstakes Office</h1>
+              [ngStyle]="{'color': colors.primary_text}">Visayas State University</h1>
           </div>
         </div>
         <!-- SERVING -->

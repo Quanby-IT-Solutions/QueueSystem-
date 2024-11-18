@@ -375,7 +375,7 @@ timerProgress: any;
       
       this.actionLoading = true;
       
-      if(this.currentTicket?.type != 'priority'){
+      if( this.currentTicket != null && this.currentTicket.type != 'priority'){
         this.API.sendFeedback('warning','Finish regular transaction first.',5000);
         this.actionLoading = false;
         return;
@@ -452,7 +452,7 @@ timerProgress: any;
     if (this.actionLoading) return;
     try {
       this.actionLoading = true;
-      if(this.currentTicket?.type == 'priority'){
+      if(this.currentTicket != null && this.currentTicket.type == 'priority'){
         this.API.sendFeedback('warning','Finish priority transaction first.',5000);
         this.actionLoading = false;
         return;

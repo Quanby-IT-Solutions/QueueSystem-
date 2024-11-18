@@ -75,6 +75,7 @@
           </div>
         </button>
         <button
+        *ngIf="terminals.length < 10"
         (click)="addTerminal()"
         class="bg-white tracking-wider h-auto min-h-48 font-thin rounded-lg gap-3 shadow-md  hover:bg-green-950 hover:text-white cursor-pointer flex justify-center border-2 border-solid border-black/10 items-center  "
         >

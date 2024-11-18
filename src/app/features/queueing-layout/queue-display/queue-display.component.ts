@@ -106,12 +106,12 @@ export class QueueDisplayComponent implements OnInit, AfterViewInit, OnChanges, 
   // Mock data for queue
   counters: Counter[] = [
     { number: 1, ticketNumber: 'P-32', personName: 'Domeng Valdez',id:'',status:'online' },
-    { number : 1, ticketNumber: 'P-01', personName: 'Domeng Valdez',id:'',status:'online' },
-    { number : 1, ticketNumber: 'P-02', personName: 'Domeng Valdez',id:'',status:'online' },
-    { number : 1, ticketNumber: 'P-04', personName: 'Domeng Valdez',id:'',status:'online' },
-    { number : 1, ticketNumber: 'P-05', personName: 'Domeng Valdez',id:'',status:'online' },
-    { number : 1, ticketNumber: 'P-07', personName: 'Domeng Valdez',id:'',status:'online' },
-    { number : 1, ticketNumber: 'P-10', personName: 'Domeng Valdez',id:'',status:'online' },
+    { number : 2, ticketNumber: 'P-01', personName: 'Domeng Valdez',id:'',status:'online' },
+    { number : 3, ticketNumber: 'P-02', personName: 'Domeng Valdez',id:'',status:'online' },
+    { number : 4, ticketNumber: 'P-04', personName: 'Domeng Valdez',id:'',status:'online' },
+    { number : 5, ticketNumber: 'P-05', personName: 'Domeng Valdez',id:'',status:'online' },
+    { number : 6, ticketNumber: 'P-07', personName: 'Domeng Valdez',id:'',status:'online' },
+    { number : 7, ticketNumber: 'P-10', personName: 'Domeng Valdez',id:'',status:'online' },
   ];
   
 
@@ -450,12 +450,12 @@ export class QueueDisplayComponent implements OnInit, AfterViewInit, OnChanges, 
     if(this.isPreview){
       this.counters = [
         { number: 1, ticketNumber: `P-32`, personName: 'Domeng Valdez',id:'',status:'online' },
-        { number : 1, ticketNumber: `P-31`, personName: 'Maria Clara',id:'',status:'online' },
-        { number : 1, ticketNumber: `P-34`, personName: 'Domeng Cruz',id:'',status:'online' },
-        { number : 1, ticketNumber: `P-30`, personName: 'Juan Valdez',id:'',status:'online' },
-        { number : 1, ticketNumber: `P-49`, personName: 'Marga Madrid',id:'',status:'online' },
-        { number : 1, ticketNumber: `P-50`, personName: 'Jo Ann',id:'',status:'online' },
-        { number : 1, ticketNumber: `P-20`, personName: 'John Mark',id:'',status:'online' },
+        { number : 2, ticketNumber: `P-31`, personName: 'Maria Clara',id:'',status:'online' },
+        { number : 3, ticketNumber: `P-34`, personName: 'Domeng Cruz',id:'',status:'online' },
+        { number : 4, ticketNumber: `P-30`, personName: 'Juan Valdez',id:'',status:'online' },
+        { number : 5, ticketNumber: `P-49`, personName: 'Marga Madrid',id:'',status:'online' },
+        { number : 6, ticketNumber: `P-50`, personName: 'Jo Ann',id:'',status:'online' },
+        { number : 7, ticketNumber: `P-20`, personName: 'John Mark',id:'',status:'online' },
       ];
       this.upNextItems =[
         { avatar: '/assets/queue-display/Male_2.png', ticketNumber: `P-217`, personName: 'Kristin Watson', type:'priority'},

@@ -3,8 +3,8 @@
 
     <div class="flex justify-between w-full px-6 py-4 my-4 bg-white rounded-lg shadow-md">
       <div>
-        <h1 class="text-2xl font-medium tracking-wide">Branch Management</h1>
-        <p class="font-thin " >Manage branch for client input. Create, edit, delete and view statuses of each department in this section.</p>
+        <h1 class="text-2xl font-medium tracking-wide">Department Management</h1>
+        <p class="font-thin " >Manage departments for client input. Create, edit, delete and view statuses of each department in this section.</p>
       </div>
       <div class="w-16 h-16">
         <app-lottie-animation [loop]="false" animation="confirmation"></app-lottie-animation>
@@ -27,13 +27,13 @@
                 <app-lottie-animation animation="building"></app-lottie-animation>
               </div>
               <div class="flex items-center gap-2 text-xl font-medium tracking-wide">
-                Branch <span class="text-4xl font-medium">{{i+1}}</span>
+                Department <span class="text-4xl font-medium">{{i+1}}</span>
               </div>
             </div>
             <!-- Body  -->
             <div class="flex flex-col items-start flex-1 w-full gap-1 py-2 ">
               <div class="flex-1">
-                <span class="font-medium">Branch Name: </span>
+                <span class="font-medium">Department Name: </span>
                 <span class="opacity-75">{{department.name}}</span>
               </div>
 
@@ -58,7 +58,7 @@
           <span class="text-4xl font-medium">
             +
           </span>
-          <span class="text-xl">NEW Branch</span>
+          <span class="text-xl">NEW DEPARTMENT</span>
         </button>
         </div>
       </div>

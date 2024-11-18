@@ -24,7 +24,7 @@ export class CreateKioskComponent implements OnInit, OnDestroy {
 
   kiosk:Kiosk =  {
     code:'',
-    printer_ip: '',
+    printer_ip: 'none',
   } 
 
   oldKiosk?:Kiosk;

@@ -22,6 +22,7 @@ import { ServiceManagementComponent } from './features/admin-layout/service-mana
 import { ProfileLayoutComponent } from './shared/profile/profile-layout/profile-layout.component';
 import { DivisionManagementComponent } from './features/admin-layout/division-management/division-management.component';
 import { FormatManagementComponent } from './features/admin-layout/format-management/format-management.component';
+import { DepartmentManagementComponent } from './features/admin-layout/department-management/department-management.component';
 
 export const routes: Routes = [
   {
@@ -47,8 +48,8 @@ export const routes: Routes = [
       { path: 'terminal', component: TerminalManagementComponent },
       { path: 'kiosk-management', component: KioskManagementComponent },
       { path: 'service-management', component: ServiceManagementComponent },
-      { path: 'format-management', component: FormatManagementComponent },
-      { path: 'branch-management', component: DivisionManagementComponent },
+      // { path: 'format-management', component: FormatManagementComponent },
+      { path: 'department-management', component: DepartmentManagementComponent },
     ]
   },
   {
