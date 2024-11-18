@@ -7,7 +7,6 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTabsModule } from '@angular/material/tabs';
 import { LottieAnimationComponent } from '../../../shared/components/lottie-animation/lottie-animation.component';
-import { UswagonAuthService } from 'uswagon-auth';
 import { UswagonCoreService } from 'uswagon-core';
 import { TerminalService } from '../../../services/terminal.service';
 import { ContentService } from '../../../services/content.service';
@@ -90,6 +89,7 @@ export class DaTerminalmgmtComponent implements OnInit, OnDestroy {
   timerStartTime: number | null = null;
   selectedTicket?: Ticket; //selection manually
   division?:Division;
+  divisions:Division[]=[];
 
   terminateModal:boolean = false;
 
@@ -163,6 +163,9 @@ timerProgress: any;
   }
   formats:Format[] = [];
 
+   getDivisionName(id:string){
+    return this.divisions.find(division=>division.id==id)?.name;
+  }
   
   async loadFormats(){
     this.formats = await this.formatService.getFrom(this.dvisionService.selectedDivision?.id!);
@@ -191,6 +194,7 @@ timerProgress: any;
   async loadContent(){
     this.API.setLoading(true);
     this.division = await this.dvisionService.getDivision() ;
+    this.divisions = await this.dvisionService.getDivisions();
     this.terminals = await this.terminalService.getAllTerminals();
     this.content = await this.contentService.getContentSetting();
     
@@ -474,9 +478,11 @@ timerProgress: any;
       let nextTicket: Ticket | undefined;
       if (this.selectedTicket && this.isManualSelectActive) {
         // Use the existing queue type-based method
+
         nextTicket = await this.queueService.nextQueue(this.selectedTicket.type);
       } else {
         // Get next ticket without type specification
+
         nextTicket = await this.queueService.nextQueue();
       }
 

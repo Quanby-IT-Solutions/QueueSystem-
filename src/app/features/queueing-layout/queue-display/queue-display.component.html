@@ -301,7 +301,7 @@
               </div>
               <div *ngIf="upNextItems.length > 0" class="queue-list-container flex grid-flow-col gap-1 flex-1 ">
 
-                <div class="flex-1 grid grid-cols-2 grid-rows-4">
+                <div class="flex-1 grid grid-cols-2 grid-rows-4 grid-flow-col">
                   <div *ngFor="let item of upNextItems | slice:0:8"
                   class="border-dashed border-2  rounded-lg overflow-hidden"
                   >

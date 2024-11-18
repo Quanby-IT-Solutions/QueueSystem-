@@ -18,15 +18,13 @@ export class FormatService extends CrudService<Format>{
       super.setTable('formats');
       
   }
-
-  override async add (item:Format){
-    await super.checkWhere(`WHERE name = '${item.name}'`);
-    await super.add(item)
-  }
-
-  override async update(id:string, item:Format){
-    await super.checkWhere(`WHERE name = '${item.name}'`);
-    await super.update(id,item);
+  
+  override async delete(id:string){
+    this.API.delete({
+      tables:'queue',
+      conditions:`WHERE type = '${id}'`
+    })
+    await super.delete(id);
   }
 
   async getFrom(division_id:string){

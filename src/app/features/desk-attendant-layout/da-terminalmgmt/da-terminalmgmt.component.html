@@ -170,7 +170,7 @@
                 <th class="p-3 text-left font-semibold w-1/6">ID</th>
                 <th class="p-3 text-left font-semibold w-1/6">Services</th>
                 <th class="p-3 text-left font-semibold w-1/6">Branch</th>
-                <th class="p-3 text-left font-semibold w-1/6">STATUS</th>
+                <th class="p-3 text-left font-semibold w-1/6">Type</th>
               </tr>
             </thead>
             <tbody class="text-gray-800">
@@ -210,7 +210,7 @@
                   {{ ticket.student_id || 'N/A' }}
                 </td> -->
                 <td class="p-3 text-sm w-1/6 truncate">
-                  {{ ticket.department_id || 'N/A' }}
+                  {{ getDivisionName(ticket.division_id) || 'N/A' }}
                 </td>
                 <td class="p-3 w-1/6">
                   <span

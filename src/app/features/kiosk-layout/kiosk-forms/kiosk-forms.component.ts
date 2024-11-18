@@ -99,6 +99,7 @@ export class KioskFormsComponent implements OnInit, OnDestroy {
   async updateSubServices(){
     this.subServices = await this.serviceService.getSubServices(this.group);
     this.isDropdownOpen = false;
+    this.selectedServices = [];
 
   }
 
@@ -245,7 +246,18 @@ export class KioskFormsComponent implements OnInit, OnDestroy {
     this.API.socketSend({event:'queue-events'})
     this.API.socketSend({event:'admin-dashboard-events'})
     this.successDescription = `Your current position is <span class='font-medium'>${this.formats.find((format)=>format.id == this.selectedType)?.prefix}-${number.toString().padStart(3,'0')}</span>`
-    await this.printImage(`${this.formats.find((format)=>format.id == this.selectedType)?.prefix}-${number.toString().padStart(3,'0')}`);
+    const code = `${this.formats.find((format)=>format.id == this.selectedType)?.prefix}-${number.toString().padStart(3,'0')}`;
+
+    this.kioskService.thermalPrintUSB({
+      number:code,
+      name: this.customerName,
+      gender:this.gender,
+      id:this.studentNumber.trim() == '' ? undefined : this.studentNumber.trim(),
+      location: this.department.trim() == '' ? undefined : this.department.trim(),
+      date: this.currentDate.toLocaleDateString(),
+      time:this.currentTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      services: this.selectedServices.map(service=> service.name)
+    })
     // Reset
     this.selectedServices = this.subServices
     .filter(item => item.selected)
@@ -271,38 +283,38 @@ export class KioskFormsComponent implements OnInit, OnDestroy {
 
 
 
-  async printImage(code: string) {
-    const ticketWidth = 500;  // 483 pixels wide
-    const ticketHeight = 690; // 371 pixels tall
-    const margin = 20; // Add margin in pixels
+//   async printImage(code: string) {
+//     const ticketWidth = 500;  // 483 pixels wide
+//     const ticketHeight = 690; // 371 pixels tall
+//     const margin = 20; // Add margin in pixels
 
-    // Create a temporary container for the content
-    const container = document.createElement('div');
-    container.style.width = `${ticketWidth}px`;
-    container.style.height = `${ticketHeight}px`;
-    container.style.position = 'absolute';
-    container.style.visibility = 'hidden';
+//     // Create a temporary container for the content
+//     const container = document.createElement('div');
+//     container.style.width = `${ticketWidth}px`;
+//     container.style.height = `${ticketHeight}px`;
+//     container.style.position = 'absolute';
+//     container.style.visibility = 'hidden';
 
-    document.body.appendChild(container);
+//     document.body.appendChild(container);
 
-    try {
-        this.kioskService.thermalPrint({
-          number:code,
-          name: this.customerName,
-          gender:this.gender,
-          id:this.studentNumber.trim() == '' ? undefined : this.studentNumber.trim(),
-          location: this.department.trim() == '' ? undefined : this.department.trim(),
-          date: this.currentDate.toLocaleDateString(),
-          time:this.currentTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-          services: this.selectedServices.map(service=> service.name)
-        })
-    } catch (error) {
-        // alert();
-    } finally {
-        // Clean up the temporary container
-        document.body.removeChild(container);
-    }
-}
+//     try {
+//         this.kioskService.thermalPrint({
+//           number:code,
+//           name: this.customerName,
+//           gender:this.gender,
+//           id:this.studentNumber.trim() == '' ? undefined : this.studentNumber.trim(),
+//           location: this.department.trim() == '' ? undefined : this.department.trim(),
+//           date: this.currentDate.toLocaleDateString(),
+//           time:this.currentTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+//           services: this.selectedServices.map(service=> service.name)
+//         })
+//     } catch (error) {
+//         // alert();
+//     } finally {
+//         // Clean up the temporary container
+//         document.body.removeChild(container);
+//     }
+// }
 // Helper function to convert image to base64
 
   private getBase64Image(url: string): Promise<string> {

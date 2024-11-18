@@ -29,6 +29,7 @@
     "jspdf": "^2.5.2",
     "jspdf-autotable": "^3.8.4",
     "lottie-web": "^5.12.2",
+    "ng-thermal-print": "^1.0.3",
     "ngx-lottie": "^11.0.2",
     "rxjs": "~7.8.1",
     "tslib": "^2.7.0",
