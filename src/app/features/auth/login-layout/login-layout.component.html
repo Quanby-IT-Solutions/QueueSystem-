@@ -86,7 +86,7 @@
           <div class="relative flex flex-col items-center justify-center h-full pt-16 pb-16 ml-12 grow max-md:ml-0">
             <!-- Login Form -->
             <div class="flex relative flex-col px-9 py-12 bg-white rounded-3xl shadow-lg w-[400px] 2xl:w-[500px] max-md:px-4 max-md:w-[90%]">
-              <form (keypress.enter)="login()" class="flex flex-col w-full 2xl:space-y-8 space-y-6">
+              <form class="flex flex-col w-full 2xl:space-y-8 space-y-6">
                 <h3 class="text-2xl 2xl:text-3xl font-medium text-neutral-800 text-center">
                   Account Log in
                 </h3>
@@ -122,11 +122,12 @@
                   <label for="remember" class="select-none">Remember me</label>
                 </div>
 
-                <div 
+                <button 
+                  type="submit"
                   (click)="login()"
                         class="w-full py-3 cursor-pointer text-lg font-bold flex justify-center text-white transition duration-200 bg-[var(--primary)] rounded-lg shadow-md hover:bg-[var(--primary-hover)]">
                   LOG IN
-              </div>
+              </button>
 
             
 
