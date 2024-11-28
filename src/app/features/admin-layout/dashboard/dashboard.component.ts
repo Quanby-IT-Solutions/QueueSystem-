@@ -29,6 +29,15 @@ import 'jspdf-autotable';
 import { map } from 'rxjs/operators';
 import { FormatService } from '../../../services/format.service';
 
+
+
+
+
+
+
+
+
+
 interface Division{
   id:string;
   name:string;
