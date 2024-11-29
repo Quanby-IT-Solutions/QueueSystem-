@@ -656,3 +656,5 @@ timerProgress: any;
     this.isReturnBottomActive = false;
   }
 }
+
+
