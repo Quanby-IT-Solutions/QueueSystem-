@@ -175,9 +175,12 @@
             </thead>
             <tbody class="text-gray-800">
               <tr *ngFor="let ticket of tickets" 
-                  (click)="selectTicket(ticket)"
-                  class="border-b hover:bg-gray-50 cursor-pointer transition-colors duration-150"
-                  [class.bg-blue-100]="selectedTicket?.id === ticket.id">
+              (click)="selectTicket(ticket)"
+              class="border-b hover:bg-gray-50 cursor-pointer transition-all duration-200"
+              [ngClass]="{
+                'bg-blue-100': selectedTicket?.id === ticket.id,
+                'bg-yellow-50/80 border-l-4 border-l-yellow-400 shadow-sm': ticket.status === 'bottom'
+              }">
                 <td class="p-3 w-1/4">
                   <div class="flex items-center space-x-3">
                     <div class="flex-shrink-0 w-10 h-10">
@@ -187,9 +190,15 @@
                         class="w-10 h-10 rounded-full object-cover">
                     </div>
                     <div class="flex-1 min-w-0">
-                      <p class="text-sm font-medium text-gray-900 truncate">
-                        {{ ticket.fullname || 'N/A' }}
-                      </p>
+                      <div class="flex items-center gap-2">
+                        <p class="text-sm font-medium text-gray-900 truncate">
+                          {{ ticket.fullname || 'N/A' }}
+                        </p>
+                        <span *ngIf="ticket.status === 'bottom'" 
+                              class="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium text-yellow-800 bg-yellow-100 rounded-full">
+                          <span class="material-icons text-[13px]">keyboard_arrow_down</span>
+                        </span>
+                      </div>
                     </div>
                   </div>
                 </td>
