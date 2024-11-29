@@ -1,22 +1,22 @@
 <!-- Sidebar -->
 <div
-  class="h-full bg-[var(--primary)] text-white transition-all duration-500 ease-in-out flex flex-col shadow-lg overflow-hidden"
+  class="h-full bg-[var(--primary)] text-white transition-all duration-300 ease-in-out flex flex-col shadow-lg overflow-hidden"
   [ngClass]="{
-    'w-72': isExpanded,
-    'w-16': !isExpanded && !isMobile,
+    'w-80': isExpanded,
+    'w-20': !isExpanded && !isMobile,
     'fixed z-50 left-0 top-0 bottom-0': isMobile,
     '-left-64': !isExpanded && isMobile,
     'left-0': isExpanded && isMobile
   }"
 >
   <!-- Sidebar Header with fixed height -->
-  <div class="pr-2 pl-4 py-4 flex items-center {{isExpanded ? 'justify-between':'justify-center'}} border-b-2 border-white/15 border-dashed  border-opacity-20 h-20">
+  <div class="pr-2 pl-4 py-4 flex items-center {{isExpanded ? 'justify-between':'justify-center'}} border-b-2 h-32 border-white/15 border-dashed  border-opacity-20 ">
     <div class="flex items-center  {{!isExpanded ? 'w-0 overflow-hidden': 'flex-1'}}">
       <!-- Logo (hide when collapsed, header height fixed) -->
       <div
         class="bg-white rounded-full flex-shrink-0 flex items-center justify-center overflow-hidden transition-all duration-500 ease-in-out"
         [ngClass]="{
-          'w-10 h-10': isExpanded,
+          'w-20 h-20': isExpanded,
           'w-0 h-0 opacity-0 max-w-0': !isExpanded
         }"
       >
@@ -35,18 +35,22 @@
         }"
       >
         <h1
-          class="text-center font-medium text-sm whitespace-nowrap transition-all duration-500 ease-in-out tracking-wide"
+          class="text-center font-medium text-md whitespace-nowrap transition-all duration-500 ease-in-out tracking-wide"
           style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis"
         >
           {{ appTitle }}
         </h1>
-        <div class="text-center font-thin text-xs opacity-70 tracking-wide">
+        <div class="text-center font-thin text-sm opacity-70 tracking-wide">
           {{ appDescription}}
         </div>
       </div>
     </div>
     <!-- Hamburger Menu Toggle Button (Fixed position) -->
     <button
+      [ngClass]="{
+        '': isExpanded,
+        'mr-4': !isExpanded
+      }"
       (click)="toggleSidebar()"
       class="text-white focus:outline-none"
       aria-label="Toggle Sidebar"
