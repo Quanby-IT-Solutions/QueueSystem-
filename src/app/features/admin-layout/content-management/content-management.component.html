@@ -11,7 +11,7 @@
                         <button  *ngFor="let division of divisions; let i = index"
                             (click)="selectDivision(division.id)"
                             class="h-10 transition-all {{division.id == selectedDivision ? 'bg-[var(--primary)] hover:bg-[var(--primary-hover)]  text-white':'bg-white'}} px-4 flex-1 border-2 border-solid {{ i == 0 ? 'rounded-l-lg': i != (divisions.length-1) ? '':'rounded-r-lg' }} font-medium w-full  hover:bg-[var(--primary-hover)] hover:text-white">
-                            {{division.name.replace('Division', '').trim().replace('Cash','Cashier')}}</button>
+                            {{division.name.replace('Division', '').replace('DIVISION','').trim().replace('Cash','Cashier').replace('CASH','CASHIER')}}</button>
                     </div>
                     <div *ngIf="!contentLoading" class=" flex flex-col  gap-1 h-auto bg-white shadow-md
                     rounded-b-lg

@@ -444,7 +444,7 @@ export class QueueService  {
     const response = await this.API.read({
       selectors: ['*'],
       tables: 'queue',
-      conditions: `WHERE division_id = '${this.divisionService.selectedDivision?.id}' timestamp::date = CURRENT_DATE ${filter} ORDER BY timestamp ASC` 
+      conditions: `WHERE division_id = '${this.divisionService.selectedDivision?.id}' AND timestamp::date = CURRENT_DATE ${filter} ORDER BY timestamp ASC` 
     });
     if(response.success){
       const queue = response.output as Queue[];
