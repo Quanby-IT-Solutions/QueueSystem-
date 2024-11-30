@@ -263,10 +263,19 @@
                             <div (click)="toggleCollapse('announcements')" class="flex items-center justify-between px-2 py-2 text-lg">
                                 <div class="flex flex-row items-center justify-between w-full gap-2" >
                                     <label for="announcement" class="px-1 text-lg text-gray-800">Announcements</label>
-                                    <div>
+                                    <div class="flex flex-row items-center gap-4">
+                                        <div class="flex flex-row items-center gap-2">
+                                            <button *ngIf="collapsables.announcements" class="bg-green-500 hover:bg-green-800 flex items-center justify-center rounded-full h-5 w-5">
+                                                <span  class="material-symbols-outlined text-sm text-white"> text_increase </span>
+                                            </button>
+                                            <button *ngIf="collapsables.announcements" class="bg-green-500 hover:bg-green-800 flex items-center justify-center rounded-full h-5 w-5">
+                                                <span *ngIf="collapsables.announcements" class="material-symbols-outlined text-sm text-white"> text_decrease </span>
+                                            </button>
+                                        </div>
                                         <app-toggle  body="w-10 h-5" knob="w-3 h-3" translate="translate-x-5" [(isActive)]="toggles.announcements"></app-toggle>
                                     </div>
                                 </div>
+                                
                                 <span *ngIf="!collapsables.announcements" class="material-icons"> keyboard_arrow_down </span>
                             </div>
                             <div class="flex flex-col px-1 pb-2" *ngIf="collapsables.announcements">
