@@ -81,6 +81,7 @@ export class KioskFormsComponent implements OnInit, OnDestroy {
   config = config
   modal?:'priority'|'success'|string;
   content:any;
+  printer?:string;
 
   openFeedback(type:'priority'|'success'){
     this.modal = type;
@@ -119,6 +120,11 @@ export class KioskFormsComponent implements OnInit, OnDestroy {
   }
 
   async ngOnInit() {
+    this.printer = this.route.snapshot.params['printer'];
+
+    if(!this.printer){
+      alert('No printer found')
+    }
     this.isLoading =true;
     this.timeInterval = setInterval(()=>{
       this.currentDate = new Date();
@@ -201,7 +207,7 @@ export class KioskFormsComponent implements OnInit, OnDestroy {
 
   goBack(): void {
    localStorage.removeItem('kiosk');
-   this.router.navigate(['/kiosk/selection']);
+   this.router.navigate(['/kiosk/selection', {printer:this.printer}]);
   }
 
   closeModal(): void {
@@ -253,7 +259,9 @@ export class KioskFormsComponent implements OnInit, OnDestroy {
     this.successDescription = `Your current position is <span class='font-medium'>${this.formats.find((format)=>format.id == this.selectedType)?.prefix}-${number.toString().padStart(3,'0')}</span>`
     const code = `${this.formats.find((format)=>format.id == this.selectedType)?.prefix}-${number.toString().padStart(3,'0')}`;
 
-    this.kioskService.thermalPrint({
+    this.kioskService.thermalPrintUSB(
+      this.printer!,
+      {
       number:code,
       name: this.customerName,
       gender:this.gender,

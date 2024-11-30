@@ -21,6 +21,7 @@ export class KioskNoCodeComponent {
   isLoading: boolean = true;
   loading$?: Subscription;
   contentIndex: number = 0;
+  printer?:string ;
   divisions: Division[] = [];
   selectedDivision?: string;
 
@@ -41,10 +42,10 @@ export class KioskNoCodeComponent {
       this.cdr.detectChanges();
     });
 
-    this.contentIndex = this.route.snapshot.queryParams['reset'];
+    this.printer = this.route.snapshot.params['printer'];
 
-    if (this.contentIndex != null) {
-      localStorage.removeItem('kiosk');
+    if(!this.printer){
+      alert('Connect this kiosk to printer by adding ;printer=[printer] to the end or url')
     }
 
     this.loadContents();
@@ -61,19 +62,22 @@ export class KioskNoCodeComponent {
   }
 
   async selectDivision(division_id: string) {
-
+    if(!this.printer){
+      alert("Set kiosk printer by adding ;printer=[printer]");
+      return;
+    }
     if(division_id == environment.accountant){
       await this.kioskService.kioskLogin('accounting');
-      this.router.navigate(['/kiosk/forms']);
+      this.router.navigate(['/kiosk/forms', {printer: this.printer}]);
     }
     if(division_id == environment.registrar){
       await this.kioskService.kioskLogin('registrar');
-      this.router.navigate(['/kiosk/forms']); 
+      this.router.navigate(['/kiosk/forms',{printer: this.printer}]); 
     }
     
     if(division_id == environment.cashier){
       await this.kioskService.kioskLogin('cashier');
-      this.router.navigate(['/kiosk/forms']);
+      this.router.navigate(['/kiosk/forms',{printer: this.printer}]);
     }
   
   }
