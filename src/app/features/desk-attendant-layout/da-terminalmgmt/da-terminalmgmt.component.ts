@@ -54,6 +54,7 @@ interface Ticket {
   gender:'male'|'female'|'other';
   student_id?:string;
   collision?:string;
+  
 }
 
 interface ClientDetails {
@@ -90,6 +91,7 @@ export class DaTerminalmgmtComponent implements OnInit, OnDestroy {
   selectedTicket?: Ticket; //selection manually
   division?:Division;
   divisions:Division[]=[];
+  bottomTickets: Set<string> = new Set();
 
   terminateModal:boolean = false;
 
@@ -138,21 +140,35 @@ timerProgress: any;
     private serviceService:ServiceService,
     private terminalService:TerminalService) {}
 
-  ngOnInit(): void {
-    this.updateCurrentDate();
-    this.dateInterval = setInterval(() => this.updateCurrentDate(), 60000);
-    this.loadContent();
-
-    this.subscription = this.queueService.queue$.subscribe((queueItems: Ticket[]) => {
-      this.tickets = [...queueItems];
-      // Clear selection if selected ticket no longer exists in queue
-      if (this.selectedTicket && !queueItems.find(t => t.id === this.selectedTicket!.id)) {
-        this.selectedTicket = undefined;
-      }
-    });
-    this.statusInterval = setInterval(()=>{
-      this.cdr.detectChanges();
-    },1500)
+    ngOnInit(): void {
+      this.updateCurrentDate();
+      this.dateInterval = setInterval(() => this.updateCurrentDate(), 60000);
+      this.loadContent();
+  
+      this.subscription = this.queueService.queue$.subscribe((queueItems: Ticket[]) => {
+        if(this.selectedCounter?.specific){
+          this.queueService.queue = queueItems.filter((queue)=>queue.type == this.selectedCounter?.specific)
+          this.tickets = [...this.queueService.queue];
+        } else {
+          this.tickets = [...queueItems];
+        }
+        
+        // Update bottom tickets to only include tickets still in queue
+        this.bottomTickets = new Set(
+          Array.from(this.bottomTickets).filter(id => 
+            queueItems.some(ticket => ticket.id === id)
+          )
+        );
+  
+        // Clear selection if selected ticket no longer exists in queue
+        if (this.selectedTicket && !queueItems.find(t => t.id === this.selectedTicket!.id)) {
+          this.selectedTicket = undefined;
+        }
+      });
+      
+      this.statusInterval = setInterval(()=>{
+        this.cdr.detectChanges();
+      },1500)
   }
 
   ngOnDestroy(): void {
@@ -237,6 +253,7 @@ timerProgress: any;
         this.API.sendFeedback('warning','You have an active transaction.',5000);
       }
     }
+    
     this.subscription = this.queueService.queue$.subscribe((queueItems: Ticket[]) => {
       if(this.selectedCounter?.specific){
         this.queueService.queue = queueItems.filter((queue)=>queue.type == this.selectedCounter?.specific)
@@ -649,6 +666,11 @@ timerProgress: any;
   async returnBottom() {
     if(this.actionLoading) return;
     this.actionLoading = true;
+    
+    if(this.currentTicket) {
+      this.bottomTickets.add(this.currentTicket.id);
+    }
+    
     await this.queueService.resolveAttendedQueue('bottom');
     this.resetInterface();
     this.stopTimer();
@@ -657,6 +679,7 @@ timerProgress: any;
     this.API.socketSend({event:'admin-dashboard-events'})
     this.API.sendFeedback('warning', `Client has been put to bottom of queue.`,5000);
   }
+  
 
   checkIfOnline(terminal:Terminal){
     const now = new Date(); 
