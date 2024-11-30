@@ -1,46 +1,69 @@
-
-
-<div *ngIf="!selectedDivision" class="w-full h-full flex gap-1 items-center bg-black">
-    <div 
-    (click)="selectDivision(division.id)"
-    *ngFor="let division of divisions" class="group transition-all gap-6 h-full text-5xl flex flex-col items-center bg-[var(--primary-dark)] hover:bg-[var(--primary)] text-white hover:tracking-wider font-thin justify-center cursor-pointer flex-1 rounded-lg"> 
-        <img [src]="contentMap[division.id]?.logo ?? 'assets/specifics/pcso/pcso-logo.svg'" class="transition-all w-52 h-52 group-hover:scale-105 rounded-full" alt="">
-        <span>
-            {{division.name}}
-        </span>
+<div class="w-full h-full relative">
+    <!-- Fullscreen Icon in the top-right corner -->
+    <button 
+      class="absolute top-2 right-2 text-white bg-gray-800 hover:bg-gray-700 p-2 rounded-full z-50"
+      (click)="toggleFullscreen()"
+      aria-label="Toggle Fullscreen"
+    >
+      <!-- Fullscreen Icon (use an SVG or FontAwesome icon here) -->
+      <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" class="w-6 h-6" viewBox="0 0 16 16">
+        <path d="M1 1h5v2H2v3H0V1a1 1 0 0 1 1-1zm14-1a1 1 0 0 1 1 1v5h-2V2h-3V0h5zM1 14h3v2H1a1 1 0 0 1-1-1v-5h2v4zm13-4h2v5a1 1 0 0 1-1 1h-5v-2h4v-4z"/>
+      </svg>
+    </button>
+  
+    <!-- Division selection -->
+    <div *ngIf="!selectedDivision" class="w-full h-full flex gap-1 items-center bg-black">
+      <div 
+        (click)="selectDivision(division.id)"
+        *ngFor="let division of divisions" 
+        class="group transition-all gap-6 h-full text-5xl flex flex-col items-center bg-green-950 hover:bg-green-800 text-white hover:tracking-wider font-thin justify-center cursor-pointer flex-1 rounded-lg"
+      > 
+        <img [src]="contentMap[division.id]?.logo ?? 'assets/logo/vsu.png'" 
+          class="transition-all w-52 h-52 group-hover:scale-105" 
+          alt=""
+        />
+        <span>{{ division.name }}</span>
+      </div>
     </div>
-</div>
-
-<div *ngIf="selectedDivision" class="w-full h-full font-thin flex justify-center items-center min-[3500px]:hidden text-4xl  bg-black text-white">Set browser resolution to 3840 x 2180</div>
-<div *ngIf="selectedDivision" class="w-full h-full hidden min-[3500px]:block">
-    <div *ngIf="isLoading" class="h-full w-full cursor-wait bg-white overflow-hidden absolute z-10 flex flex-col justify-center items-center ">
+  
+    <!-- Selected division content -->
+    <!-- <div *ngIf="selectedDivision" class="w-full h-full font-thin flex justify-center items-center min-[3500px]:hidden text-4xl bg-black text-white">
+      Set browser resolution to 3840 x 2180
+    </div> -->
+  
+    <div *ngIf="selectedDivision" class="w-full h-full ">
+      <div *ngIf="isLoading" class="h-full w-full cursor-wait bg-white overflow-hidden absolute z-10 flex flex-col justify-center items-center">
         <app-lottie-animation class="w-[800px] h-[800px] animate-pop" animation="loader"></app-lottie-animation>
         <div class="tracking-wider text-8xl animate-bounce animate-pop">Loading</div>
       </div>
-    <div *ngIf="!content" class="w-full h-full flex justify-center items-center bg-black text-white font-thin text-9xl">
+      <div *ngIf="!content" class="w-full h-full flex justify-center items-center bg-black text-white font-thin text-9xl">
         This device has not been configured.
+      </div>
+      <app-queue-display 
+        *ngIf="content"
+        [showAnnouncement]="content.announcement_on == 't'"
+        [showBackground]="content.background_on == 't'"
+        [showTime]="content.time == 't'" 
+        [showWeather]="content.weather == 't'" 
+        [showCurrency]="content.currency == 't'" 
+        [announcements]="content.announcements ?? ''" 
+        [videoUrl]="content.video"
+        [backgroundUrl]="content.background"
+        [logoUrl]="content.logo"
+        [colors]="{
+          primary_bg: content.primary_bg,
+          secondary_bg: content.secondary_bg,
+          tertiary_bg: content.tertiary_bg,
+          primary_text: content.primary_text,
+          secondary_text: content.secondary_text,
+          tertiary_text: content.tertiary_text
+        }" 
+        [division]="{
+          name: content.division,
+          id: content.division_id
+        }" 
+        class="w-full h-full hidden min-[1200px]:block"
+      ></app-queue-display>
     </div>
-    <app-queue-display 
-    *ngIf="content"
-    [showAnnouncement]="content.announcement_on == 't'"
-    [showBackground]="content.background_on == 't'"
-    [showTime]="content.time == 't'" 
-    [showWeather]="content.weather == 't'" 
-    [showCurrency]="content.currency == 't'" 
-    [announcements]="content.announcements ?? ''" 
-    [videoUrl]="content.video"
-    [backgroundUrl]="content.background"
-    [logoUrl]="content.logo"
-    [colors]="{
-        primary_bg: content.primary_bg,
-        secondary_bg: content.secondary_bg,
-        tertiary_bg: content.tertiary_bg,
-        primary_text: content.primary_text,
-        secondary_text: content.secondary_text,
-        tertiary_text: content.tertiary_text
-    }" 
-    [division]="{
-        name:content.division,
-        id: content.division_id
-    }" class="w-full h-full hidden min-[1200px]:block"></app-queue-display>
-</div>
+  </div>
+  

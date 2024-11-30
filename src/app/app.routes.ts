@@ -23,6 +23,7 @@ import { ProfileLayoutComponent } from './shared/profile/profile-layout/profile-
 import { DivisionManagementComponent } from './features/admin-layout/division-management/division-management.component';
 import { FormatManagementComponent } from './features/admin-layout/format-management/format-management.component';
 import { DepartmentManagementComponent } from './features/admin-layout/department-management/department-management.component';
+import { KioskNoCodeComponent } from './features/kiosk-layout/kiosk-no-code/kiosk-no-code.component';
 
 export const routes: Routes = [
   {
@@ -32,8 +33,8 @@ export const routes: Routes = [
   },
   {
     path: 'login', component: LoginLayoutComponent,
-
   },
+
   {
     path: 'admin',
     component: AdminLayoutComponent,
@@ -52,6 +53,7 @@ export const routes: Routes = [
       { path: 'department-management', component: DepartmentManagementComponent },
     ]
   },
+  
   {
     path:'kiosk',
     component:KioskLayoutComponent,
@@ -61,7 +63,7 @@ export const routes: Routes = [
       {
         path: 'selection',
         canActivate: [kioskGuard],
-        component: KioskSelectionComponent,
+        component: KioskNoCodeComponent,
       },
       {
         path: 'forms',
@@ -88,7 +90,7 @@ export const routes: Routes = [
   },
   {
     path: '**', // Wildcard route
-    redirectTo: '/login',
+    redirectTo: '/',
   },
 ];
 

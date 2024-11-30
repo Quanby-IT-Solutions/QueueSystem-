@@ -87,7 +87,7 @@ getTable(){
         conditions: `
           ${this.filters}
           ORDER BY ${this.order.join(", ")} ${this.table!}.id
-          OFFSET ${this.offset} ROWS FETCH NEXT ${this.limit} ROWS ONLY  
+          OFFSET ${this.offset} LIMIT ${this.limit}  
         `
       });
   
