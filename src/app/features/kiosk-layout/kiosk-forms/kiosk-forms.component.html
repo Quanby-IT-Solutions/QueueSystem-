@@ -1,4 +1,11 @@
+
+
+
 <section class="flex flex-col items-center w-full h-full max-w-full p-4 overflow-y-auto">
+  <div *ngIf="isLoading" class="absolute z-50 flex flex-col items-center justify-center w-full h-full overflow-hidden bg-white cursor-wait ">
+    <app-lottie-animation class=" w-52 h-52 animate-pop" animation="loader"></app-lottie-animation>
+    <div  class="text-sm tracking-wider animate-bounce animate-pop">Please Wait</div>
+  </div>
   <!-- Header Section -->
   <header class="relative flex items-center w-full px-4 py-5 bg-white rounded-lg shadow-md">
     <div class="z-10 flex items-center w-full max-w-screen-xl mx-auto">
@@ -14,7 +21,15 @@
 
    <!-- Below Image Header: Registrar and Time Info -->
    <div class="flex flex-col items-center justify-between w-full px-4 py-3 bg-white sm:flex-row sm:px-6 sm:py-4">
-    <h1 class="mb-2 text-center registrar-title text-[var(--primary)] sm:mb-0">{{this.division?.name?.toUpperCase()}}</h1>
+
+    <div 
+    (click)="goBack()"
+    class="flex gap-2 items-center hover:scale-105 hover:cursor-pointer transition-all">
+      <span class="material-icons text-2xl w-10 font-bold ">
+        arrow_backward
+      </span> 
+      <h1 class="mb-2 text-center registrar-title text-[var(--primary)] sm:mb-0">{{this.division?.name?.toUpperCase()}}</h1>
+    </div>
     <div class="flex items-center gap-2 text-[var(--primary)] sm:gap-4">
       <div class="flex flex-col items-end">
         <time class="text-3xl font-semibold sm:text-4xl">{{ currentDate | date:'h:mm' }}</time>
@@ -302,8 +317,5 @@
   ></app-feedback>
 
   <app-snackbar></app-snackbar>
-  <div *ngIf="isLoading" class="absolute z-10 flex flex-col items-center justify-center w-full h-full overflow-hidden bg-white cursor-wait ">
-    <app-lottie-animation class=" w-52 h-52 animate-pop" animation="loader"></app-lottie-animation>
-    <div  class="text-sm tracking-wider animate-bounce animate-pop">Please Wait</div>
-  </div>
+
 </section>

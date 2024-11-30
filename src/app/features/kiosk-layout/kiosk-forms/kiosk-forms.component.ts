@@ -1,6 +1,6 @@
 //kiosk-forms.component.ts
 import { Component, model, OnDestroy, OnInit } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import jsPDF from 'jspdf';
@@ -64,7 +64,7 @@ export class KioskFormsComponent implements OnInit, OnDestroy {
     Please ensure that you have VALID ID to be considered as priority. <div class="text-sm px-6  text-red-900/85 ">* Without ID desk attendants are ALLOWED to put you at the bottom of queue.</div>
   </div> `;
 
-  isLoading:boolean = false;
+  isLoading:boolean = true;
 
   constructor(private route: ActivatedRoute,
     private queueService: QueueService,
@@ -74,6 +74,7 @@ export class KioskFormsComponent implements OnInit, OnDestroy {
     private departmentService:DepartmentService,
     private formatService:FormatService,
     private contentService:ContentService, 
+    private router:Router,
     private API: UswagonCoreService) {}
 
  
@@ -118,6 +119,7 @@ export class KioskFormsComponent implements OnInit, OnDestroy {
   }
 
   async ngOnInit() {
+    this.isLoading =true;
     this.timeInterval = setInterval(()=>{
       this.currentDate = new Date();
     },1000)
@@ -132,6 +134,7 @@ export class KioskFormsComponent implements OnInit, OnDestroy {
       this.divisionService.setDivision(this.division!);
       this.queueService.getTodayQueues(true);
       this.content = await this.contentService.getContentSetting(this.division!.id);
+      this.API.setLoading(false);
     } else {
       throw new Error('Invalid method');
     }
@@ -160,6 +163,7 @@ export class KioskFormsComponent implements OnInit, OnDestroy {
     }
 
     this.queueService.listenToQueue();
+    this.isLoading = false;
   }
   
 
@@ -196,13 +200,8 @@ export class KioskFormsComponent implements OnInit, OnDestroy {
   }
 
   goBack(): void {
-    if (this.isFormVisible) {
-      this.isFormVisible = false;
-      this.isChecklistVisible = true;
-    } else if (this.isChecklistVisible) {
-      this.isChecklistVisible = false;
-    }
-    this.showModal = false;
+   localStorage.removeItem('kiosk');
+   this.router.navigate(['/kiosk/selection']);
   }
 
   closeModal(): void {
