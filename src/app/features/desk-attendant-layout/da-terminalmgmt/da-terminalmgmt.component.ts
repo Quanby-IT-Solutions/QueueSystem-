@@ -517,7 +517,7 @@ timerProgress: any;
         this.API.socketSend({
           event: 'number-calling',
           division: this.division?.id,
-          message: `${this.currentTicket?.metaType} number ${this.currentTicket?.number}. Proceed to counter ${this.selectedCounter?.number}`
+          message: `${this.currentTicket?.metaType  ?? (this.currentTicket?.type == 'priority'? 'Priority':'') } number ${this.currentTicket?.number}. Proceed to counter ${this.selectedCounter?.number}`
         })
       } else {
         this.API.sendFeedback('warning', 'Could not get next client.', 5000);
@@ -541,7 +541,7 @@ timerProgress: any;
     this.isReturnTopActive = false;
     this.isReturnBottomActive = false;
     if (this.currentTicket) {
-      this.lastCalledNumber = (this.currentTicket.tag ) + '-' + 
+      this.lastCalledNumber = (this.currentTicket.tag ?? this.currentTicket.type ) + '-' + 
         this.currentTicket.number.toString().padStart(3, '0');
     }
     this.currentTicket = undefined;
@@ -585,12 +585,12 @@ timerProgress: any;
    */
   callNumber(): void {
     console.log(`Calling number ${this.currentTicket?.number}`);
-    this.API.sendFeedback('neutral', `Calling number ${this.currentTicket?.tag}-${this.currentTicket?.number.toString().padStart(3, '0')}`,5000)
+    this.API.sendFeedback('neutral', `Calling number ${this.currentTicket?.tag ?? this.currentTicket?.type[0].toUpperCase()}-${this.currentTicket?.number.toString().padStart(3, '0')}`,5000)
     
     this.API.socketSend({
       event: 'number-calling',
       division: this.division?.id,
-      message: `${this.currentTicket?.metaType} number ${this.currentTicket?.number}. Proceed to counter ${this.selectedCounter?.number}`
+      message: `${this.currentTicket?.metaType ?? (this.currentTicket?.type == 'priority'? 'Priority':'') } number ${this.currentTicket?.number}. Proceed to counter ${this.selectedCounter?.number}`
     })
     // this.isCallNumberActive = false;
   }
@@ -632,7 +632,7 @@ timerProgress: any;
         this.API.socketSend({
           event: 'number-calling',
           division: this.division?.id,
-          message: `${this.currentTicket?.metaType} number ${this.currentTicket?.number}. Proceed to counter ${this.selectedCounter?.number}`
+          message: `${this.currentTicket?.metaType  ?? (this.currentTicket?.type == 'priority'? 'Priority':'') } number ${this.currentTicket?.number}. Proceed to counter ${this.selectedCounter?.number}`
         })
       } else {
         this.API.sendFeedback('warning', 'Could not get next client.', 5000);

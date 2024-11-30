@@ -32,8 +32,8 @@ export const routes: Routes = [
   },
   {
     path: 'login', component: LoginLayoutComponent,
-
   },
+
   {
     path: 'admin',
     component: AdminLayoutComponent,
@@ -52,6 +52,7 @@ export const routes: Routes = [
       { path: 'department-management', component: DepartmentManagementComponent },
     ]
   },
+  
   {
     path:'kiosk',
     component:KioskLayoutComponent,
@@ -88,7 +89,7 @@ export const routes: Routes = [
   },
   {
     path: '**', // Wildcard route
-    redirectTo: '/login',
+    redirectTo: '/',
   },
 ];
 

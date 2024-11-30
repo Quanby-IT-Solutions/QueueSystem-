@@ -254,7 +254,7 @@ export class KioskFormsComponent implements OnInit, OnDestroy {
     this.successDescription = `Your current position is <span class='font-medium'>${this.formats.find((format)=>format.id == this.selectedType)?.prefix}-${number.toString().padStart(3,'0')}</span>`
     const code = `${this.formats.find((format)=>format.id == this.selectedType)?.prefix}-${number.toString().padStart(3,'0')}`;
 
-    this.kioskService.thermalPrintUSB({
+    this.kioskService.thermalPrint({
       number:code,
       name: this.customerName,
       gender:this.gender,
