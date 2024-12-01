@@ -89,6 +89,7 @@ export class KioskFormsComponent implements OnInit, OnDestroy {
 
   closeFeedback(){
     this.modal = undefined;
+    console.log('Modal value after close:', this.modal);
   }
 
   toggleDropdown() {
@@ -245,20 +246,22 @@ export class KioskFormsComponent implements OnInit, OnDestroy {
     return
   }
    try{
-    const number = await this.queueService.addToQueue({
-      fullname: this.customerName.trim(),
-      type: this.selectedType,
-      tag: this.selectedType[0].toUpperCase(),
-      gender: this.gender.toLowerCase() as 'male' | 'female' | 'other',
-      services: this.selectedServices.map(item=>item.id!),
-      student_id: this.studentNumber.trim() == '' ? undefined : this.studentNumber.trim(),
-      department_id: this.department.trim() == '' ? undefined : this.department.trim(),
-    });
+    alert('queue!');
+    // const number = await this.queueService.addToQueue({
+    //   fullname: this.customerName.trim(),
+    //   type: this.selectedType,
+    //   tag: this.selectedType[0].toUpperCase(),
+    //   gender: this.gender.toLowerCase() as 'male' | 'female' | 'other',
+    //   services: this.selectedServices.map(item=>item.id!),
+    //   student_id: this.studentNumber.trim() == '' ? undefined : this.studentNumber.trim(),
+    //   department_id: this.department.trim() == '' ? undefined : this.department.trim(),
+    // });
+    const number =1;
     this.API.socketSend({event:'queue-events'})
     this.API.socketSend({event:'admin-dashboard-events'})
     this.successDescription = `Your current position is <span class='font-medium'>${this.formats.find((format)=>format.id == this.selectedType)?.prefix}-${number.toString().padStart(3,'0')}</span>`
     const code = `${this.formats.find((format)=>format.id == this.selectedType)?.prefix}-${number.toString().padStart(3,'0')}`;
-
+    alert('before!');
     this.kioskService.thermalPrintUSB(
       this.printer!,
       {
@@ -271,6 +274,7 @@ export class KioskFormsComponent implements OnInit, OnDestroy {
       time:this.currentDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       services: this.selectedServices.map(service=> service.name)
     })
+    alert('print!');
     // Reset
     this.selectedServices = this.subServices
     .filter(item => item.selected)
