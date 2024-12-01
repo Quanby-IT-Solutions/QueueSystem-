@@ -89,7 +89,7 @@ export class KioskFormsComponent implements OnInit, OnDestroy {
 
   closeFeedback(){
     this.modal = undefined;
-    console.log('Modal value after close:', this.modal);
+    this.goBackSelection();
   }
 
   toggleDropdown() {
@@ -207,6 +207,15 @@ export class KioskFormsComponent implements OnInit, OnDestroy {
   }
 
   goBack(): void {
+    if (this.isFormVisible) {
+      this.isFormVisible = false;
+      this.isChecklistVisible = true;
+    } else if (this.isChecklistVisible) {
+      this.isChecklistVisible = false;
+    }
+    this.showModal = false;
+  }
+  goBackSelection(): void {
    localStorage.removeItem('kiosk');
    this.router.navigate(['/kiosk/selection', {printer:this.printer}]);
   }
