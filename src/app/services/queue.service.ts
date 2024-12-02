@@ -145,7 +145,7 @@ export class QueueService  {
     const  now =  new Date();
     const formattedDate = `${now.getMonth() + 1}/${now.getDate()}/${now.getFullYear()}`;
     this.lastTimestamp = now.getTime();
-
+    this.queueNumber[info.type] = (await this.getTodayQueues()).length +1;
     // this.takeQueueNumber(info.type,this.kioskService.kiosk?.division_id!);
     let collision = true;
     while(collision){
@@ -170,7 +170,7 @@ export class QueueService  {
           });
           if(!response.success){
             // this.returnQueueNumber(info.type,this.kioskService.kiosk?.division_id!);
-            throw new Error('Something went wrong.');
+            throw new Error(response.output);
           }else{
             collision =false;
             const lastNumber =this.queueNumber[info.type];
