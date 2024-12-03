@@ -1,19 +1,22 @@
 export const environment = {
     apiKey: '$2y$10$jDyFxPlQt0iz/JmEwFZGSOrCEwlu.GQRdTXT0gIbRlJHD6w2etZbi',
     // QUANBY LAB
-    api: 'https://quanbylab.com:85/q-api.php',
+    // api: 'https://quanbylab.com:85/q-api.php',
     // socket: 'wss://quanbylab.com:3002',
     // nodeserver: 'https://quanbylab.com:3002',
     // server: 'https://quanbylab.com/public/',
     
     // PCSO 
     // api: 'https://vsu.quanby-staging.com/api.php',
-    socket: 'wss://vsu.quanby-staging.com/websocket',
-    nodeserver: 'https://vsu.quanby-staging.com',
-    server: 'https://vsu.quanby-staging.com/public/',
+    // socket: 'wss://vsu.quanby-staging.com/websocket',
+    // nodeserver: 'https://vsu.quanby-staging.com',
+    // server: 'https://vsu.quanby-staging.com/public/',
 
-    // TEST
-    
+    // VSU
+    api: 'https://q.vsu.edu.ph/api.php',
+    socket: 'wss://q.vsu.edu.ph/websocket',
+    nodeserver: 'https://q.vsu.edu.ph',
+    server: 'https://q.vsu.edu.ph/public/',
 
      // LOCAL 
     //  api: 'https://vsu-qsm.gov.ph/api.php',
