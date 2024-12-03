@@ -66,6 +66,12 @@ interface ClientDetails {
   gender?:string;
 } 
 
+interface Service {
+  id: string;
+  name: string;
+  division_id: string;
+  [key: string]: any; // for any additional properties
+}
 @Component({
   selector: 'app-da-terminalmgmt',
   templateUrl: './da-terminalmgmt.component.html',
@@ -92,9 +98,10 @@ export class DaTerminalmgmtComponent implements OnInit, OnDestroy {
   division?:Division;
   divisions:Division[]=[];
   bottomTickets: Set<string> = new Set();
-
+  filteredServices: string[] = [];
+  showServiceFilter: boolean = false;
   terminateModal:boolean = false;
-
+  divisionServices: Service[] = [];
   tickets: Ticket[] = [
     
   ];
@@ -200,7 +207,69 @@ timerProgress: any;
       ]
     }
   }
+  // filter toggle
+  toggleServiceFilter() {
+    this.showServiceFilter = !this.showServiceFilter;
+  }
+  handleServiceClick(serviceId: string) {
+    // If it's already selected, remove it (clear filter)
+    if (this.filteredServices.includes(serviceId)) {
+      this.filterQueueByServices([]);
+    } else {
+      // Otherwise, apply the filter for this service
+      this.filterQueueByServices([serviceId]);
+    }
+  }
+
+  // Update the parameter type to match your existing code
+  filterQueueByServices(serviceIds: string[]) {
+    this.filteredServices = serviceIds;
+    if (serviceIds.length === 0) {
+      // Your existing code for no filters
+      if(this.selectedCounter?.specific){
+        this.queueService.queue = this.queueService.queue.filter((queue) => 
+          queue.type == this.selectedCounter?.specific && 
+          queue.division_id === this.division?.id
+        );
+        this.tickets = [...this.queueService.queue];
+      } else {
+        this.tickets = this.queueService.queue.filter(queue => 
+          queue.division_id === this.division?.id
+        );
+      }
+    } else {
+      // Your existing code for filtering
+      let filteredTickets = this.queueService.queue.filter(queue => 
+        queue.division_id === this.division?.id
+      );
+      
+      if(this.selectedCounter?.specific) {
+        filteredTickets = filteredTickets.filter((queue) => 
+          queue.type == this.selectedCounter?.specific
+        );
+      }
+      
+      this.tickets = filteredTickets.filter(ticket => {
+        const ticketServices = ticket.services.split(', ');
+        return serviceIds.some(id => ticketServices.includes(id));
+      });
+    }
+  }
+
   
+ 
+
+  clearServiceFilters() {
+    this.filteredServices = [];
+    if (this.selectedCounter?.specific) {
+      this.tickets = this.queueService.queue.filter((queue) => 
+        queue.type == this.selectedCounter?.specific
+      );
+    } else {
+      this.tickets = [...this.queueService.queue];
+    }
+  }
+
   getFormatName(id?:string){
     if(!id) return null;
     return this.formats.find(format=>format.id == id)?.name;
@@ -214,9 +283,26 @@ timerProgress: any;
     this.dvisionService.setDivision(this.division!);
     this.terminals = await this.terminalService.getAllTerminals();
     this.content = await this.contentService.getContentSetting();
-    
+    this.services = await this.serviceService.getAllSubServices(); //for filtration
     this.lastSession = await this.terminalService.getActiveSession()
     this.services = await this.serviceService.getAllSubServices();
+    await this.queueService.getTodayQueues();
+    const uniqueServiceIds = new Set<string>();
+    this.queueService.queue.forEach(ticket => {
+      if (ticket.division_id === this.division?.id && ticket.services) {
+        ticket.services.split(', ').forEach(serviceId => uniqueServiceIds.add(serviceId));
+      }
+    });
+
+
+    this.divisionServices = this.services.filter(service => 
+      uniqueServiceIds.has(service.id) && 
+      (!service.division_id || service.division_id === this.division?.id)
+    );
+    
+
+    
+
     await this.loadFormats();
     if(this.lastSession){
       this.selectedCounter = this.terminals.find(terminal=>terminal.id == this.lastSession.terminal_id);
@@ -256,13 +342,26 @@ timerProgress: any;
     }
     
     this.subscription = this.queueService.queue$.subscribe((queueItems: Ticket[]) => {
-      if(this.selectedCounter?.specific){
-        this.queueService.queue = queueItems.filter((queue)=>queue.type == this.selectedCounter?.specific)
-        this.tickets = [...this.queueService.queue];
-      }else{
-        this.tickets = [...this.queueService.queue];
-      }
-    });
+  if(this.selectedCounter?.specific){
+    this.queueService.queue = queueItems.filter((queue)=>queue.type == this.selectedCounter?.specific);
+    let filtered = [...this.queueService.queue];
+    if (this.filteredServices.length > 0) {
+      filtered = filtered.filter(ticket => {
+        const ticketServices = ticket.services.split(', ');
+        return this.filteredServices.some(id => ticketServices.includes(id));
+      });
+    }
+    this.tickets = filtered;
+  } else {
+    if (this.filteredServices.length > 0) {
+      this.tickets = queueItems.filter(ticket => {
+        const ticketServices = ticket.services.split(', ');
+        return this.filteredServices.some(id => ticketServices.includes(id));
+      });
+    } else {
+      this.tickets = [...queueItems];
+    }
+  }});
 
     this.queueService.listenToQueue();
 
