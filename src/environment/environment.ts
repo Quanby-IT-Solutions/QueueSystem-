@@ -7,16 +7,16 @@ export const environment = {
     // server: 'https://quanbylab.com/public/',
     
     // PCSO 
-    // api: 'https://vsu.quanby-staging.com/api.php',
-    // socket: 'wss://vsu.quanby-staging.com/websocket',
-    // nodeserver: 'https://vsu.quanby-staging.com',
-    // server: 'https://vsu.quanby-staging.com/public/',
+    api: 'https://vsu.quanby-staging.com/api.php',
+    socket: 'wss://vsu.quanby-staging.com/websocket',
+    nodeserver: 'https://vsu.quanby-staging.com',
+    server: 'https://vsu.quanby-staging.com/public/',
 
     // VSU
-    api: 'https://q.vsu.edu.ph/api.php',
-    socket: 'wss://q.vsu.edu.ph/websocket',
-    nodeserver: 'https://q.vsu.edu.ph',
-    server: 'https://q.vsu.edu.ph/public/',
+    // api: 'https://q.vsu.edu.ph/api.php',
+    // socket: 'wss://q.vsu.edu.ph/websocket',
+    // nodeserver: 'https://q.vsu.edu.ph',
+    // server: 'https://q.vsu.edu.ph/public/',
 
      // LOCAL 
     //  api: 'https://vsu-qsm.gov.ph/api.php',

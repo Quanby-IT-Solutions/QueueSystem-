@@ -35,7 +35,11 @@ export class KioskNoCodeComponent {
     private router:Router
   ) {}
 
+  refreshInterval:any;
+
   ngOnInit(): void {
+
+ 
 
     this.loading$ = this.API.isLoading$.subscribe(loading => {
       this.isLoading = loading;
@@ -55,6 +59,9 @@ export class KioskNoCodeComponent {
       if (data.event !== 'content-changes') return;
       this.loadContents();
     });
+    this.refreshInterval = setInterval(()=>{
+      this.API.socketSend({'refresh':true});
+    },1000);
   }
 
   ngOnDestroy(): void {

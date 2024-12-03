@@ -49,6 +49,7 @@ export class KioskFormsComponent implements OnInit, OnDestroy {
 
   services:Service[]= [];
   subServices:SubService[]= [];
+  allSubServices:SubService[]=[];
   filteredServiceChecklist:SubService[] = [...this.subServices];
   searchTerm: string = '';
   isDropdownOpen: boolean = false;
@@ -65,6 +66,8 @@ export class KioskFormsComponent implements OnInit, OnDestroy {
   </div> `;
 
   isLoading:boolean = true;
+
+  refreshInterval:any;
 
   constructor(private route: ActivatedRoute,
     private queueService: QueueService,
@@ -100,7 +103,7 @@ export class KioskFormsComponent implements OnInit, OnDestroy {
   }
 
   async updateSubServices(){
-    this.subServices = await this.serviceService.getSubServices(this.group);
+    this.subServices = this.allSubServices.filter((subservice)=>subservice.service_id == this.group);
     this.isDropdownOpen = false;
     this.selectedServices = [];
 
@@ -126,6 +129,7 @@ export class KioskFormsComponent implements OnInit, OnDestroy {
     if(!this.printer){
       alert('No printer found')
     }
+    
     this.isLoading =true;
     this.timeInterval = setInterval(()=>{
       this.currentDate = new Date();
@@ -148,6 +152,7 @@ export class KioskFormsComponent implements OnInit, OnDestroy {
 
 
     this.services = await this.serviceService.getAllServices(this.divisionService.selectedDivision?.id!);
+    this.allSubServices = await this.serviceService.getAllSubServices();
     this.formats = await this.formatService.getFrom(this.divisionService.selectedDivision!.id);
     if(this.formats.length <= 0){
       this.formats = [
@@ -171,6 +176,9 @@ export class KioskFormsComponent implements OnInit, OnDestroy {
 
     this.queueService.listenToQueue();
     this.isLoading = false;
+    this.refreshInterval = setInterval(()=>{
+      this.API.socketSend({'refresh':true});
+    },1000);
   }
   
 

@@ -39,7 +39,10 @@ export class QueueingLayoutComponent implements OnInit, OnDestroy {
     private route: ActivatedRoute
   ) {}
 
+
+
   ngOnInit(): void {
+
     // Attempt to enable fullscreen immediately (works in kiosk mode)
     this.enableFullscreen();
 

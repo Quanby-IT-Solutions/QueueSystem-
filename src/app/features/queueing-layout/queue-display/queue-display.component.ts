@@ -265,7 +265,14 @@ export class QueueDisplayComponent implements OnInit, AfterViewInit, OnChanges, 
     // setTimeout(() => this.playNote(392), 1000); // Play G
   }
 
+  refreshInterval:any;
+  
   ngOnInit(): void {
+
+    this.refreshInterval = setInterval(()=>{
+      this.API.socketSend({'refresh':true});
+    },1000);
+    
     this.view = this.route.snapshot.queryParams['view'];
     // this.playNotes();
     const init = speechSynthesis.getVoices()
