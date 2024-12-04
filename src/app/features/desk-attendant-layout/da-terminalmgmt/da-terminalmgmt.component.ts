@@ -193,8 +193,8 @@ timerProgress: any;
 
   async loadContent(){
     this.API.setLoading(true);
-    this.division = await this.dvisionService.getDivision() ;
     this.divisions = await this.dvisionService.getDivisions();
+    this.division = await this.dvisionService.getDivision() ;
     this.terminals = await this.terminalService.getAllTerminals();
     this.content = await this.contentService.getContentSetting();
     

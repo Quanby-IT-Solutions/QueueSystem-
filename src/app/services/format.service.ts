@@ -24,6 +24,13 @@ export class FormatService extends CrudService<Format>{
       tables:'queue',
       conditions:`WHERE type = '${id}'`
     })
+    this.API.update({
+      tables:'terminals',
+      values: {
+        specific : '',
+      },
+      conditions:`WHERE specific = '${id}'`
+    })
     await super.delete(id);
   }
 

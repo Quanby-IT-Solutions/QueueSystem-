@@ -145,7 +145,7 @@ export class QueueService  {
     const  now =  new Date();
     const formattedDate = `${now.getMonth() + 1}/${now.getDate()}/${now.getFullYear()}`;
     this.lastTimestamp = now.getTime();
-
+    await this.getTodayQueues(true);
     // this.takeQueueNumber(info.type,this.kioskService.kiosk?.division_id!);
     let collision = true;
     while(collision){
@@ -461,12 +461,20 @@ export class QueueService  {
           prefix:'R'
         },
       };
-      this.queueNumber['priority'] = queue.filter(queue=> queue.type == 'priority' && queue.status == 'waiting').length + 1;
-      this.queueNumber['regular'] = queue.filter(queue=> queue.type == 'regular' && queue.status == 'waiting').length + 1;
-      if(formats.length > 0){
-        for(let format of formats){
-          this.queueNumber[format.id!] = queue.filter(queue=> queue.type == format.id && queue.status == 'waiting').length + 1;
-          formatMap[format.id!] = format;
+      if(all){
+        this.queueNumber['priority'] = queue.filter(queue=> queue.type == 'priority' && queue.status == 'waiting').length + 1;
+        this.queueNumber['regular'] = queue.filter(queue=> queue.type == 'regular' && queue.status == 'waiting').length + 1;
+        if(formats.length > 0){
+          for(let format of formats){
+            this.queueNumber[format.id!] = queue.filter(queue=> queue.type == format.id && queue.status == 'waiting').length + 1;
+            formatMap[format.id!] = format;
+          }
+        }
+      }else{
+        if(formats.length > 0){
+          for(let format of formats){
+            formatMap[format.id!] = format;
+          }
         }
       }
 
@@ -521,15 +529,23 @@ export class QueueService  {
           prefix:'R'
         },
       };
-      this.queueNumber['priority'] = queue.filter(queue=> queue.type == 'priority' && queue.status == 'waiting').length + 1;
-      this.queueNumber['regular'] = queue.filter(queue=> queue.type == 'regular' && queue.status == 'waiting').length + 1;
-      if(formats.length > 0){
-        for(let format of formats){
-          formatMap[format.id!] = format;
-          this.queueNumber[format.id!] = queue.filter(queue=> queue.type == format.id && queue.status == 'waiting').length + 1;
+
+      if(all){
+        this.queueNumber['priority'] = queue.filter(queue=> queue.type == 'priority' && queue.status == 'waiting').length + 1;
+        this.queueNumber['regular'] = queue.filter(queue=> queue.type == 'regular' && queue.status == 'waiting').length + 1;
+        if(formats.length > 0){
+          for(let format of formats){
+            this.queueNumber[format.id!] = queue.filter(queue=> queue.type == format.id && queue.status == 'waiting').length + 1;
+            formatMap[format.id!] = format;
+          }
+        }
+      }else{
+        if(formats.length > 0){
+          for(let format of formats){
+            formatMap[format.id!] = format;
+          }
         }
       }
-
     
 
       const sortedQueue = queue.sort((a,b)=>{ 
@@ -604,6 +620,7 @@ export class QueueService  {
         }
         for(let attended of response.output){
           const format  = formats.find((_format:any)=> _format.id == attended.type)!;
+          if(!format) continue;
           this.attendedQueues.push({...attended, queue: {...attended, id: attended.queue_id, type:format.id, tag:format.prefix, metaType: format.name}})
         }
         return this.attendedQueues;
@@ -611,7 +628,7 @@ export class QueueService  {
         throw new Error(response.output);
       }
     }catch(e:any){
-      throw new Error('Something went wrong.');
+      throw new Error(e.message);
     }
   }
 
