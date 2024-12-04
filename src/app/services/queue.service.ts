@@ -145,7 +145,7 @@ export class QueueService  {
     const  now =  new Date();
     const formattedDate = `${now.getMonth() + 1}/${now.getDate()}/${now.getFullYear()}`;
     this.lastTimestamp = now.getTime();
-    this.queueNumber[info.type] = (await this.getTodayQueues()).length +1;
+    await this.getTodayQueues(true)
     // this.takeQueueNumber(info.type,this.kioskService.kiosk?.division_id!);
     let collision = true;
     while(collision){
@@ -174,7 +174,7 @@ export class QueueService  {
           }else{
             collision =false;
             const lastNumber =this.queueNumber[info.type];
-            this.updateQueue(info.type,this.kioskService.kiosk?.division_id!);
+            // this.updateQueue(info.type,this.kioskService.kiosk?.division_id!);
             return lastNumber;
           }
         }catch(e:any){
@@ -461,19 +461,25 @@ export class QueueService  {
           prefix:'R'
         },
       };
-      this.queueNumber['priority'] = queue.filter(queue=> queue.type == 'priority' && queue.status == 'waiting').length + 1;
-      this.queueNumber['regular'] = queue.filter(queue=> queue.type == 'regular' && queue.status == 'waiting').length + 1;
-      if(formats.length > 0){
-        for(let format of formats){
-          this.queueNumber[format.id!] = queue.filter(queue=> queue.type == format.id && queue.status == 'waiting').length + 1;
-          formatMap[format.id!] = format;
+       
+      if(all){
+        this.queueNumber['priority'] = queue.filter(queue=> queue.type == 'priority' && queue.status == 'waiting').length + 1;
+        this.queueNumber['regular'] = queue.filter(queue=> queue.type == 'regular' && queue.status == 'waiting').length + 1;
+        if(formats.length > 0){
+          for(let format of formats){
+            this.queueNumber[format.id!] = queue.filter(queue=> queue.type == format.id && queue.status == 'waiting').length + 1;
+            formatMap[format.id!] = format;
+          }
+        }
+      }else{
+        if(formats.length > 0){
+          for(let format of formats){
+            // this.queueNumber[format.id!] = queue.filter(queue=> queue.type == format.id && queue.status == 'waiting').length + 1;
+            formatMap[format.id!] = format;
+          }
         }
       }
-
-
-     
-
-      const sortedQueue = queue.sort((a,b)=>{ 
+        const sortedQueue = queue.sort((a,b)=>{ 
 
         if(a.status == 'bottom' && b.status =='bottom'){
           return new Date( a.timestamp).getTime() - new Date( b.timestamp).getTime();

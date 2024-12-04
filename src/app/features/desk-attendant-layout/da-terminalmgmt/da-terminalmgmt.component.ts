@@ -147,6 +147,8 @@ timerProgress: any;
     private serviceService:ServiceService,
     private terminalService:TerminalService) {}
 
+    refreshInterval:any;
+
     ngOnInit(): void {
       this.updateCurrentDate();
       this.dateInterval = setInterval(() => this.updateCurrentDate(), 60000);

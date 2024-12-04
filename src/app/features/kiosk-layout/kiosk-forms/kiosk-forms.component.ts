@@ -82,7 +82,7 @@ export class KioskFormsComponent implements OnInit, OnDestroy {
 
  
   config = config
-  modal?:'priority'|'success'|string;
+  modal?:'priority'|'success'|'error'|string;
   content:any;
   printer?:string;
 
@@ -121,6 +121,7 @@ export class KioskFormsComponent implements OnInit, OnDestroy {
     if(this.timeInterval){
       clearInterval(this.timeInterval);
     }
+    clearInterval(this.refreshInterval);
   }
 
   async ngOnInit() {
@@ -144,6 +145,7 @@ export class KioskFormsComponent implements OnInit, OnDestroy {
       this.division =await  this.divisionService.getDivision(this.kioskService.kiosk.division_id)
       this.divisionService.setDivision(this.division!);
       this.queueService.getTodayQueues(true);
+      
       this.content = await this.contentService.getContentSetting(this.division!.id);
       this.API.setLoading(false);
     } else {
@@ -263,6 +265,10 @@ export class KioskFormsComponent implements OnInit, OnDestroy {
     return
   }
    try{
+    const currentQueueCountToday = (await this.queueService.getTodayQueues(true)).length;
+    if(currentQueueCountToday > 3){
+
+    }
     const number = await this.queueService.addToQueue({
       fullname: this.customerName.trim(),
       type: this.selectedType,

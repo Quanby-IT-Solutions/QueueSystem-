@@ -65,6 +65,7 @@ export class KioskNoCodeComponent {
   }
 
   ngOnDestroy(): void {
+    clearInterval(this.refreshInterval);
     this.loading$?.unsubscribe();
   }
 

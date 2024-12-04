@@ -306,6 +306,15 @@
     sound="notif.mp3"
     (onClose)="closeFeedback()"
   ></app-feedback>
+
+  <app-feedback
+    *ngIf="modal == 'error'"
+    title="We've reached our limit."
+    details="Please come back again tommorrow, Thank You!"
+    animation="warning"
+    sound="pop-notif.mp3"
+    (onClose)="closeFeedback()"
+  ></app-feedback>
   <app-feedback
     *ngIf="modal =='priority'"
     title="You are in Line!"

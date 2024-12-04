@@ -44,7 +44,7 @@ export const routes: Routes = [
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
       { path: 'dashboard', component: DashboardComponent },
       { path: 'profile', component: ProfileLayoutComponent },
-      { path: 'content-management', component: ContentManagementComponent },
+    { path: 'content-management', component: ContentManagementComponent },
       { path: 'user-management', component: UserManagementComponent },
       { path: 'terminal', component: TerminalManagementComponent },
       { path: 'kiosk-management', component: KioskManagementComponent },
@@ -90,6 +90,7 @@ export const routes: Routes = [
   {
     path: 'queueing-display', component: QueueingLayoutComponent,
   },
+
   {
     path: '**', // Wildcard route
     redirectTo: '/',

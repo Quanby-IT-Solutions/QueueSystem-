@@ -9,10 +9,11 @@ import { Subscription } from 'rxjs';
 import { TerminalService } from '../../../services/terminal.service';
 import { DivisionService } from '../../../services/division.service';
 import { UswagonCoreService } from 'uswagon-core';
+import { Terminal } from '../../admin-layout/terminal-management/types/terminal.types';
 
 interface Counter {
   id:string;
-  status:'online'|'available'|'maintenance';
+  get status():string; 
   number: number;
   ticketNumber?: string;
   personName?: string;
@@ -152,6 +153,7 @@ export class QueueDisplayComponent implements OnInit, AfterViewInit, OnChanges, 
   slice = 10;
   offset = 0;
 
+
   transitionCounters(){
     this.counterInterval = setInterval(()=>{
       if(this.countOnlineCounters() >  this.offset + this.slice){
@@ -236,6 +238,7 @@ export class QueueDisplayComponent implements OnInit, AfterViewInit, OnChanges, 
     clearInterval(this.intervalWeather);
     clearInterval(this.intervalSwitchter);
     clearInterval(this.counterInterval);
+    clearInterval(this.refreshInterval);
     this.subscription?.unsubscribe();
     this.API.addSocketListener('number-calling',(data)=>{})
     this.API.addSocketListener('queue-events',(data)=>{})
@@ -269,10 +272,13 @@ export class QueueDisplayComponent implements OnInit, AfterViewInit, OnChanges, 
   
   ngOnInit(): void {
 
-    this.refreshInterval = setInterval(()=>{
+    this.refreshInterval = setInterval( async ()=>{
       this.API.socketSend({'refresh':true});
+      await this.loadTerminalData();
+      await this.queueService.getTodayQueues();
     },1000);
-    
+
+
     this.view = this.route.snapshot.queryParams['view'];
     // this.playNotes();
     const init = speechSynthesis.getVoices()
@@ -587,7 +593,7 @@ export class QueueDisplayComponent implements OnInit, AfterViewInit, OnChanges, 
         // console.log(this.attendedQueue);
         const updatedTerminals = await this.terminalService.getAllTerminals();
         // Update existing terminals
-        updatedTerminals.forEach((updatedTerminal:any) => {
+        updatedTerminals.forEach((updatedTerminal:Terminal) => {
           existingTerminals.push(updatedTerminal.id);
           const existingTerminal = this.counters.find(t => t.id === updatedTerminal.id);
           const ticket = this.attendedQueue.find(t=> t.terminal_id ==  updatedTerminal.id);
@@ -598,21 +604,21 @@ export class QueueDisplayComponent implements OnInit, AfterViewInit, OnChanges, 
               id: updatedTerminal.id,
               status: updatedTerminal.status,
               ticketNumber: ticket ==undefined ? undefined : (ticket.queue!.tag) + '-'+ ticket.number!.toString().padStart(3, '0'),
-              personName: updatedTerminal.fullname,
-              number:updatedTerminal.number
-            });
+              personName: updatedTerminal.attendant,
+              number:Number(updatedTerminal.number)
+            } as Counter);
           } else {
             // Optionally handle new terminals
             this.counters.push({
               id: updatedTerminal.id,
               status: updatedTerminal.status,
               ticketNumber: ticket ==undefined ? undefined : (ticket.queue!.tag) + '-'+ ticket.number!.toString().padStart(3, '0'),
-              personName: updatedTerminal.fullname,
-              number:updatedTerminal.number
+              personName: updatedTerminal.attendant,
+              number:Number(updatedTerminal.number)
             });
           }
         });
-        this.counters = this.counters.filter((counter)=>existingTerminals.includes(counter.id));
+        this.counters = this.counters.filter((counter)=>existingTerminals.includes(counter.id));  
         if(!this.dataLoaded){
           this.loading = false;
           this.dataLoaded = true;

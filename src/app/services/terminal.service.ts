@@ -154,7 +154,7 @@ async deleteTerminal(id:string){
             const lastActive = new Date(this.last_active);
             const diffInMinutes = (now.getTime() - lastActive.getTime()) / 60000; 
     
-            if (diffInMinutes < 3 && this._status !== 'maintenance' && this.session_status !== 'closed') {
+            if (diffInMinutes < 1.5 && this._status !== 'maintenance' && this.session_status !== 'closed') {
                 return 'online';
             } else {
                 return this._status; // Return the default status if not online
