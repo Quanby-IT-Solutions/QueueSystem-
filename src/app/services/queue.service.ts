@@ -304,6 +304,55 @@ export class QueueService  {
       throw new Error('Something went wrong. Please try again');
     }
   }
+  async returnUnattendedQueue(attendedQueue?: AttendedQueue){
+    const now  = new Date();
+    try{
+      if(attendedQueue){
+
+        const createResponse = await this.API.create({
+          tables: 'queue',
+          values:{
+            id: this.API.createUniqueID32(),
+            division_id: attendedQueue.queue?.division_id,
+            kiosk_id: attendedQueue.queue?.kiosk_id,
+            department_id:  attendedQueue.queue?.department_id,
+            fullname:  attendedQueue.queue?.fullname,
+            number:  attendedQueue.queue?.number,
+            type:  attendedQueue.queue?.type,
+            gender:  attendedQueue.queue?.gender,
+            services:  attendedQueue.queue?.services,
+            status:'waiting',
+            timestamp: attendedQueue.queue?.timestamp,
+            student_id:  attendedQueue.queue?.student_id,
+            collision: attendedQueue.queue?.collision?.split('>')[0] + ">"+ now.getTime(),
+          }
+        });
+        if(!createResponse.success){
+  
+          throw new Error(createResponse.output);
+        }
+
+        
+        const updateResponse = await this.API.update({
+          tables: 'attended_queue',
+          values:{
+            finished_on: new DatePipe('en-US').transform(now, 'yyyy-MM-dd HH:mm:ss.SSSSSS'),
+            status: 'return',
+          },
+          conditions:`WHERE id = '${attendedQueue.id}'`
+        });
+   
+        if(!updateResponse.success) throw new Error(updateResponse.output);
+        this.resolveTakenQueue(attendedQueue.id);
+        this.attendedQueue = undefined;
+        await this.getTodayQueues();
+
+      }
+    }catch(e:any){
+
+      throw new Error('Something went wrong. Please try again');
+    }
+  }
   async getNextPriorityQueue(): Promise<Queue | undefined> {
     try {
       // Get priority tickets that are waiting or at bottom
