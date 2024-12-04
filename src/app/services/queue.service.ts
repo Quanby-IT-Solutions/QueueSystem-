@@ -174,7 +174,7 @@ export class QueueService  {
           }else{
             collision =false;
             const lastNumber =this.queueNumber[info.type];
-            // this.updateQueue(info.type,this.kioskService.kiosk?.division_id!);
+            this.updateQueue(info.type,this.kioskService.kiosk?.division_id!);
             return lastNumber;
           }
         }catch(e:any){
