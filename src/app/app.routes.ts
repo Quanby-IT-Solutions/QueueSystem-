@@ -28,7 +28,7 @@ import { KioskNoCodeComponent } from './features/kiosk-layout/kiosk-no-code/kios
 export const routes: Routes = [
   {
     path: '',
-    redirectTo: '/login',
+    redirectTo: '/queueing-display',
     pathMatch: 'full'
   },
   

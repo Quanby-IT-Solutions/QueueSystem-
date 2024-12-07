@@ -204,7 +204,7 @@ closePasswordModal(): void {
   this.newPassword = '';
   this.confirmNewPassword = '';
 }
-  changePassword(): void {
+  changePassword(data: {currentPassword: string, newPassword: string}): void {
     if (this.newPassword !== this.confirmNewPassword) {
       this.API.sendFeedback('error', 'Passwords do not match', 5000);
       return;
@@ -215,11 +215,6 @@ closePasswordModal(): void {
       return;
     }
 
-    // Add your password change API logic here
-    console.log('Changing password:', {
-      currentPassword: this.currentPassword,
-      newPassword: this.newPassword,
-    });
 
     // After successful password change:
     this.closePasswordModal();

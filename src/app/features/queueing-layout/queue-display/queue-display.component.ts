@@ -579,12 +579,7 @@ export class QueueDisplayComponent implements OnInit, AfterViewInit, OnChanges, 
      this.queueService.listenToQueue();
     await this.queueService.getTodayQueues();
     await this.loadTerminalData();
-    this.API.addSocketListener('queue-events',async(data:any)=>{
-      if(data.event == 'queue-events'){
-
-        await this.loadTerminalData();
-      }
-    });    
+  
   }
 
   async loadTerminalData(){
@@ -593,14 +588,13 @@ export class QueueDisplayComponent implements OnInit, AfterViewInit, OnChanges, 
         // console.log(this.attendedQueue);
         const updatedTerminals = await this.terminalService.getAllTerminals();
         // Update existing terminals
-        updatedTerminals.forEach((updatedTerminal:Terminal) => {
+        for(let updatedTerminal of updatedTerminals){
           existingTerminals.push(updatedTerminal.id);
           const existingTerminal = this.counters.find(t => t.id === updatedTerminal.id);
           const ticket = this.attendedQueue.find(t=> t.terminal_id ==  updatedTerminal.id);
           if(updatedTerminal.status != 'online' && ticket){
-            this.queueService.returnUnattendedQueue(ticket);
+            await this.queueService.returnUnattendedQueue(ticket);
           }
-
           if (existingTerminal) {
             // Update properties of the existing terminal
             Object.assign(existingTerminal, {
@@ -620,7 +614,7 @@ export class QueueDisplayComponent implements OnInit, AfterViewInit, OnChanges, 
               number:Number(updatedTerminal.number)
             });
           }
-        });
+        };
         this.counters = this.counters.filter((counter)=>existingTerminals.includes(counter.id));  
         if(!this.dataLoaded){
           this.loading = false;
