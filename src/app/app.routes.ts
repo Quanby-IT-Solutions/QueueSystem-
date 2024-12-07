@@ -28,7 +28,7 @@ import { KioskNoCodeComponent } from './features/kiosk-layout/kiosk-no-code/kios
 export const routes: Routes = [
   {
     path: '',
-    redirectTo: '/queueing-display',
+    redirectTo: '/login',
     pathMatch: 'full'
   },
   
@@ -55,41 +55,41 @@ export const routes: Routes = [
     ]
   },
 
-  {
-    path: 'desk-attendant',
-    component: DeskAttendantLayoutComponent,
-    canActivate: [AuthGuard],
-    data: { requiredRole: 'desk_attendants' },
-    children: [
-      { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
-      { path: 'dashboard', component: DaDashboardComponent },
-      { path: 'profile', component: ProfileLayoutComponent },
-      { path: 'terminalmgmt', component: DaTerminalmgmtComponent },
-    ]
-  },
+  // {
+  //   path: 'desk-attendant',
+  //   component: DeskAttendantLayoutComponent,
+  //   canActivate: [AuthGuard],
+  //   data: { requiredRole: 'desk_attendants' },
+  //   children: [
+  //     { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
+  //     { path: 'dashboard', component: DaDashboardComponent },
+  //     { path: 'profile', component: ProfileLayoutComponent },
+  //     { path: 'terminalmgmt', component: DaTerminalmgmtComponent },
+  //   ]
+  // },
   
-  {
-    path:'kiosk',
-    component:KioskLayoutComponent,
+  // {
+  //   path:'kiosk',
+  //   component:KioskLayoutComponent,
 
-    children: [
-      { path: '', redirectTo: 'selection', pathMatch: 'full' },
-      {
-        path: 'selection',
-        canActivate: [kioskGuard],
-        component: KioskNoCodeComponent,
-      },
-      {
-        path: 'forms',
-        canActivate: [kioskGuard],
-        component: KioskFormsComponent,
-      },
-    ]
-  },
+  //   children: [
+  //     { path: '', redirectTo: 'selection', pathMatch: 'full' },
+  //     {
+  //       path: 'selection',
+  //       canActivate: [kioskGuard],
+  //       component: KioskNoCodeComponent,
+  //     },
+  //     {
+  //       path: 'forms',
+  //       canActivate: [kioskGuard],
+  //       component: KioskFormsComponent,
+  //     },
+  //   ]
+  // },
 
-  {
-    path: 'queueing-display', component: QueueingLayoutComponent,
-  },
+  // {
+  //   path: 'queueing-display', component: QueueingLayoutComponent,
+  // },
 
   {
     path: '**', // Wildcard route
