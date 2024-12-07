@@ -147,7 +147,9 @@ export class ChangePasswordModalComponent {
   }
 
   // async submitForm() {
-    
+
+  //         this.showConfirmation = true;
+
   //   this.errorMessage = '';
 
   //   // 1. Check if any fields are empty
@@ -226,5 +228,6 @@ export class ChangePasswordModalComponent {
   //     this.errorMessage = 'An error occurred while updating the password';
   //     console.error('Error:', error);
   //   }
+
   // }
 }
