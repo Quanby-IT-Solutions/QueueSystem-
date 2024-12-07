@@ -10,10 +10,11 @@ import { UswagonAuthService } from 'uswagon-auth';
 export class AuthGuard implements CanActivate {
   constructor(private userService: UserService, private router: Router, private auth:UswagonAuthService) {}
 
-  canActivate(
+ async  canActivate(
     route: ActivatedRouteSnapshot,
-    state: RouterStateSnapshot): Observable<boolean | UrlTree> | Promise<boolean | UrlTree> | boolean | UrlTree {
-    
+    state: RouterStateSnapshot): Promise<boolean | UrlTree>  {
+      
+    await this.auth.decodeJWT();
     const currentUser = this.auth.accountLoggedIn();
     const requiredRole = route.data['requiredRole'] ?? 'root' ;
     

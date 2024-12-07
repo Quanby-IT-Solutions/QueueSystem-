@@ -144,14 +144,18 @@ export class LoginLayoutComponent implements OnInit, AfterViewInit {
     this.returnUrl = this.route.snapshot.queryParams['returnUrl'] || '/';
     this.selectedRole = this.route.snapshot.queryParams['role'] || '';
     if(this.selectedRole ==  'desk_attendants'){
-      this.auth.initialize({api:environment.api, apiKey: environment.apiKey, loginTable:['desk_attendants'],
+      this.auth.initialize({
+        authType:'jwt',
+        api:environment.api, apiKey: environment.apiKey, loginTable:['desk_attendants'],
         app:environment.app,
           redirect:  {'desk_attendants': '/desk-attendant',}
 
       });
     }
     if(this.selectedRole == 'admin'){
-      this.auth.initialize({api:environment.api, apiKey: environment.apiKey, loginTable:['administrators'],
+      this.auth.initialize({
+        authType:'jwt',
+        api:environment.api, apiKey: environment.apiKey, loginTable:['administrators'],
         app:environment.app,
           redirect:{
             'superadmin': '/admin/dashboard',
