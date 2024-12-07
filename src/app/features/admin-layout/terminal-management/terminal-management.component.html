@@ -1,6 +1,6 @@
 <div class="w-full h-full">
 
-  <div class="w-full py-4 px-6 my-4 flex justify-between rounded-lg bg-white shadow-md">
+  <div class="w-full py-4 px-6 my-4 flex justify-between rounded-3xl bg-white shadow-md">
     <div>
       <h1 class="font-medium text-2xl  tracking-wide">Terminal Management</h1>
       <p class="font-thin " >Manage terminals for desk attendants. Create, delete and view statuses of each terminal in this section.</p>
@@ -16,14 +16,14 @@
       <!-- Item -->
       <button
       (click)="selectDivision(division)"
-      class=" {{selectedDivision == division.id ? 'bg-[var(--primary-dark)] text-white':'bg-white'}}  tracking-wide h-12 rounded-lg shadow-md hover:bg-[var(--primary)] hover:text-white cursor-pointer flex items-center justify-between px-4 font-medium"
+      class=" {{selectedDivision == division.id ? 'bg-[var(--primary-dark)] text-white':'bg-white'}}  tracking-wide h-12 rounded-xl shadow-md hover:bg-[var(--primary)] hover:text-white cursor-pointer flex items-center justify-between px-4 font-medium"
       *ngFor="let division of divisions">
         {{division.name.toUpperCase()}} <span  class="material-icons hidden 2xl:block"> keyboard_arrow_right </span>
       </button>
       <!-- Add -->
     </div>
     <!-- Item Selection -->
-    <div class="bg-white rounded-lg shadow-md flex-[4_4_0%] h-full">
+    <div class="bg-white rounded-xl shadow-md flex-[4_4_0%] h-full">
       <div class=" grid grid-cols-2 2xl:grid-cols-3 portrait:grid-cols-1 px-3 py-3 gap-3">
         <button
         *ngFor="let terminal of terminals; let i = index"

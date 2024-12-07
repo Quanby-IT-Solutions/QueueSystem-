@@ -1,7 +1,7 @@
 <div class="w-full h-full">
 
 
-    <div class="flex justify-between w-full px-6 py-4 my-4 bg-white rounded-lg shadow-md">
+    <div class="flex justify-between w-full px-6 py-4 my-4 bg-white rounded-3xl shadow-md">
       <div>
         <h1 class="text-2xl font-medium tracking-wide">Format Management</h1>
         <p class="font-thin " >Manage format for client display. Create, edit, delete and view statuses of each formats in this section.</p>
@@ -17,14 +17,14 @@
         <!-- Item -->
         <button
         (click)="selectDivision(division)"
-        class=" {{selectedDivision?.id == division.id ? 'bg-[var(--primary-dark)] text-white':'bg-white'}}  tracking-wide h-12 rounded-lg shadow-md hover:bg-[var(--primary)] hover:text-white cursor-pointer flex items-center justify-between px-4 font-medium"
+        class=" {{selectedDivision?.id == division.id ? 'bg-[var(--primary-dark)] text-white':'bg-white'}}  tracking-wide h-12 rounded-xl shadow-md hover:bg-[var(--primary)] hover:text-white cursor-pointer flex items-center justify-between px-4 font-medium"
         *ngFor="let division of divisions">
           {{division.name.toUpperCase()}} <span  class="hidden material-icons 2xl:block"> keyboard_arrow_right </span>
         </button>
         <!-- Add -->
       </div>
       <!-- Item Selection -->
-      <div class="bg-white rounded-lg shadow-md flex-[4_4_0%] h-full">
+      <div class="bg-white rounded-xl shadow-md flex-[4_4_0%] h-full">
         <div class="grid grid-cols-2 2xl:grid-cols-3  portrait:grid-cols-1 gap-3 px-3 py-3 ">
           <button
 
