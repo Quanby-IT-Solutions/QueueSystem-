@@ -3,7 +3,7 @@ import { Component, AfterViewInit, ElementRef, ViewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { UswagonAuthService } from 'uswagon-auth';
 import { UswagonCoreService } from 'uswagon-core';
-import { gsap } from 'gsap';
+// import { gsap } from 'gsap';
 import { EditProfileModalComponent } from './edit-profile-modal/edit-profile-modal.component';
 import { ChangePasswordModalComponent } from './change-password-modal/change-password-modal.component';
 
@@ -53,28 +53,28 @@ export class ProfileLayoutComponent {
   }
 
   ngAfterViewInit() {
-    gsap.from(this.contentContainer.nativeElement, {
-      opacity: 0,
-      y: 30,
-      duration: 1.5,
-      ease: 'power2.out'
-    });
+    // gsap.from(this.contentContainer.nativeElement, {
+    //   opacity: 0,
+    //   y: 30,
+    //   duration: 1.5,
+    //   ease: 'power2.out'
+    // });
 
-    gsap.from(this.profilePhoto.nativeElement, {
-      opacity: 0,
-      scale: 0.8,
-      duration: 1.2,
-      ease: 'back.out(1.7)',
-      delay: 0.5
-    });
+    // gsap.from(this.profilePhoto.nativeElement, {
+    //   opacity: 0,
+    //   scale: 0.8,
+    //   duration: 1.2,
+    //   ease: 'back.out(1.7)',
+    //   delay: 0.5
+    // });
 
-    gsap.from(this.formContainer.nativeElement, {
-      opacity: 0,
-      x: 50,
-      duration: 1,
-      ease: 'power2.out',
-      delay: 0.8
-    });
+    // gsap.from(this.formContainer.nativeElement, {
+    //   opacity: 0,
+    //   x: 50,
+    //   duration: 1,
+    //   ease: 'power2.out',
+    //   delay: 0.8
+    // });
   }
 
   ngOnInit() {

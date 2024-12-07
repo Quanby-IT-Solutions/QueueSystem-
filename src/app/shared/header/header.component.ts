@@ -1,7 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit, OnDestroy, AfterViewInit, ElementRef, ViewChild } from '@angular/core';
 import { Router } from '@angular/router';
-import gsap from 'gsap';
+// import gsap from 'gsap';
 import { UswagonAuthService } from 'uswagon-auth';
 import { UswagonCoreService } from 'uswagon-core';
 import { ContentService } from '../../services/content.service';
@@ -44,7 +44,7 @@ export class HeaderComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   ngAfterViewInit(): void {
-    gsap.from('header', { opacity: 0, y: -20, duration: 0.6 });
+    // gsap.from('header', { opacity: 0, y: -20, duration: 0.6 });
   }
 
   ngOnDestroy(): void {
@@ -132,38 +132,38 @@ export class HeaderComponent implements OnInit, AfterViewInit, OnDestroy {
 
   openDropdown() {
     const dropdownElement = this.dropdownMenuRef?.nativeElement;
-    if (dropdownElement) {
-      dropdownElement.classList.add('open');
-      gsap.to(dropdownElement, {
-        opacity: 1,
-        y: 0,
-        duration: 0.4,
-        ease: 'power3.out',
-        onStart: () => {
-          dropdownElement.style.zIndex = '100';
-          dropdownElement.style.pointerEvents = 'auto';
-          dropdownElement.style.display = 'block';
-        }
-      });
-    }
+    // if (dropdownElement) {
+    //   dropdownElement.classList.add('open');
+    //   gsap.to(dropdownElement, {
+    //     opacity: 1,
+    //     y: 0,
+    //     duration: 0.4,
+    //     ease: 'power3.out',
+    //     onStart: () => {
+    //       dropdownElement.style.zIndex = '100';
+    //       dropdownElement.style.pointerEvents = 'auto';
+    //       dropdownElement.style.display = 'block';
+    //     }
+    //   });
+    // }
   }
 
   closeDropdown() {
     const dropdownElement = this.dropdownMenuRef?.nativeElement;
-    if (dropdownElement) {
-      gsap.to(dropdownElement, {
-        opacity: 0,
-        y: -10,
-        duration: 0.3,
-        ease: 'power3.in',
-        onComplete: () => {
-          dropdownElement.classList.remove('open');
-          dropdownElement.style.pointerEvents = 'none';
-          dropdownElement.style.zIndex = '1';
-          dropdownElement.style.display = 'none';
-        }
-      });
-    }
+    // if (dropdownElement) {
+    //   gsap.to(dropdownElement, {
+    //     opacity: 0,
+    //     y: -10,
+    //     duration: 0.3,
+    //     ease: 'power3.in',
+    //     onComplete: () => {
+    //       dropdownElement.classList.remove('open');
+    //       dropdownElement.style.pointerEvents = 'none';
+    //       dropdownElement.style.zIndex = '1';
+    //       dropdownElement.style.display = 'none';
+    //     }
+    //   });
+    // }
     this.isDropdownOpen = false;
   }
 
