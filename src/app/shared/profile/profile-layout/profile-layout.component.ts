@@ -204,22 +204,7 @@ closePasswordModal(): void {
   this.newPassword = '';
   this.confirmNewPassword = '';
 }
-  changePassword(data: {currentPassword: string, newPassword: string}): void {
-    if (this.newPassword !== this.confirmNewPassword) {
-      this.API.sendFeedback('error', 'Passwords do not match', 5000);
-      return;
-    }
 
-    if (this.newPassword.length < 8) {
-      this.API.sendFeedback('error', 'Password must be at least 8 characters long', 5000);
-      return;
-    }
-
-
-    // After successful password change:
-    this.closePasswordModal();
-    this.API.sendFeedback('success', 'Password updated successfully', 5000);
-  }
 
 
 handlePasswordChange(data: {currentPassword: string, newPassword: string}): void {
