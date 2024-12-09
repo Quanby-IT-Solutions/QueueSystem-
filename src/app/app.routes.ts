@@ -28,32 +28,32 @@ import { KioskNoCodeComponent } from './features/kiosk-layout/kiosk-no-code/kios
 export const routes: Routes = [
   {
     path: '',
-    redirectTo: '/login',
+    redirectTo: '/queueing-display',
     pathMatch: 'full'
   },
   
-  {
-    path: 'login', component: LoginLayoutComponent,
-  },
+  // {
+  //   path: 'login', component: LoginLayoutComponent,
+  // },
 
-  {
-    path: 'admin',
-    component: AdminLayoutComponent,
-    canActivate: [AuthGuard],
-    data: { requiredRole: 'admin' },
-    children: [
-      { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
-      { path: 'dashboard', component: DashboardComponent },
-      { path: 'profile', component: ProfileLayoutComponent },
-    { path: 'content-management', component: ContentManagementComponent },
-      { path: 'user-management', component: UserManagementComponent },
-      { path: 'terminal', component: TerminalManagementComponent },
-      { path: 'kiosk-management', component: KioskManagementComponent },
-      { path: 'service-management', component: ServiceManagementComponent },
-      // { path: 'format-management', component: FormatManagementComponent },
-      { path: 'department-management', component: DepartmentManagementComponent },
-    ]
-  },
+  // {
+  //   path: 'admin',
+  //   component: AdminLayoutComponent,
+  //   canActivate: [AuthGuard],
+  //   data: { requiredRole: 'admin' },
+  //   children: [
+  //     { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
+  //     { path: 'dashboard', component: DashboardComponent },
+  //     { path: 'profile', component: ProfileLayoutComponent },
+  //   { path: 'content-management', component: ContentManagementComponent },
+  //     { path: 'user-management', component: UserManagementComponent },
+  //     { path: 'terminal', component: TerminalManagementComponent },
+  //     { path: 'kiosk-management', component: KioskManagementComponent },
+  //     { path: 'service-management', component: ServiceManagementComponent },
+  //     // { path: 'format-management', component: FormatManagementComponent },
+  //     { path: 'department-management', component: DepartmentManagementComponent },
+  //   ]
+  // },
 
   // {
   //   path: 'desk-attendant',
@@ -68,28 +68,28 @@ export const routes: Routes = [
   //   ]
   // },
   
-  // {
-  //   path:'kiosk',
-  //   component:KioskLayoutComponent,
+  {
+    path:'kiosk',
+    component:KioskLayoutComponent,
 
-  //   children: [
-  //     { path: '', redirectTo: 'selection', pathMatch: 'full' },
-  //     {
-  //       path: 'selection',
-  //       canActivate: [kioskGuard],
-  //       component: KioskNoCodeComponent,
-  //     },
-  //     {
-  //       path: 'forms',
-  //       canActivate: [kioskGuard],
-  //       component: KioskFormsComponent,
-  //     },
-  //   ]
-  // },
+    children: [
+      { path: '', redirectTo: 'selection', pathMatch: 'full' },
+      {
+        path: 'selection',
+        canActivate: [kioskGuard],
+        component: KioskNoCodeComponent,
+      },
+      {
+        path: 'forms',
+        canActivate: [kioskGuard],
+        component: KioskFormsComponent,
+      },
+    ]
+  },
 
-  // {
-  //   path: 'queueing-display', component: QueueingLayoutComponent,
-  // },
+  {
+    path: 'queueing-display', component: QueueingLayoutComponent,
+  },
 
   {
     path: '**', // Wildcard route

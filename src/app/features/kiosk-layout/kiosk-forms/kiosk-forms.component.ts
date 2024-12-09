@@ -1,5 +1,5 @@
 //kiosk-forms.component.ts
-import { Component, model, OnDestroy, OnInit } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, model, OnDestroy, OnInit, Renderer2 } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -28,7 +28,7 @@ import { Format } from '../../admin-layout/format-management/types/format.types'
   templateUrl: './kiosk-forms.component.html',
   styleUrls: ['./kiosk-forms.component.css']
 })
-export class KioskFormsComponent implements OnInit, OnDestroy {
+export class KioskFormsComponent implements OnInit, OnDestroy, AfterViewInit {
   [x: string]: any;
 
   departmentName: string = '';
@@ -78,6 +78,7 @@ export class KioskFormsComponent implements OnInit, OnDestroy {
     private formatService:FormatService,
     private contentService:ContentService, 
     private router:Router,
+    private renderer: Renderer2, private el: ElementRef,
     private API: UswagonCoreService) {}
 
  
@@ -122,6 +123,17 @@ export class KioskFormsComponent implements OnInit, OnDestroy {
       clearInterval(this.timeInterval);
     }
     clearInterval(this.refreshInterval);
+  }
+
+  ngAfterViewInit(): void {
+    const inputElements = this.el.nativeElement.querySelectorAll('input');
+
+    // Loop through all input elements and attach click event to each
+    inputElements.forEach((inputElement: HTMLInputElement) => {
+      this.renderer.listen(inputElement, 'click', () => {
+        inputElement.focus();  // This triggers the touch keyboard on mobile devices
+      });
+    });
   }
 
   async ngOnInit() {
