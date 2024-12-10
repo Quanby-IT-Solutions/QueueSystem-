@@ -30,7 +30,7 @@
                      class="object-cover w-full h-full">
               </div>
               <div class="absolute bottom-1 right-1">
-                <div [ngClass]="{'bg-green-500': currentUser.is_online, 'bg-red-500': !currentUser.is_online}"
+                <div [ngClass]="{'bg-green-500': checkIsOnline(currentUser.id), 'bg-red-500': !checkIsOnline(currentUser.id)}"
                      class="w-4 h-4 md:w-5 md:h-5 rounded-full ring-2 ring-white">
                 </div>
               </div>
@@ -174,10 +174,13 @@
                   {{ user.role === 'superadmin' ? 'Super Admin' : user.role !== 'Desk attendant' ? 'Admin' : 'Desk Attendant' }}
                 </td>
                 <td class="px-4 py-3">
-                  <span [ngClass]="{'bg-green-100 text-green-800': user.is_online, 'bg-red-100 text-red-800': !user.is_online}"
+                  <ng-container *ngIf="user.role == 'Desk attendant'">
+                    <span [ngClass]="{'bg-green-100 text-green-800': checkIsOnline(user.id), 'bg-red-100 text-red-800': !checkIsOnline(user.id)}"
                         class="px-3 py-1 text-xs font-medium rounded-full">
-                    {{ user.is_online ? 'Active' : 'Inactive' }}
-                  </span>
+                        {{ checkIsOnline(user.id) ? 'Active' : 'Inactive' }}
+                    </span>
+                  
+                  </ng-container>
                 </td>
                 <td class="px-4 py-3">
                   <div class="flex space-x-3">

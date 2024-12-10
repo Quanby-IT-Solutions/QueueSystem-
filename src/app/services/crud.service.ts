@@ -39,6 +39,9 @@ getTable(){
    if(!response.success){
      throw new Error('Unable to add item');
    }
+    this.core.socketSend({event:'queue-events'})
+    this.core.socketSend({event:'terminal-events'})
+    this.core.socketSend({event:'admin-dashboard-events'})
  }
 
  async checkWhere(condition:string){
@@ -68,6 +71,9 @@ getTable(){
   if(!response.success){
     throw new Error('Unable to update item.');
   }
+  this.core.socketSend({event:'queue-events'})
+  this.core.socketSend({event:'terminal-events'})
+  this.core.socketSend({event:'admin-dashboard-events'})
 }
  async delete(id:string){
    const response = await this.core.delete({
@@ -78,6 +84,9 @@ getTable(){
    if(!response.success){
      throw new Error(`Unable to delete item`);
    }
+    this.core.socketSend({event:'queue-events'})
+    this.core.socketSend({event:'terminal-events'})
+    this.core.socketSend({event:'admin-dashboard-events'})
  }
  
   async getAll(): Promise<T[]>{  
@@ -87,7 +96,7 @@ getTable(){
         conditions: `
           ${this.filters}
           ORDER BY ${this.order.join(", ")} ${this.table!}.id
-          OFFSET ${this.offset} LIMIT ${this.limit}  
+          OFFSET ${this.offset} ROWS FETCH NEXT ${this.limit} ROWS ONLY  
         `
       });
   
