@@ -24,7 +24,7 @@ import { DivisionManagementComponent } from './features/admin-layout/division-ma
 import { FormatManagementComponent } from './features/admin-layout/format-management/format-management.component';
 import { DepartmentManagementComponent } from './features/admin-layout/department-management/department-management.component';
 import { KioskNoCodeComponent } from './features/kiosk-layout/kiosk-no-code/kiosk-no-code.component';
-
+import { VirtualKeyboardComponent } from './features/kiosk-layout/kiosk-forms/virtual-keyboard.component';
 export const routes: Routes = [
   {
     path: '',
