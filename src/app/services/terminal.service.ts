@@ -241,6 +241,37 @@ async deleteTerminal(id:string){
     }
   }
 
+  async getActiveUsers():Promise<string[]>{ 
+    const response = await this.API.read({
+      selectors: ['attendant_id,last_active'],
+      tables: 'terminal_sessions',
+      conditions: `WHERE terminal_sessions.status != 'closed' 
+        ORDER BY last_active DESC
+      `
+    });
+
+    if(!response.success){
+      throw new Error('Unable to get terminal session');
+    }
+
+
+    if(response.output.length <= 0){
+      return [];
+    }else{
+      const activeUsers = [];
+      for(let i=0; i<response.output.length; i++){
+        const lastSession = response.output[i];
+        const now = new Date(); 
+        const lastActive = new Date(lastSession.last_active);
+  
+        const diffInMinutes = (now.getTime() - lastActive.getTime()) / 60000; 
+        if (diffInMinutes <= 1.5) {
+          activeUsers.push(response.output[i].attendant_id); 
+        }
+      }
+      return activeUsers;
+    }
+  }
   statusInterval:any;
 
   async refreshTerminalStatus(terminal_session:string){
