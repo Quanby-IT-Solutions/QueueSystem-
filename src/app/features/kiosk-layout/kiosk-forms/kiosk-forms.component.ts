@@ -1,7 +1,7 @@
 //kiosk-forms.component.ts
 import { Component, model, OnDestroy, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { CommonModule } from '@angular/common';
+import { CommonModule,  } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import jsPDF from 'jspdf';
 import { UswagonCoreService } from 'uswagon-core';
@@ -19,12 +19,13 @@ import { config } from '../../../../environment/config';
 import { ContentService } from '../../../services/content.service';
 import { FormatService } from '../../../services/format.service';
 import { Format } from '../../admin-layout/format-management/types/format.types';
+import { VirtualKeyboardComponent } from './virtual-keyboard.component';
 
 
 @Component({
   selector: 'app-kiosk-forms',
   standalone: true,
-  imports: [CommonModule, FormsModule, FeedbackComponent,SnackbarComponent,ConfirmationComponent, LottieAnimationComponent],
+  imports: [CommonModule, FormsModule, FeedbackComponent,SnackbarComponent,ConfirmationComponent, LottieAnimationComponent,  VirtualKeyboardComponent],
   templateUrl: './kiosk-forms.component.html',
   styleUrls: ['./kiosk-forms.component.css']
 })
@@ -37,7 +38,8 @@ export class KioskFormsComponent implements OnInit, OnDestroy {
   isChecklistVisible: boolean = false;
   isFormVisible: boolean = false;
   showModal: boolean = false;
-
+  showKeyboard = false;
+  activeInput: 'name' | 'studentNumber' | null = null;
   queueNumber: string | null = null;
   selectedServices: Service[] = [];
   selectedType: 'regular' | 'priority'|string = 'regular';
@@ -316,7 +318,23 @@ export class KioskFormsComponent implements OnInit, OnDestroy {
    
   }
 
-
+  showVirtualKeyboard(inputField: 'name' | 'studentNumber') {
+    this.activeInput = inputField;
+    this.showKeyboard = true;
+  }
+  
+  handleKeyboardInput(value: string) {
+    if (this.activeInput === 'name') {
+      this.customerName = value;
+    } else if (this.activeInput === 'studentNumber') {
+      this.studentNumber = value;
+    }
+  }
+  
+  closeKeyboard() {
+    this.showKeyboard = false;
+    this.activeInput = null;
+  }
 
 
 //   async printImage(code: string) {

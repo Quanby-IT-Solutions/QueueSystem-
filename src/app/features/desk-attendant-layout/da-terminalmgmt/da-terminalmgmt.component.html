@@ -78,33 +78,35 @@
     </button>
   
 
-  <div *ngIf="showServiceFilter" 
-       class="absolute right-0 mt-2 w-64 bg-white rounded-lg shadow-lg border border-gray-200 z-50">
-    <div class="p-3 border-b flex justify-between items-center">
-      <h3 class="font-semibold">{{division?.name}} Services</h3>
-      <button 
-        (click)="clearServiceFilters()" 
-        class="text-gray-500 hover:text-gray-700">
-        <span class="material-icons text-sm">clear</span>
-      </button>
-    </div>
-    <div class="max-h-64 overflow-y-auto">
-      <ng-container *ngIf="divisionServices.length > 0; else noServices">
-        <div *ngFor="let service of divisionServices" 
-             (click)="handleServiceClick(service.id)"
-             class="px-4 py-2 hover:bg-gray-50 cursor-pointer flex items-center justify-between">
-          <span>{{service.name}}</span>
-          <span *ngIf="filteredServices.includes(service.id)" 
-                class="material-icons text-blue-500 text-sm">check</span>
+    <div class="flex gap-6 items-center">
+      <!-- Service Filter Section -->
+      <div *ngIf="showServiceFilter" class="relative">
+        <div class="absolute right-0 mt-2 w-64 bg-white rounded-lg shadow-lg border border-gray-200 z-50">
+          <div class="p-3 border-b flex justify-between items-center">
+            <h3 class="font-semibold">{{division?.name}} Services</h3>
+            <button (click)="clearServiceFilters()" class="text-gray-500 hover:text-gray-700">
+              <span class="material-icons text-sm">clear</span>
+            </button>
+          </div>
+          <div class="max-h-64 overflow-y-auto">
+            <ng-container *ngIf="divisionServices.length > 0; else noServices">
+              <div *ngFor="let service of divisionServices" 
+                   (click)="handleServiceClick(service.id)"
+                   class="px-4 py-2 hover:bg-gray-50 cursor-pointer flex items-center justify-between">
+                <span>{{service.name}}</span>
+                <span *ngIf="filteredServices.includes(service.id)" 
+                      class="material-icons text-blue-500 text-sm">check</span>
+              </div>
+            </ng-container>
+            <ng-template #noServices>
+              <div class="px-4 py-2 text-gray-500 text-center">
+                No services available for this division
+              </div>
+            </ng-template>
+          </div>
         </div>
-      </ng-container>
-      <ng-template #noServices>
-        <div class="px-4 py-2 text-gray-500 text-center">
-          No services available for this division
-        </div>
-      </ng-template>
-    </div>
-  </div>
+      </div>
+</div>
 </div>
   
       <button 
