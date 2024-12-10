@@ -332,6 +332,23 @@ export class QueueService  {
     const now  = new Date();
     try{
       if(attendedQueue){
+        const updateResponse = await this.API.update({
+          tables: 'attended_queue',
+          values:{
+            finished_on: new DatePipe('en-US').transform(now, 'yyyy-MM-dd HH:mm:ss.SSSSSS'),
+            status: 'return',
+          },
+          conditions:`WHERE id = '${attendedQueue.id}'`
+        });
+        const checkResponse = await this.API.read({
+          selectors: ['*'],
+          tables: 'attended_queue',
+          conditions:`WHERE id = '${attendedQueue.id}'`
+        });
+
+        if(!checkResponse.success) throw new Error(checkResponse.output);
+        
+        if(checkResponse.output.length <=0 ) return;
 
         const createResponse = await this.API.create({
           tables: 'queue',
@@ -356,15 +373,6 @@ export class QueueService  {
           throw new Error(createResponse.output);
         }
 
-        
-        const updateResponse = await this.API.update({
-          tables: 'attended_queue',
-          values:{
-            finished_on: new DatePipe('en-US').transform(now, 'yyyy-MM-dd HH:mm:ss.SSSSSS'),
-            status: 'return',
-          },
-          conditions:`WHERE id = '${attendedQueue.id}'`
-        });
    
         if(!updateResponse.success) throw new Error(updateResponse.output);
         this.resolveTakenQueue(attendedQueue.id);
