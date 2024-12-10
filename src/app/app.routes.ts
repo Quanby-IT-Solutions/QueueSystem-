@@ -28,13 +28,13 @@ import { VirtualKeyboardComponent } from './features/kiosk-layout/kiosk-forms/vi
 export const routes: Routes = [
   {
     path: '',
-    redirectTo: '/login',
+    redirectTo: '/queueing-display',
     pathMatch: 'full'
   },
   
-  {
-    path: 'login', component: LoginLayoutComponent,
-  },
+  // {
+  //   path: 'login', component: LoginLayoutComponent,
+  // },
 
   // {
   //   path: 'admin',
@@ -55,41 +55,41 @@ export const routes: Routes = [
   //   ]
   // },
 
-  {
-    path: 'desk-attendant',
-    component: DeskAttendantLayoutComponent,
-    canActivate: [AuthGuard],
-    data: { requiredRole: 'desk_attendants' },
-    children: [
-      { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
-      { path: 'dashboard', component: DaDashboardComponent },
-      { path: 'profile', component: ProfileLayoutComponent },
-      { path: 'terminalmgmt', component: DaTerminalmgmtComponent },
-    ]
-  },
-  
   // {
-  //   path:'kiosk',
-  //   component:KioskLayoutComponent,
-
+  //   path: 'desk-attendant',
+  //   component: DeskAttendantLayoutComponent,
+  //   canActivate: [AuthGuard],
+  //   data: { requiredRole: 'desk_attendants' },
   //   children: [
-  //     { path: '', redirectTo: 'selection', pathMatch: 'full' },
-  //     {
-  //       path: 'selection',
-  //       canActivate: [kioskGuard],
-  //       component: KioskNoCodeComponent,
-  //     },
-  //     {
-  //       path: 'forms',
-  //       canActivate: [kioskGuard],
-  //       component: KioskFormsComponent,
-  //     },
+  //     { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
+  //     { path: 'dashboard', component: DaDashboardComponent },
+  //     { path: 'profile', component: ProfileLayoutComponent },
+  //     { path: 'terminalmgmt', component: DaTerminalmgmtComponent },
   //   ]
   // },
+  
+  {
+    path:'kiosk',
+    component:KioskLayoutComponent,
 
-  // {
-  //   path: 'queueing-display', component: QueueingLayoutComponent,
-  // },
+    children: [
+      { path: '', redirectTo: 'selection', pathMatch: 'full' },
+      {
+        path: 'selection',
+        canActivate: [kioskGuard],
+        component: KioskNoCodeComponent,
+      },
+      {
+        path: 'forms',
+        canActivate: [kioskGuard],
+        component: KioskFormsComponent,
+      },
+    ]
+  },
+
+  {
+    path: 'queueing-display', component: QueueingLayoutComponent,
+  },
 
   {
     path: '**', // Wildcard route
