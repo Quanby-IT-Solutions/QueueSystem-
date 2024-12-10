@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { UswagonCoreService } from 'uswagon-core';
@@ -7,6 +7,7 @@ import { UswagonAuthService } from 'uswagon-auth';
 import { LottieAnimationComponent } from '../../../shared/components/lottie-animation/lottie-animation.component';
 import { environment } from '../../../../environment/environment';
 import { ConfirmationComponent } from '../../../shared/modals/confirmation/confirmation.component';
+import { TerminalService } from '../../../services/terminal.service';
 
 interface User {
   role: string;
@@ -42,7 +43,7 @@ interface PerformanceMetrics {
   standalone: true,
   imports: [CommonModule, FormsModule, CreateAccountModalComponent, LottieAnimationComponent, ConfirmationComponent],
 })
-export class UserManagementComponent implements OnInit {
+export class UserManagementComponent implements OnInit, OnDestroy {
   users: User[] = [];
   filteredUsers: User[] = [];
   paginatedUsers: User[] = [];
@@ -65,11 +66,24 @@ export class UserManagementComponent implements OnInit {
   divisions: Divisions[] = [];
   showDeleteConfirmation: boolean = false;
   userToDelete: User | null = null;
+  statusInterval:any;
+  activeUsers:string[]=[];
 
-  constructor(private API: UswagonCoreService, private auth: UswagonAuthService) {}
+  constructor(private API: UswagonCoreService, private auth: UswagonAuthService, private terminalService:TerminalService) {}
 
   ngOnInit() {
     this.loadData();
+    this.statusInterval = setInterval(async()=>{
+      this.activeUsers =  await this.terminalService.getActiveUsers()
+    }, 1000);
+  }
+
+  ngOnDestroy(): void {
+    if(this.statusInterval) clearInterval(this.statusInterval);
+  }
+
+  checkIsOnline(userId:string){
+    return this.activeUsers.includes(userId)
   }
 
   async loadData() {
@@ -189,8 +203,6 @@ export class UserManagementComponent implements OnInit {
     };
   }
 
-  
-
   getImageURL(file: string): string | undefined {
     return this.API.getFileURL(file);
   }
@@ -210,39 +222,10 @@ export class UserManagementComponent implements OnInit {
     }
   }
   
-  
-
   createNewAccount() {
     this.selectedUser = null;
     this.showModal = true;
   }
-
- 
-
-  // async deleteUser(user: User) {
-  //   const confirmed = confirm(`Are you sure you want to delete ${user.fullname}?`);
-  //   if (!confirmed) return;
-
-  //   try {
-  //     const response = await this.API.delete({
-  //       tables: user.role === 'Desk attendant' ? 'desk_attendants' : 'administrators',
-  //       conditions: `WHERE id = '${user.id}'`
-  //     });
-
-  //     if (response && response.success) {
-  //       this.users = this.users.filter(u => u.id !== user.id);
-  //       this.filteredUsers = this.filteredUsers.filter(u => u.id !== user.id);
-  //       this.API.sendFeedback('success', 'User has been deleted!', 5000);
-  //       console.log('User deleted successfully:', user.fullname);
-  //     } else {
-  //       alert(`Failed to delete user: ${response.output || 'Unknown error'}`);
-  //     }
-  //   } catch (error) {
-  //     console.error('Error occurred during user deletion:', error);
-  //   }
-  // }
-
-  
 
   confirmDeleteUser(user: User) {
     this.userToDelete = user;
@@ -274,7 +257,6 @@ export class UserManagementComponent implements OnInit {
     }
   }
   
-
   onCancelDelete() {
     this.showDeleteConfirmation = false;
     this.userToDelete = null;
@@ -302,12 +284,10 @@ export class UserManagementComponent implements OnInit {
     }
   }
   
-
   editUser(user: User) {
     this.selectedUser = user;
     this.showModal = true;
   }
-
 
   async fetchTerminalSessions(userId: string) {
     try {
@@ -342,8 +322,6 @@ export class UserManagementComponent implements OnInit {
   
     return `${formattedHours}:${mins.toString().padStart(2, '0')} ${period}`;
   }
-  
-
  
   calculateMetrics(sessions: any[]): PerformanceMetrics {
     const totalCheckIns = sessions.length;
@@ -412,7 +390,5 @@ export class UserManagementComponent implements OnInit {
       rating: 0,
     };
   }
-
-  
 
 }
