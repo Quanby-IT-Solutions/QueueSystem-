@@ -332,6 +332,16 @@ export class QueueService  {
     const now  = new Date();
     try{
       if(attendedQueue){
+        const checkResponse = await this.API.read({
+          selectors: ['*'],
+          tables: 'attended_queue',
+          conditions:`WHERE id = '${attendedQueue.id}' AND status = 'ongoing'`
+        });
+
+        if(!checkResponse.success) throw new Error(checkResponse.output);
+        
+        if(checkResponse.output.length <=0 ) return;
+        
         const updateResponse = await this.API.update({
           tables: 'attended_queue',
           values:{
@@ -340,15 +350,7 @@ export class QueueService  {
           },
           conditions:`WHERE id = '${attendedQueue.id}'`
         });
-        const checkResponse = await this.API.read({
-          selectors: ['*'],
-          tables: 'attended_queue',
-          conditions:`WHERE id = '${attendedQueue.id}'`
-        });
-
-        if(!checkResponse.success) throw new Error(checkResponse.output);
         
-        if(checkResponse.output.length <=0 ) return;
 
         const createResponse = await this.API.create({
           tables: 'queue',

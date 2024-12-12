@@ -56,10 +56,6 @@ export class KioskService extends CrudService<Kiosk>{
     })
   }
 
-  async thermalPrintUSB(data:any){
-    // Implement thermal printing via USB 
-    
-  }
 
   async kioskLogin(code:string){
     const response = await this.API.read({
