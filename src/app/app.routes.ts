@@ -28,45 +28,45 @@ import { VirtualKeyboardComponent } from './features/kiosk-layout/kiosk-forms/vi
 export const routes: Routes = [
   {
     path: '',
-    redirectTo: '/queueing-display',
+    redirectTo: '/login',
     pathMatch: 'full'
   },
   
-  // {
-  //   path: 'login', component: LoginLayoutComponent,
-  // },
+  {
+    path: 'login', component: LoginLayoutComponent,
+  },
 
-  // {
-  //   path: 'admin',
-  //   component: AdminLayoutComponent,
-  //   canActivate: [AuthGuard],
-  //   data: { requiredRole: 'admin' },
-  //   children: [
-  //     { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
-  //     { path: 'dashboard', component: DashboardComponent },
-  //     { path: 'profile', component: ProfileLayoutComponent },
-  //   { path: 'content-management', component: ContentManagementComponent },
-  //     { path: 'user-management', component: UserManagementComponent },
-  //     { path: 'terminal', component: TerminalManagementComponent },
-  //     { path: 'kiosk-management', component: KioskManagementComponent },
-  //     { path: 'service-management', component: ServiceManagementComponent },
-  //     // { path: 'format-management', component: FormatManagementComponent },
-  //     { path: 'department-management', component: DepartmentManagementComponent },
-  //   ]
-  // },
+  {
+    path: 'admin',
+    component: AdminLayoutComponent,
+    canActivate: [AuthGuard],
+    data: { requiredRole: 'admin' },
+    children: [
+      { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
+      { path: 'dashboard', component: DashboardComponent },
+      { path: 'profile', component: ProfileLayoutComponent },
+    { path: 'content-management', component: ContentManagementComponent },
+      { path: 'user-management', component: UserManagementComponent },
+      { path: 'terminal', component: TerminalManagementComponent },
+      { path: 'kiosk-management', component: KioskManagementComponent },
+      { path: 'service-management', component: ServiceManagementComponent },
+      // { path: 'format-management', component: FormatManagementComponent },
+      { path: 'department-management', component: DepartmentManagementComponent },
+    ]
+  },
 
-  // {
-  //   path: 'desk-attendant',
-  //   component: DeskAttendantLayoutComponent,
-  //   canActivate: [AuthGuard],
-  //   data: { requiredRole: 'desk_attendants' },
-  //   children: [
-  //     { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
-  //     { path: 'dashboard', component: DaDashboardComponent },
-  //     { path: 'profile', component: ProfileLayoutComponent },
-  //     { path: 'terminalmgmt', component: DaTerminalmgmtComponent },
-  //   ]
-  // },
+  {
+    path: 'desk-attendant',
+    component: DeskAttendantLayoutComponent,
+    canActivate: [AuthGuard],
+    data: { requiredRole: 'desk_attendants' },
+    children: [
+      { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
+      { path: 'dashboard', component: DaDashboardComponent },
+      { path: 'profile', component: ProfileLayoutComponent },
+      { path: 'terminalmgmt', component: DaTerminalmgmtComponent },
+    ]
+  },
   
   {
     path:'kiosk',

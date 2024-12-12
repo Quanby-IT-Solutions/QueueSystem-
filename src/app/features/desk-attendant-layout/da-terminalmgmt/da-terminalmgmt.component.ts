@@ -117,10 +117,12 @@ export class DaTerminalmgmtComponent implements OnInit, OnDestroy {
   isReturnBottomActive: boolean = false;
 
   private timerInterval: any;
+  private serverTimeInterval:any;
   private dateInterval: any;
   private statusInterval:any;
   private subscription?:Subscription;
-
+  
+  serverTime?:Date;
   lastSession?:any;
 
   actionLoading:boolean = false;
@@ -184,6 +186,9 @@ timerProgress: any;
     this.clearIntervals();
     if(this.subscription){
       this.subscription.unsubscribe();
+    }
+    if(this.serverTimeInterval){
+      clearInterval(this.serverTimeInterval);
     }
   }
   formats:Format[] = [];
@@ -280,6 +285,7 @@ timerProgress: any;
 
   async loadContent(){
     this.API.setLoading(true);
+    this.serverTime = new Date(await this.API.serverTime());
     this.divisions = await this.dvisionService.getDivisions();
     this.division = await this.dvisionService.getDivision() ;
     this.dvisionService.setDivision(this.division!);
@@ -296,6 +302,9 @@ timerProgress: any;
       }
     });
 
+    this.serverTimeInterval = setInterval(async()=>{
+      this.serverTime = new Date(await this.API.serverTime());
+    },1000)
 
     this.divisionServices = this.services.filter(service => 
       uniqueServiceIds.has(service.id) && 
@@ -784,9 +793,9 @@ timerProgress: any;
   
 
   checkIfOnline(terminal:Terminal){
-    const now = new Date(); 
+;   
     const lastActive = new Date(terminal.last_active!);
-    const diffInMinutes = (now.getTime() - lastActive.getTime()) / 60000; 
+    const diffInMinutes = (this.serverTime!.getTime() - lastActive.getTime()) / 60000; 
 
     if (diffInMinutes < 1.5 && terminal._status !== 'maintenance' && terminal.session_status !== 'closed') {
         return 'online';

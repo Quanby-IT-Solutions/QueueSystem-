@@ -147,10 +147,10 @@ async deleteTerminal(id:string){
       });
       for(let i = 0 ; i < response.output.length; i++){
         response.output[i]._status = response.output[i].status;
+        const now =  new Date(await this.API.serverTime())
         response.output[i] = {
           ...response.output[i],
-          get status():string {
-            const now = new Date(); 
+          get status():string { 
             const lastActive = new Date(this.last_active);
             const diffInMinutes = (now.getTime() - lastActive.getTime()) / 60000; 
     
@@ -187,15 +187,14 @@ async deleteTerminal(id:string){
       }
     }
     const id = this.API.createUniqueID32();
-    const now = new Date();
     const response = await this.API.create({
       tables: 'terminal_sessions',
       values:{
         id:id,
         terminal_id: terminal_id,
         attendant_id:this.auth.getUser().id,
-        start_time: new DatePipe('en-US').transform(now, 'yyyy-MM-dd HH:mm:ss.SSSSSS'),
-        last_active: new DatePipe('en-US').transform(now, 'yyyy-MM-dd HH:mm:ss.SSSSSS')
+        start_time: await this.API.serverTime(),
+        last_active: await this.API.serverTime()
       }  
     });
  
@@ -229,7 +228,7 @@ async deleteTerminal(id:string){
       return null;
     }else{
       const lastSession = response.output[0];
-      const now = new Date(); 
+      const now = new Date(await this.API.serverTime()); 
       const lastActive = new Date(lastSession.last_active);
  
       const diffInMinutes = (now.getTime() - lastActive.getTime()) / 60000; 
@@ -261,7 +260,7 @@ async deleteTerminal(id:string){
       const activeUsers = [];
       for(let i=0; i<response.output.length; i++){
         const lastSession = response.output[i];
-        const now = new Date(); 
+        const now = new Date(await this.API.serverTime()); 
         const lastActive = new Date(lastSession.last_active);
   
         const diffInMinutes = (now.getTime() - lastActive.getTime()) / 60000; 
@@ -276,11 +275,10 @@ async deleteTerminal(id:string){
 
   async refreshTerminalStatus(terminal_session:string){
     this.statusInterval = setInterval(async()=>{
-      const now = new Date();
       const response = await this.API.update({
         tables: 'terminal_sessions',
         values:{
-          last_active: new DatePipe('en-US').transform(now, 'yyyy-MM-dd HH:mm:ss.SSSSSS')
+          last_active: await this.API.serverTime()
         }  ,
         conditions: `WHERE id = '${terminal_session}'`
       });

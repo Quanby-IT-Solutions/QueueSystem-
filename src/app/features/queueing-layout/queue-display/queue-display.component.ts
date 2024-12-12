@@ -88,7 +88,7 @@ interface Division{
   templateUrl: './queue-display.component.html',
   styleUrls: ['./queue-display.component.css']
 })
-export class QueueDisplayComponent implements OnInit, AfterViewInit, OnChanges, OnDestroy {
+export class QueueDisplayComponent implements OnInit, OnChanges, OnDestroy {
  
   // VARIABLES
   
@@ -271,7 +271,7 @@ export class QueueDisplayComponent implements OnInit, AfterViewInit, OnChanges, 
   refreshInterval:any;
   
   ngOnInit(): void {
-
+    if(!this.isPreview)  this.loadQueue();  
     this.refreshInterval = setInterval( async ()=>{
       this.API.socketSend({'refresh':true});
       await this.loadTerminalData();
@@ -381,11 +381,6 @@ export class QueueDisplayComponent implements OnInit, AfterViewInit, OnChanges, 
 
   }
 
-  ngAfterViewInit(): void {
-    // Backend init
-    
-    if(!this.isPreview)  this.loadQueue();
-  }
 
   // FRONT END FUNCTIONS
 
@@ -458,7 +453,6 @@ export class QueueDisplayComponent implements OnInit, AfterViewInit, OnChanges, 
   }
 
   ngOnChanges(changes: SimpleChanges): void {
-    if(!this.isPreview)  this.loadQueue();  
     this.getSafeYoutubeUrl(this.videoUrl);
     if(this.isPreview){
       this.counters = [

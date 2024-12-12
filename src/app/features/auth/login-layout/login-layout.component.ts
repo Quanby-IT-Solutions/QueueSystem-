@@ -8,6 +8,7 @@ import { FormsModule } from '@angular/forms';
 import { config } from '../../../../environment/config';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { LogsService } from '../../../services/logs.service';
+import { UswagonCoreService } from 'uswagon-core';
 
 @Component({
   selector: 'app-login-layout',
@@ -71,6 +72,7 @@ export class LoginLayoutComponent implements OnInit, AfterViewInit {
 
   constructor(
     private route:ActivatedRoute,
+    private API:UswagonCoreService,
     private router: Router, private auth:UswagonAuthService,
     public sanitizer: DomSanitizer) {
   // Set up video URL with high quality parameters
@@ -143,7 +145,7 @@ export class LoginLayoutComponent implements OnInit, AfterViewInit {
 
     this.returnUrl = this.route.snapshot.queryParams['returnUrl'] || '/';
     this.selectedRole = this.route.snapshot.queryParams['role'] || '';
-    this.selectedRole = 'desk_attendants';
+    // this.selectedRole = 'desk_attendants';
     if(this.selectedRole ==  'desk_attendants'){
       this.auth.initialize({api:environment.api, 
           apiKey: environment.apiKey, loginTable:['desk_attendants'],
