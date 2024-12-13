@@ -241,7 +241,7 @@
 <app-confirmation *ngIf="showDeleteConfirmation"
                   type="delete"
                   title="Delete User"
-                  description="Are you sure you want to delete {{ userToDelete?.fullname }}?"
+                  description="Are you sure you want to delete {{ userToDelete?.fullname }}'s Account?"
                   (onConfirm)="onConfirmDelete()"
                   (onCancel)="onCancelDelete()"
                   animation="yellowWarning">

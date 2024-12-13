@@ -249,6 +249,31 @@ export class UserManagementComponent implements OnInit {
     this.showDeleteConfirmation = true;
   }
 
+  // async onConfirmDelete() {
+  //   if (!this.userToDelete) return;
+  //   this.showDeleteConfirmation = false;
+  
+  //   try {
+  //     const response = await this.API.delete({
+  //       tables: this.userToDelete.role === 'Desk attendant' ? 'desk_attendants' : 'administrators',
+  //       conditions: `WHERE id = '${this.userToDelete.id}'`
+  //     });
+  
+  //     if (response && response.success) {
+  //       this.users = this.users.filter(u => u.id !== this.userToDelete!.id);
+  //       this.filteredUsers = this.filteredUsers.filter(u => u.id !== this.userToDelete!.id);
+  //       this.API.sendFeedback('success', 'User has been deleted!', 5000);
+  //       console.log('User deleted successfully:', this.userToDelete.fullname);
+  //     } else {
+  //       alert(`Failed to delete user: ${response.output || 'Unknown error'}`);
+  //     }
+  //   } catch (error) {
+  //     console.error('Error occurred during user deletion:', error);
+  //   } finally {
+  //     this.userToDelete = null;
+  //   }
+  // }
+
   async onConfirmDelete() {
     if (!this.userToDelete) return;
     this.showDeleteConfirmation = false;
@@ -262,6 +287,15 @@ export class UserManagementComponent implements OnInit {
       if (response && response.success) {
         this.users = this.users.filter(u => u.id !== this.userToDelete!.id);
         this.filteredUsers = this.filteredUsers.filter(u => u.id !== this.userToDelete!.id);
+        this.updatePagination();
+        
+        if (this.currentUser?.id === this.userToDelete.id) {
+          this.currentUser = null;
+          if (this.users.length > 0) {
+            this.setCurrentUser(this.users[0]);
+          }
+        }
+        
         this.API.sendFeedback('success', 'User has been deleted!', 5000);
         console.log('User deleted successfully:', this.userToDelete.fullname);
       } else {
@@ -272,7 +306,7 @@ export class UserManagementComponent implements OnInit {
     } finally {
       this.userToDelete = null;
     }
-  }
+}
   
 
   onCancelDelete() {
@@ -289,23 +323,39 @@ export class UserManagementComponent implements OnInit {
     this.selectedUser = null;
   }
 
-  async onAccountCreated(partialUser: Partial<User>) {
-    try {
-      await this.loadData();
+  // async onAccountCreated(partialUser: Partial<User>) {
+  //   try {
+  //     await this.loadData();
   
-      this.API.sendFeedback('success', this.selectedUser ? 'User has been updated!' : 'New user has been added!', 5000);
-    } catch (error) {
-      console.error('Error while refreshing user list:', error);
-      this.API.sendFeedback('error', 'An error occurred while refreshing the user list.', 5000);
-    } finally {
-      this.closeModal();
-    }
+  //     this.API.sendFeedback('success', this.selectedUser ? 'User has been updated!' : 'New user has been added!', 5000);
+  //   } catch (error) {
+  //     console.error('Error while refreshing user list:', error);
+  //     this.API.sendFeedback('error', 'An error occurred while refreshing the user list.', 5000);
+  //   } finally {
+  //     this.closeModal();
+  //   }
+  // }
+  
+async onAccountCreated(event: {user: Partial<User>, isUpdate: boolean}) {
+  try {
+    await this.loadData();
+    this.API.sendFeedback(
+      'success', 
+      event.isUpdate ? 'User has been updated!' : 'New user has been added!',
+      5000
+    );
+  } catch (error) {
+    console.error('Error while refreshing user list:', error);
+    this.API.sendFeedback('error', 'An error occurred while refreshing the user list.', 5000);
+  } finally {
+    this.closeModal();
   }
-  
+}
 
   editUser(user: User) {
     this.selectedUser = user;
     this.showModal = true;
+   
   }
 
 
