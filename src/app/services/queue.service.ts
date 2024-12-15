@@ -63,10 +63,22 @@ export class QueueService  {
   public attendedQueues:AttendedQueue[]= [];
   private takenQueue:string[]= [];
 
-  private lastTimestamp:number = new Date().getTime();
   public attendedQueue?:AttendedQueue;
   private queueSubject = new BehaviorSubject<Queue[]>([]);
   public queue$ = this.queueSubject.asObservable();
+
+  private serverTimeDifference?:number;
+
+  private async getServerTime(){
+    if(this.serverTimeDifference == undefined) {
+      const serverTimeString = await this.API.serverTime();
+      const serverTime = new Date(serverTimeString);
+      const localTime = new Date();
+      this.serverTimeDifference =  serverTime.getTime() - localTime.getTime();
+    }
+
+    return new Date(new Date().getTime() + this.serverTimeDifference);
+  }
 
 
   // Socket Events
@@ -142,10 +154,9 @@ export class QueueService  {
         })
   {
     const id = this.API.createUniqueID32();
-    const  now =  new Date();
+    const  now =  await this.getServerTime();
     const formattedDate = `${now.getMonth() + 1}/${now.getDate()}/${now.getFullYear()}`;
-    this.lastTimestamp = now.getTime();
-    await this.getTodayQueues(true);
+    await this.getTodayQueues(true)
     // this.takeQueueNumber(info.type,this.kioskService.kiosk?.division_id!);
     let collision = true;
     while(collision){
@@ -170,7 +181,7 @@ export class QueueService  {
           });
           if(!response.success){
             // this.returnQueueNumber(info.type,this.kioskService.kiosk?.division_id!);
-            throw new Error('Something went wrong.');
+            throw new Error(response.output);
           }else{
             collision =false;
             const lastNumber =this.queueNumber[info.type];
@@ -209,7 +220,7 @@ export class QueueService  {
         conditions:`WHERE id = '${queue.id}'`
       });
       if(!updateResponse.success) throw new Error(updateResponse.output);
-      const now = new Date();
+      const now =  await this.getServerTime();
       const attended = {
         id:this.API.createUniqueID32(),
         queue_id :queue.id,
@@ -231,11 +242,12 @@ export class QueueService  {
   }
   
   async resolveAttendedQueue(remark:'finished'|'skipped'|'bottom'|'return'){
-    const now  = new Date();
+    const now  = await this.getServerTime();
 
     try{
       if(this.attendedQueue){
         if(remark=='bottom'){
+          const returnIndex = this.attendedQueue.queue?.collision?.split('>')[1] ?? 0;
           const createResponse = await this.API.create({
             tables: 'queue',
             values:{
@@ -251,7 +263,7 @@ export class QueueService  {
               status:'bottom',
               timestamp: new DatePipe('en-US').transform(now, 'yyyy-MM-dd HH:mm:ss.SSSSSS'),
               student_id:  this.attendedQueue.queue?.student_id,
-              collision: this.attendedQueue.queue?.collision?.split('>')[0] + ">"+ now.getTime(),
+              collision: this.attendedQueue.queue?.collision?.split('>')[0] + ">"+ Number(returnIndex) + 1,
             }
           });
           if(!createResponse.success){
@@ -259,6 +271,7 @@ export class QueueService  {
           }this.logService.pushLog('transaction-bottom',`put a transaction to bottom of queue.`);
         } 
         if(remark=='return'){
+          const returnIndex = this.attendedQueue.queue?.collision?.split('>')[1] ?? 0;
           const createResponse = await this.API.create({
             tables: 'queue',
             values:{
@@ -274,7 +287,7 @@ export class QueueService  {
               status:'waiting',
               timestamp: this.attendedQueue.queue?.timestamp,
               student_id:  this.attendedQueue.queue?.student_id,
-              collision: this.attendedQueue.queue?.collision?.split('>')[0] + ">"+ now.getTime(),
+              collision: this.attendedQueue.queue?.collision?.split('>')[0] + ">"+ Number(returnIndex) + 1,
             }
           });
           if(!createResponse.success){
@@ -295,6 +308,56 @@ export class QueueService  {
    
         if(!updateResponse.success) throw new Error(updateResponse.output);
         this.resolveTakenQueue(this.attendedQueue.id);
+        this.attendedQueue = undefined;
+        await this.getTodayQueues();
+
+      }
+    }catch(e:any){
+
+      throw new Error('Something went wrong. Please try again');
+    }
+  }
+  async returnUnattendedQueue(attendedQueue?: AttendedQueue){
+    const now  = await this.getServerTime();
+    try{
+      if(attendedQueue){
+        const updateResponse = await this.API.update({
+          tables: 'attended_queue',
+          values:{
+            finished_on: new DatePipe('en-US').transform(now, 'yyyy-MM-dd HH:mm:ss.SSSSSS'),
+            status: 'return',
+          },
+          conditions:`WHERE id = '${attendedQueue.id}'`
+        });
+
+        const returnIndex = attendedQueue.queue?.collision?.split('>')[1] ?? 0;
+
+        const createResponse = await this.API.create({
+          tables: 'queue',
+          values:{
+            id: this.API.createUniqueID32(),
+            division_id: attendedQueue.queue?.division_id,
+            kiosk_id: attendedQueue.queue?.kiosk_id,
+            department_id:  attendedQueue.queue?.department_id,
+            fullname:  attendedQueue.queue?.fullname,
+            number:  attendedQueue.queue?.number,
+            type:  attendedQueue.queue?.type,
+            gender:  attendedQueue.queue?.gender,
+            services:  attendedQueue.queue?.services,
+            status:'waiting',
+            timestamp: attendedQueue.queue?.timestamp,
+            student_id:  attendedQueue.queue?.student_id,
+            collision: attendedQueue.queue?.collision?.split('>')[0] + ">"+ Number(returnIndex) + 1,
+          }
+        });
+        if(!createResponse.success){
+  
+          throw new Error(createResponse.output);
+        }
+
+   
+        if(!updateResponse.success) throw new Error(updateResponse.output);
+        this.resolveTakenQueue(attendedQueue.id);
         this.attendedQueue = undefined;
         await this.getTodayQueues();
 
@@ -328,66 +391,6 @@ export class QueueService  {
     }
   }
 
-  async returnUnattendedQueue(attendedQueue?: AttendedQueue){
-    const now  = new Date();
-    try{
-      if(attendedQueue){
-        const checkResponse = await this.API.read({
-          selectors: ['*'],
-          tables: 'attended_queue',
-          conditions:`WHERE id = '${attendedQueue.id}' AND status = 'ongoing'`
-        });
-
-        if(!checkResponse.success) throw new Error(checkResponse.output);
-        
-        if(checkResponse.output.length <=0 ) return;
-        
-        const updateResponse = await this.API.update({
-          tables: 'attended_queue',
-          values:{
-            finished_on: new DatePipe('en-US').transform(now, 'yyyy-MM-dd HH:mm:ss.SSSSSS'),
-            status: 'return',
-          },
-          conditions:`WHERE id = '${attendedQueue.id}'`
-        });
-        
-
-        const createResponse = await this.API.create({
-          tables: 'queue',
-          values:{
-            id: this.API.createUniqueID32(),
-            division_id: attendedQueue.queue?.division_id,
-            kiosk_id: attendedQueue.queue?.kiosk_id,
-            department_id:  attendedQueue.queue?.department_id,
-            fullname:  attendedQueue.queue?.fullname,
-            number:  attendedQueue.queue?.number,
-            type:  attendedQueue.queue?.type,
-            gender:  attendedQueue.queue?.gender,
-            services:  attendedQueue.queue?.services,
-            status:'waiting',
-            timestamp: attendedQueue.queue?.timestamp,
-            student_id:  attendedQueue.queue?.student_id,
-            collision: attendedQueue.queue?.collision?.split('>')[0] + ">"+ now.getTime(),
-          }
-        });
-        if(!createResponse.success){
-  
-          throw new Error(createResponse.output);
-        }
-
-   
-        if(!updateResponse.success) throw new Error(updateResponse.output);
-        this.resolveTakenQueue(attendedQueue.id);
-        this.attendedQueue = undefined;
-        await this.getTodayQueues();
-
-      }
-    }catch(e:any){
-
-      throw new Error('Something went wrong. Please try again');
-    }
-  }
-
   async takeFromQueueByType(type: string): Promise<Queue | undefined> {
     const availableQueue = this.queue.filter(queue => !this.takenQueue.includes(queue.id))
     const targetQueue = availableQueue.find(q => 
@@ -411,7 +414,6 @@ export class QueueService  {
     return targetQueue;
   }
 
-  
   
 
   // Modify your nextQueue method to accept a type parameter
@@ -522,6 +524,7 @@ export class QueueService  {
           prefix:'R'
         },
       };
+       
       if(all){
         this.queueNumber['priority'] = queue.filter(queue=> queue.type == 'priority' && queue.status == 'waiting').length + 1;
         this.queueNumber['regular'] = queue.filter(queue=> queue.type == 'regular' && queue.status == 'waiting').length + 1;
@@ -534,15 +537,12 @@ export class QueueService  {
       }else{
         if(formats.length > 0){
           for(let format of formats){
+            // this.queueNumber[format.id!] = queue.filter(queue=> queue.type == format.id && queue.status == 'waiting').length + 1;
             formatMap[format.id!] = format;
           }
         }
       }
-
-
-     
-
-      const sortedQueue = queue.sort((a,b)=>{ 
+        const sortedQueue = queue.sort((a,b)=>{ 
 
         if(a.status == 'bottom' && b.status =='bottom'){
           return new Date( a.timestamp).getTime() - new Date( b.timestamp).getTime();
@@ -573,7 +573,7 @@ export class QueueService  {
     const response = await this.API.read({
       selectors: ['*'],
       tables: 'queue',
-      conditions: `WHERE  CAST(timestamp AS DATE) = CAST(GETDATE() AS DATE) ${filter} ORDER BY timestamp DESC` 
+      conditions: `WHERE CAST(timestamp AS DATE) = CAST(GETDATE() AS DATE) ${filter} ORDER BY timestamp DESC` 
     });
     if(response.success){
       const queue = response.output as Queue[];
@@ -590,23 +590,15 @@ export class QueueService  {
           prefix:'R'
         },
       };
-
-      if(all){
-        this.queueNumber['priority'] = queue.filter(queue=> queue.type == 'priority' && queue.status == 'waiting').length + 1;
-        this.queueNumber['regular'] = queue.filter(queue=> queue.type == 'regular' && queue.status == 'waiting').length + 1;
-        if(formats.length > 0){
-          for(let format of formats){
-            this.queueNumber[format.id!] = queue.filter(queue=> queue.type == format.id && queue.status == 'waiting').length + 1;
-            formatMap[format.id!] = format;
-          }
-        }
-      }else{
-        if(formats.length > 0){
-          for(let format of formats){
-            formatMap[format.id!] = format;
-          }
+      this.queueNumber['priority'] = queue.filter(queue=> queue.type == 'priority' && queue.status == 'waiting').length + 1;
+      this.queueNumber['regular'] = queue.filter(queue=> queue.type == 'regular' && queue.status == 'waiting').length + 1;
+      if(formats.length > 0){
+        for(let format of formats){
+          formatMap[format.id!] = format;
+          this.queueNumber[format.id!] = queue.filter(queue=> queue.type == format.id && queue.status == 'waiting').length + 1;
         }
       }
+
     
 
       const sortedQueue = queue.sort((a,b)=>{ 
@@ -689,7 +681,7 @@ export class QueueService  {
         throw new Error(response.output);
       }
     }catch(e:any){
-      throw new Error(e.message);
+      throw new Error('Something went wrong.');
     }
   }
 
