@@ -31,6 +31,20 @@ export class TerminalService {
 // private terminalsSubject = new BehaviorSubject<Terminal[]>([]);
 // public terminals$ = this.terminalsSubject.asObservable();
 
+private serverTimeDifference?:number;
+
+ private async getServerTime(){
+    if(this.serverTimeDifference == undefined) {
+      const serverTimeString = await this.API.serverTime();
+      const serverTime = new Date(serverTimeString);
+      const localTime = new Date();
+      this.serverTimeDifference =  serverTime.getTime() - localTime.getTime();
+    }
+
+    return new Date(new Date().getTime() + this.serverTimeDifference);
+  }
+
+
 listenToTerminalUpdates(){
   this.API.addSocketListener('live-terminal-listener', (message)=>{
     if(message.division != this.divisionService.selectedDivision?.id) return;
@@ -118,33 +132,22 @@ async deleteTerminal(id:string){
 }
 
  async getAllTerminals() : Promise<Terminal[]>{
-       const response = await this.API.read({
-        selectors: ['divisions.name as division,latest_session.last_active as last_active ,latest_session.status as session_status, desk_attendants.fullname as attendant, terminals.*'],
-        tables: 'terminals',
-        conditions: `
-          LEFT JOIN divisions ON divisions.id = terminals.division_id
-          LEFT JOIN terminal_sessions ON terminal_sessions.terminal_id = terminals.id 
-         LEFT JOIN (
-              SELECT id, status, last_active, 
-                    ROW_NUMBER() OVER (PARTITION BY terminal_id ORDER BY last_active DESC) AS [index] 
-              FROM terminal_sessions
-          ) AS latest_session ON terminal_sessions.id = latest_session.id 
-          LEFT JOIN desk_attendants ON terminal_sessions.attendant_id = desk_attendants.id
-          WHERE terminals.division_id = '${this.divisionService.selectedDivision?.id}' 
-          AND (latest_session.[index] = 1 OR latest_session.[index] IS NULL)
-          GROUP BY 
-          terminals.id, 
-          terminals.division_id, 
-          terminals.number, 
-          terminals.status, 
-          terminals.specific, 
-          divisions.name, 
-          terminal_sessions.terminal_id,
-          desk_attendants.fullname, 
-          latest_session.last_active, 
-          latest_session.status
-          ORDER BY terminals.number ASC 
-          `});
+  const response = await this.API.read({
+    selectors: ['divisions.name as division,latest_session.last_active as last_active ,latest_session.status as session_status, desk_attendants.fullname as attendant, terminals.*'],
+    tables: 'terminals',
+    conditions: `
+      LEFT JOIN divisions ON divisions.id = terminals.division_id
+      LEFT JOIN terminal_sessions ON terminal_sessions.terminal_id = terminals.id 
+      LEFT JOIN (
+        SELECT id, status,last_active ,ROW_NUMBER() OVER (PARTITION BY terminal_id ORDER BY last_active DESC) AS index FROM terminal_sessions
+      ) AS latest_session ON terminal_sessions.id = latest_session.id 
+      LEFT JOIN desk_attendants ON terminal_sessions.attendant_id = desk_attendants.id
+      WHERE terminals.division_id = '${this.divisionService.selectedDivision?.id}' 
+      AND (index =1 OR index IS NULL)
+      GROUP BY terminals.id, divisions.id, terminal_sessions.terminal_id,desk_attendants.id, latest_session.last_active, latest_session.status
+      ORDER BY terminals.number ASC 
+      `});
+
    
     if(response.success){
       
@@ -158,10 +161,10 @@ async deleteTerminal(id:string){
       });
       for(let i = 0 ; i < response.output.length; i++){
         response.output[i]._status = response.output[i].status;
+        const now =  await this.getServerTime()
         response.output[i] = {
           ...response.output[i],
-          get status():string {
-            const now = new Date(); 
+          get status():string { 
             const lastActive = new Date(this.last_active);
             const diffInMinutes = (now.getTime() - lastActive.getTime()) / 60000; 
     
@@ -198,15 +201,14 @@ async deleteTerminal(id:string){
       }
     }
     const id = this.API.createUniqueID32();
-    const now = new Date();
     const response = await this.API.create({
       tables: 'terminal_sessions',
       values:{
         id:id,
         terminal_id: terminal_id,
         attendant_id:this.auth.getUser().id,
-        start_time: new DatePipe('en-US').transform(now, 'yyyy-MM-dd HH:mm:ss.SSSSSS'),
-        last_active: new DatePipe('en-US').transform(now, 'yyyy-MM-dd HH:mm:ss.SSSSSS')
+        start_time: await this.getServerTime(),
+        last_active: await this.getServerTime(),
       }  
     });
  
@@ -240,7 +242,7 @@ async deleteTerminal(id:string){
       return null;
     }else{
       const lastSession = response.output[0];
-      const now = new Date(); 
+      const now = await this.getServerTime();
       const lastActive = new Date(lastSession.last_active);
  
       const diffInMinutes = (now.getTime() - lastActive.getTime()) / 60000; 
@@ -272,7 +274,7 @@ async deleteTerminal(id:string){
       const activeUsers = [];
       for(let i=0; i<response.output.length; i++){
         const lastSession = response.output[i];
-        const now = new Date(); 
+        const now = await this.getServerTime();
         const lastActive = new Date(lastSession.last_active);
   
         const diffInMinutes = (now.getTime() - lastActive.getTime()) / 60000; 
@@ -283,16 +285,14 @@ async deleteTerminal(id:string){
       return activeUsers;
     }
   }
-
   statusInterval:any;
 
   async refreshTerminalStatus(terminal_session:string){
     this.statusInterval = setInterval(async()=>{
-      const now = new Date();
       const response = await this.API.update({
         tables: 'terminal_sessions',
         values:{
-          last_active: new DatePipe('en-US').transform(now, 'yyyy-MM-dd HH:mm:ss.SSSSSS')
+          last_active: await this.getServerTime()
         }  ,
         conditions: `WHERE id = '${terminal_session}'`
       });
