@@ -31,6 +31,20 @@ export class TerminalService {
 // private terminalsSubject = new BehaviorSubject<Terminal[]>([]);
 // public terminals$ = this.terminalsSubject.asObservable();
 
+private serverTimeDifference?:number;
+
+ private async getServerTime(){
+    if(this.serverTimeDifference == undefined) {
+      const serverTimeString = await this.API.serverTime();
+      const serverTime = new Date(serverTimeString);
+      const localTime = new Date();
+      this.serverTimeDifference =  serverTime.getTime() - localTime.getTime();
+    }
+
+    return new Date(new Date().getTime() + this.serverTimeDifference);
+  }
+
+
 listenToTerminalUpdates(){
   this.API.addSocketListener('live-terminal-listener', (message)=>{
     if(message.division != this.divisionService.selectedDivision?.id) return;
@@ -147,7 +161,7 @@ async deleteTerminal(id:string){
       });
       for(let i = 0 ; i < response.output.length; i++){
         response.output[i]._status = response.output[i].status;
-        const now =  new Date(await this.API.serverTime())
+        const now =  await this.getServerTime()
         response.output[i] = {
           ...response.output[i],
           get status():string { 
@@ -228,7 +242,7 @@ async deleteTerminal(id:string){
       return null;
     }else{
       const lastSession = response.output[0];
-      const now = new Date(await this.API.serverTime()); 
+      const now = await this.getServerTime();
       const lastActive = new Date(lastSession.last_active);
  
       const diffInMinutes = (now.getTime() - lastActive.getTime()) / 60000; 
@@ -260,7 +274,7 @@ async deleteTerminal(id:string){
       const activeUsers = [];
       for(let i=0; i<response.output.length; i++){
         const lastSession = response.output[i];
-        const now = new Date(await this.API.serverTime()); 
+        const now = await this.getServerTime();
         const lastActive = new Date(lastSession.last_active);
   
         const diffInMinutes = (now.getTime() - lastActive.getTime()) / 60000; 

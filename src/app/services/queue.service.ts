@@ -63,10 +63,22 @@ export class QueueService  {
   public attendedQueues:AttendedQueue[]= [];
   private takenQueue:string[]= [];
 
-  private lastTimestamp:number = new Date().getTime();
   public attendedQueue?:AttendedQueue;
   private queueSubject = new BehaviorSubject<Queue[]>([]);
   public queue$ = this.queueSubject.asObservable();
+
+  private serverTimeDifference?:number;
+
+  private async getServerTime(){
+    if(this.serverTimeDifference == undefined) {
+      const serverTimeString = await this.API.serverTime();
+      const serverTime = new Date(serverTimeString);
+      const localTime = new Date();
+      this.serverTimeDifference =  serverTime.getTime() - localTime.getTime();
+    }
+
+    return new Date(new Date().getTime() + this.serverTimeDifference);
+  }
 
 
   // Socket Events
@@ -142,9 +154,8 @@ export class QueueService  {
         })
   {
     const id = this.API.createUniqueID32();
-    const  now =  new Date();
+    const  now =  await this.getServerTime();
     const formattedDate = `${now.getMonth() + 1}/${now.getDate()}/${now.getFullYear()}`;
-    this.lastTimestamp = now.getTime();
     await this.getTodayQueues(true)
     // this.takeQueueNumber(info.type,this.kioskService.kiosk?.division_id!);
     let collision = true;
@@ -209,7 +220,7 @@ export class QueueService  {
         conditions:`WHERE id = '${queue.id}'`
       });
       if(!updateResponse.success) throw new Error(updateResponse.output);
-      const now = new Date();
+      const now =  await this.getServerTime();
       const attended = {
         id:this.API.createUniqueID32(),
         queue_id :queue.id,
@@ -231,7 +242,7 @@ export class QueueService  {
   }
   
   async resolveAttendedQueue(remark:'finished'|'skipped'|'bottom'|'return'){
-    const now  = new Date();
+    const now  = await this.getServerTime();
 
     try{
       if(this.attendedQueue){
@@ -259,6 +270,7 @@ export class QueueService  {
           }this.logService.pushLog('transaction-bottom',`put a transaction to bottom of queue.`);
         } 
         if(remark=='return'){
+          const returnIndex = this.attendedQueue.queue?.collision?.split('>')[1] ?? 0;
           const createResponse = await this.API.create({
             tables: 'queue',
             values:{
@@ -274,7 +286,7 @@ export class QueueService  {
               status:'waiting',
               timestamp: this.attendedQueue.queue?.timestamp,
               student_id:  this.attendedQueue.queue?.student_id,
-              collision: this.attendedQueue.queue?.collision?.split('>')[0] + ">"+ now.getTime(),
+              collision: this.attendedQueue.queue?.collision?.split('>')[0] + ">"+ Number(returnIndex) + 1,
             }
           });
           if(!createResponse.success){
@@ -305,7 +317,7 @@ export class QueueService  {
     }
   }
   async returnUnattendedQueue(attendedQueue?: AttendedQueue){
-    const now  = new Date();
+    const now  = await this.getServerTime();
     try{
       if(attendedQueue){
         const updateResponse = await this.API.update({
@@ -317,7 +329,7 @@ export class QueueService  {
           conditions:`WHERE id = '${attendedQueue.id}'`
         });
 
-        const returnIndex = attendedQueue.queue?.collision?.split('>')[0] + ">"+ now.getTime()
+        const returnIndex = attendedQueue.queue?.collision?.split('>')[1] ?? 0;
 
         const createResponse = await this.API.create({
           tables: 'queue',
@@ -334,7 +346,7 @@ export class QueueService  {
             status:'waiting',
             timestamp: attendedQueue.queue?.timestamp,
             student_id:  attendedQueue.queue?.student_id,
-            collision: attendedQueue.queue?.collision?.split('>')[0] + ">"+ now.getTime(),
+            collision: attendedQueue.queue?.collision?.split('>')[0] + ">"+ Number(returnIndex) + 1,
           }
         });
         if(!createResponse.success){

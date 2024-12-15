@@ -285,7 +285,13 @@ timerProgress: any;
 
   async loadContent(){
     this.API.setLoading(true);
-    this.serverTime = new Date(await this.API.serverTime());
+    if(this.serverTimeDifference == undefined) {
+      const serverTimeString = await this.API.serverTime();
+      const serverTime = new Date(serverTimeString);
+      const localTime = new Date();
+      this.serverTimeDifference =  serverTime.getTime() - localTime.getTime();
+    }
+
     this.divisions = await this.dvisionService.getDivisions();
     this.division = await this.dvisionService.getDivision() ;
     this.dvisionService.setDivision(this.division!);
@@ -302,9 +308,7 @@ timerProgress: any;
       }
     });
 
-    this.serverTimeInterval = setInterval(async()=>{
-      this.serverTime = new Date(await this.API.serverTime());
-    },1000)
+  
 
     this.divisionServices = this.services.filter(service => 
       uniqueServiceIds.has(service.id) && 
@@ -791,6 +795,12 @@ timerProgress: any;
     this.API.sendFeedback('warning', `Client has been put to bottom of queue.`,5000);
   }
   
+  private serverTimeDifference?:number;
+
+  private  getServerTime(){
+      return new Date(new Date().getTime() + this.serverTimeDifference!);
+    }
+
 
   checkIfOnline(terminal:Terminal){
 ;   
@@ -835,7 +845,7 @@ timerProgress: any;
    */
   calculateTimerProgress(): number {
     if (!this.timerStartTime) return 0;
-    const elapsedTime = Date.now() - this.timerStartTime;
+    const elapsedTime = this.getServerTime().getTime() - this.timerStartTime;
     const maxTime = 15 * 60 * 1000; // 15 minutes in milliseconds
     return Math.max(0, 100 - (elapsedTime / maxTime * 100));
   }
@@ -845,7 +855,7 @@ timerProgress: any;
     this.timerStartTime = Date.now();
     this.timerInterval = setInterval(() => {
       if (this.timerStartTime) {
-        const elapsedTime = Date.now() - this.timerStartTime;
+        const elapsedTime =this.getServerTime().getTime() - this.timerStartTime;
         const hours = Math.floor(elapsedTime / 3600000);
         const minutes = Math.floor((elapsedTime % 3600000) / 60000);
         const seconds = Math.floor((elapsedTime % 60000) / 1000);
@@ -882,7 +892,7 @@ timerProgress: any;
    * Updates the current date displayed in the component.
    */
   private updateCurrentDate(): void {
-    const now = new Date();
+    const now = this.getServerTime();
     this.currentDate = now.toLocaleDateString('en-PH', {
       year: 'numeric',
       month: 'long', // Full month name

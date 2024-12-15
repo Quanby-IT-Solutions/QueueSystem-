@@ -88,7 +88,7 @@ interface Division{
   templateUrl: './queue-display.component.html',
   styleUrls: ['./queue-display.component.css']
 })
-export class QueueDisplayComponent implements OnInit, OnChanges, OnDestroy {
+export class QueueDisplayComponent implements OnInit, OnChanges, OnDestroy, AfterViewInit {
  
   // VARIABLES
   
@@ -231,6 +231,12 @@ export class QueueDisplayComponent implements OnInit, OnChanges, OnDestroy {
 
   // NG FUNCTIONS
 
+  ngAfterViewInit(): void {
+    if(!this.isPreview) {
+      this.loadQueue();
+    }
+  }
+
   ngOnDestroy(): void {
     clearInterval(this.intervalCurrency);
     clearInterval(this.intervalTime);
@@ -271,12 +277,14 @@ export class QueueDisplayComponent implements OnInit, OnChanges, OnDestroy {
   refreshInterval:any;
   
   ngOnInit(): void {
-    if(!this.isPreview)  this.loadQueue();  
-    this.refreshInterval = setInterval( async ()=>{
-      this.API.socketSend({'refresh':true});
-      await this.loadTerminalData();
-      await this.queueService.getTodayQueues();
-    },1000);
+    if(!this.isPreview) {
+      this.loadQueue();
+      this.refreshInterval = setInterval( async ()=>{
+        this.API.socketSend({'refresh':true});
+        await this.loadTerminalData();
+        await this.queueService.getTodayQueues();
+      },1000);
+    }  
 
 
     this.view = this.route.snapshot.queryParams['view'];
@@ -453,6 +461,9 @@ export class QueueDisplayComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   ngOnChanges(changes: SimpleChanges): void {
+    if(!this.isPreview) {
+      this.loadQueue();
+    }
     this.getSafeYoutubeUrl(this.videoUrl);
     if(this.isPreview){
       this.counters = [
@@ -476,8 +487,15 @@ export class QueueDisplayComponent implements OnInit, OnChanges, OnDestroy {
   
   }
 
+  private serverTimeDifference?:number;
+
+ private  getServerTime(){
+    return new Date(new Date().getTime() + this.serverTimeDifference!);
+  }
+
+
   updateTime(): void {
-    const currentDate = new Date();
+    const currentDate = this.getServerTime();
     const hours = currentDate.getHours();
     const minutes = currentDate.getMinutes();
     const seconds = currentDate.getSeconds();
@@ -547,6 +565,12 @@ export class QueueDisplayComponent implements OnInit, OnChanges, OnDestroy {
 
 
     this.loading= true;
+    if(this.serverTimeDifference == undefined) {
+      const serverTimeString = await this.API.serverTime();
+      const serverTime = new Date(serverTimeString);
+      const localTime = new Date();
+      this.serverTimeDifference =  serverTime.getTime() - localTime.getTime();
+    }
     this.dataLoaded = false;
     if(this.subscription){
       this.subscription?.unsubscribe();
