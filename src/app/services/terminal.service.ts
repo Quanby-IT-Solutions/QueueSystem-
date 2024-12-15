@@ -207,8 +207,8 @@ async deleteTerminal(id:string){
         id:id,
         terminal_id: terminal_id,
         attendant_id:this.auth.getUser().id,
-        start_time: await this.API.serverTime(),
-        last_active: await this.API.serverTime()
+        start_time: await this.getServerTime(),
+        last_active: await this.getServerTime(),
       }  
     });
  
@@ -292,7 +292,7 @@ async deleteTerminal(id:string){
       const response = await this.API.update({
         tables: 'terminal_sessions',
         values:{
-          last_active: await this.API.serverTime()
+          last_active: await this.getServerTime()
         }  ,
         conditions: `WHERE id = '${terminal_session}'`
       });

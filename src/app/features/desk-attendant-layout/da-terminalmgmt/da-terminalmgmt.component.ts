@@ -121,8 +121,7 @@ export class DaTerminalmgmtComponent implements OnInit, OnDestroy {
   private dateInterval: any;
   private statusInterval:any;
   private subscription?:Subscription;
-  
-  serverTime?:Date;
+
   lastSession?:any;
 
   actionLoading:boolean = false;
@@ -287,6 +286,7 @@ timerProgress: any;
     this.API.setLoading(true);
     if(this.serverTimeDifference == undefined) {
       const serverTimeString = await this.API.serverTime();
+    
       const serverTime = new Date(serverTimeString);
       const localTime = new Date();
       this.serverTimeDifference =  serverTime.getTime() - localTime.getTime();
@@ -805,7 +805,7 @@ timerProgress: any;
   checkIfOnline(terminal:Terminal){
 ;   
     const lastActive = new Date(terminal.last_active!);
-    const diffInMinutes = (this.serverTime!.getTime() - lastActive.getTime()) / 60000; 
+    const diffInMinutes = (this.getServerTime().getTime() - lastActive.getTime()) / 60000; 
 
     if (diffInMinutes < 1.5 && terminal._status !== 'maintenance' && terminal.session_status !== 'closed') {
         return 'online';

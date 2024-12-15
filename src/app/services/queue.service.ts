@@ -247,6 +247,7 @@ export class QueueService  {
     try{
       if(this.attendedQueue){
         if(remark=='bottom'){
+          const returnIndex = this.attendedQueue.queue?.collision?.split('>')[1] ?? 0;
           const createResponse = await this.API.create({
             tables: 'queue',
             values:{
@@ -262,7 +263,7 @@ export class QueueService  {
               status:'bottom',
               timestamp: new DatePipe('en-US').transform(now, 'yyyy-MM-dd HH:mm:ss.SSSSSS'),
               student_id:  this.attendedQueue.queue?.student_id,
-              collision: this.attendedQueue.queue?.collision?.split('>')[0] + ">"+ now.getTime(),
+              collision: this.attendedQueue.queue?.collision?.split('>')[0] + ">"+ Number(returnIndex) + 1,
             }
           });
           if(!createResponse.success){

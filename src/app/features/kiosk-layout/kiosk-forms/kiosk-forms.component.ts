@@ -138,6 +138,13 @@ export class KioskFormsComponent implements OnInit, OnDestroy, AfterViewInit {
     });
   }
 
+  private serverTimeDifference?:number;
+
+  private  getServerTime(){
+      return new Date(new Date().getTime() + this.serverTimeDifference!);
+    }
+
+
   async ngOnInit() {
     this.printer = this.route.snapshot.params['printer'];
 
@@ -146,8 +153,14 @@ export class KioskFormsComponent implements OnInit, OnDestroy, AfterViewInit {
     }
     
     this.isLoading =true;
+    if(this.serverTimeDifference == undefined) {
+      const serverTimeString = await this.API.serverTime();
+      const serverTime = new Date(serverTimeString);
+      const localTime = new Date();
+      this.serverTimeDifference =  serverTime.getTime() - localTime.getTime();
+    }
     this.timeInterval = setInterval(()=>{
-      this.currentDate = new Date();
+      this.currentDate = this.getServerTime();
     },1000)
     this.route.queryParams.subscribe(params => {
       this.departmentName = params['department'] || 'Department Name';
