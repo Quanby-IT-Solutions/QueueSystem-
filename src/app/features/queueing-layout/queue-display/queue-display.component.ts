@@ -12,7 +12,7 @@ import { UswagonCoreService } from 'uswagon-core';
 
 interface Counter {
   id:string;
-  status:'online'|'available'|'maintenance';
+  get status():string; 
   number: number;
   ticketNumber?: string;
   personName?: string;
@@ -87,7 +87,7 @@ interface Division{
   templateUrl: './queue-display.component.html',
   styleUrls: ['./queue-display.component.css']
 })
-export class QueueDisplayComponent implements OnInit, AfterViewInit, OnChanges, OnDestroy {
+export class QueueDisplayComponent implements OnInit, OnChanges, OnDestroy, AfterViewInit {
  
   // VARIABLES
   
@@ -106,12 +106,12 @@ export class QueueDisplayComponent implements OnInit, AfterViewInit, OnChanges, 
   // Mock data for queue
   counters: Counter[] = [
     { number: 1, ticketNumber: 'P-32', personName: 'Domeng Valdez',id:'',status:'online' },
-    { number : 1, ticketNumber: 'P-01', personName: 'Domeng Valdez',id:'',status:'online' },
-    { number : 1, ticketNumber: 'P-02', personName: 'Domeng Valdez',id:'',status:'online' },
-    { number : 1, ticketNumber: 'P-04', personName: 'Domeng Valdez',id:'',status:'online' },
-    { number : 1, ticketNumber: 'P-05', personName: 'Domeng Valdez',id:'',status:'online' },
-    { number : 1, ticketNumber: 'P-07', personName: 'Domeng Valdez',id:'',status:'online' },
-    { number : 1, ticketNumber: 'P-10', personName: 'Domeng Valdez',id:'',status:'online' },
+    { number : 2, ticketNumber: 'P-01', personName: 'Domeng Valdez',id:'',status:'online' },
+    { number : 3, ticketNumber: 'P-02', personName: 'Domeng Valdez',id:'',status:'online' },
+    { number : 4, ticketNumber: 'P-04', personName: 'Domeng Valdez',id:'',status:'online' },
+    { number : 5, ticketNumber: 'P-05', personName: 'Domeng Valdez',id:'',status:'online' },
+    { number : 6, ticketNumber: 'P-07', personName: 'Domeng Valdez',id:'',status:'online' },
+    { number : 7, ticketNumber: 'P-10', personName: 'Domeng Valdez',id:'',status:'online' },
   ];
   
 
@@ -151,6 +151,7 @@ export class QueueDisplayComponent implements OnInit, AfterViewInit, OnChanges, 
   counterInterval:any ;
   slice = 10;
   offset = 0;
+
 
   transitionCounters(){
     this.counterInterval = setInterval(()=>{
@@ -229,6 +230,12 @@ export class QueueDisplayComponent implements OnInit, AfterViewInit, OnChanges, 
 
   // NG FUNCTIONS
 
+  ngAfterViewInit(): void {
+    if(!this.isPreview) {
+      this.loadQueue();
+    }
+  }
+
   ngOnDestroy(): void {
     clearInterval(this.intervalCurrency);
     clearInterval(this.intervalTime);
@@ -236,6 +243,7 @@ export class QueueDisplayComponent implements OnInit, AfterViewInit, OnChanges, 
     clearInterval(this.intervalWeather);
     clearInterval(this.intervalSwitchter);
     clearInterval(this.counterInterval);
+    clearInterval(this.refreshInterval);
     this.subscription?.unsubscribe();
     this.API.addSocketListener('number-calling',(data)=>{})
     this.API.addSocketListener('queue-events',(data)=>{})
@@ -265,7 +273,19 @@ export class QueueDisplayComponent implements OnInit, AfterViewInit, OnChanges, 
     // setTimeout(() => this.playNote(392), 1000); // Play G
   }
 
+  refreshInterval:any;
+  
   ngOnInit(): void {
+    if(!this.isPreview) {
+      this.loadQueue();
+      this.refreshInterval = setInterval( async ()=>{
+        this.API.socketSend({'refresh':true});
+        await this.loadTerminalData();
+        await this.queueService.getTodayQueues();
+      },1000);
+    }  
+
+
     this.view = this.route.snapshot.queryParams['view'];
     // this.playNotes();
     const init = speechSynthesis.getVoices()
@@ -368,11 +388,6 @@ export class QueueDisplayComponent implements OnInit, AfterViewInit, OnChanges, 
 
   }
 
-  ngAfterViewInit(): void {
-    // Backend init
-    
-    if(!this.isPreview)  this.loadQueue();
-  }
 
   // FRONT END FUNCTIONS
 
@@ -445,17 +460,19 @@ export class QueueDisplayComponent implements OnInit, AfterViewInit, OnChanges, 
   }
 
   ngOnChanges(changes: SimpleChanges): void {
-    if(!this.isPreview)  this.loadQueue();  
+    if(!this.isPreview) {
+      this.loadQueue();
+    }
     this.getSafeYoutubeUrl(this.videoUrl);
     if(this.isPreview){
       this.counters = [
         { number: 1, ticketNumber: `P-32`, personName: 'Domeng Valdez',id:'',status:'online' },
-        { number : 1, ticketNumber: `P-31`, personName: 'Maria Clara',id:'',status:'online' },
-        { number : 1, ticketNumber: `P-34`, personName: 'Domeng Cruz',id:'',status:'online' },
-        { number : 1, ticketNumber: `P-30`, personName: 'Juan Valdez',id:'',status:'online' },
-        { number : 1, ticketNumber: `P-49`, personName: 'Marga Madrid',id:'',status:'online' },
-        { number : 1, ticketNumber: `P-50`, personName: 'Jo Ann',id:'',status:'online' },
-        { number : 1, ticketNumber: `P-20`, personName: 'John Mark',id:'',status:'online' },
+        { number : 2, ticketNumber: `P-31`, personName: 'Maria Clara',id:'',status:'online' },
+        { number : 3, ticketNumber: `P-34`, personName: 'Domeng Cruz',id:'',status:'online' },
+        { number : 4, ticketNumber: `P-30`, personName: 'Juan Valdez',id:'',status:'online' },
+        { number : 5, ticketNumber: `P-49`, personName: 'Marga Madrid',id:'',status:'online' },
+        { number : 6, ticketNumber: `P-50`, personName: 'Jo Ann',id:'',status:'online' },
+        { number : 7, ticketNumber: `P-20`, personName: 'John Mark',id:'',status:'online' },
       ];
       this.upNextItems =[
         { avatar: '/assets/queue-display/Male_2.png', ticketNumber: `P-217`, personName: 'Kristin Watson', type:'priority'},
@@ -469,8 +486,15 @@ export class QueueDisplayComponent implements OnInit, AfterViewInit, OnChanges, 
   
   }
 
+  private serverTimeDifference?:number;
+
+ private  getServerTime(){
+    return new Date(new Date().getTime() + this.serverTimeDifference!);
+  }
+
+
   updateTime(): void {
-    const currentDate = new Date();
+    const currentDate = this.getServerTime();
     const hours = currentDate.getHours();
     const minutes = currentDate.getMinutes();
     const seconds = currentDate.getSeconds();
@@ -540,6 +564,12 @@ export class QueueDisplayComponent implements OnInit, AfterViewInit, OnChanges, 
 
 
     this.loading= true;
+    if(this.serverTimeDifference == undefined) {
+      const serverTimeString = await this.API.serverTime();
+      const serverTime = new Date(serverTimeString);
+      const localTime = new Date();
+      this.serverTimeDifference =  serverTime.getTime() - localTime.getTime();
+    }
     this.dataLoaded = false;
     if(this.subscription){
       this.subscription?.unsubscribe();
@@ -566,12 +596,7 @@ export class QueueDisplayComponent implements OnInit, AfterViewInit, OnChanges, 
      this.queueService.listenToQueue();
     await this.queueService.getTodayQueues();
     await this.loadTerminalData();
-    this.API.addSocketListener('queue-events',async(data:any)=>{
-      if(data.event == 'queue-events'){
-
-        await this.loadTerminalData();
-      }
-    });    
+  
   }
 
   async loadTerminalData(){
@@ -580,35 +605,34 @@ export class QueueDisplayComponent implements OnInit, AfterViewInit, OnChanges, 
         // console.log(this.attendedQueue);
         const updatedTerminals = await this.terminalService.getAllTerminals();
         // Update existing terminals
-        updatedTerminals.forEach((updatedTerminal:any) => {
+        for(let updatedTerminal of updatedTerminals){
           existingTerminals.push(updatedTerminal.id);
           const existingTerminal = this.counters.find(t => t.id === updatedTerminal.id);
           const ticket = this.attendedQueue.find(t=> t.terminal_id ==  updatedTerminal.id);
-          // if(updatedTerminal.status != 'online' && ticket){
-          //   this.queueService.returnUnattendedQueue(ticket);
-          // }
-
+          if(updatedTerminal.status != 'online' && ticket){
+            await this.queueService.returnUnattendedQueue(ticket);
+          }
           if (existingTerminal) {
             // Update properties of the existing terminal
             Object.assign(existingTerminal, {
               id: updatedTerminal.id,
               status: updatedTerminal.status,
               ticketNumber: ticket ==undefined ? undefined : (ticket.queue!.tag) + '-'+ ticket.number!.toString().padStart(3, '0'),
-              personName: updatedTerminal.fullname,
-              number:updatedTerminal.number
-            });
+              personName: updatedTerminal.attendant,
+              number:Number(updatedTerminal.number)
+            } as Counter);
           } else {
             // Optionally handle new terminals
             this.counters.push({
               id: updatedTerminal.id,
               status: updatedTerminal.status,
               ticketNumber: ticket ==undefined ? undefined : (ticket.queue!.tag) + '-'+ ticket.number!.toString().padStart(3, '0'),
-              personName: updatedTerminal.fullname,
-              number:updatedTerminal.number
+              personName: updatedTerminal.attendant,
+              number:Number(updatedTerminal.number)
             });
           }
-        });
-        this.counters = this.counters.filter((counter)=>existingTerminals.includes(counter.id));
+        };
+        this.counters = this.counters.filter((counter)=>existingTerminals.includes(counter.id));  
         if(!this.dataLoaded){
           this.loading = false;
           this.dataLoaded = true;
