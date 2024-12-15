@@ -54,6 +54,7 @@ interface Ticket {
   gender:'male'|'female'|'other';
   student_id?:string;
   collision?:string;
+  
 }
 
 interface ClientDetails {
@@ -65,6 +66,12 @@ interface ClientDetails {
   gender?:string;
 } 
 
+interface Service {
+  id: string;
+  name: string;
+  division_id: string;
+  [key: string]: any; // for any additional properties
+}
 @Component({
   selector: 'app-da-terminalmgmt',
   templateUrl: './da-terminalmgmt.component.html',
@@ -90,9 +97,11 @@ export class DaTerminalmgmtComponent implements OnInit, OnDestroy {
   selectedTicket?: Ticket; //selection manually
   division?:Division;
   divisions:Division[]=[];
-
+  bottomTickets: Set<string> = new Set();
+  filteredServices: string[] = [];
+  showServiceFilter: boolean = false;
   terminateModal:boolean = false;
-
+  divisionServices: Service[] = [];
   tickets: Ticket[] = [
     
   ];
@@ -108,6 +117,7 @@ export class DaTerminalmgmtComponent implements OnInit, OnDestroy {
   isReturnBottomActive: boolean = false;
 
   private timerInterval: any;
+  private serverTimeInterval:any;
   private dateInterval: any;
   private statusInterval:any;
   private subscription?:Subscription;
@@ -138,27 +148,46 @@ timerProgress: any;
     private serviceService:ServiceService,
     private terminalService:TerminalService) {}
 
-  ngOnInit(): void {
-    this.updateCurrentDate();
-    this.dateInterval = setInterval(() => this.updateCurrentDate(), 60000);
-    this.loadContent();
+    refreshInterval:any;
 
-    this.subscription = this.queueService.queue$.subscribe((queueItems: Ticket[]) => {
-      this.tickets = [...queueItems];
-      // Clear selection if selected ticket no longer exists in queue
-      if (this.selectedTicket && !queueItems.find(t => t.id === this.selectedTicket!.id)) {
-        this.selectedTicket = undefined;
-      }
-    });
-    this.statusInterval = setInterval(()=>{
-      this.cdr.detectChanges();
-    },1500)
+    ngOnInit(): void {
+      this.updateCurrentDate();
+      this.dateInterval = setInterval(() => this.updateCurrentDate(), 60000);
+      this.loadContent();
+  
+      this.subscription = this.queueService.queue$.subscribe((queueItems: Ticket[]) => {
+        if(this.selectedCounter?.specific){
+          this.queueService.queue = queueItems.filter((queue)=>queue.type == this.selectedCounter?.specific)
+          this.tickets = [...this.queueService.queue];
+        } else {
+          this.tickets = [...queueItems];
+        }
+        
+        // Update bottom tickets to only include tickets still in queue
+        this.bottomTickets = new Set(
+          Array.from(this.bottomTickets).filter(id => 
+            queueItems.some(ticket => ticket.id === id)
+          )
+        );
+  
+        // Clear selection if selected ticket no longer exists in queue
+        if (this.selectedTicket && !queueItems.find(t => t.id === this.selectedTicket!.id)) {
+          this.selectedTicket = undefined;
+        }
+      });
+      
+      this.statusInterval = setInterval(()=>{
+        this.cdr.detectChanges();
+      },1500)
   }
 
   ngOnDestroy(): void {
     this.clearIntervals();
     if(this.subscription){
       this.subscription.unsubscribe();
+    }
+    if(this.serverTimeInterval){
+      clearInterval(this.serverTimeInterval);
     }
   }
   formats:Format[] = [];
@@ -184,7 +213,69 @@ timerProgress: any;
       ]
     }
   }
+  // filter toggle
+  toggleServiceFilter() {
+    this.showServiceFilter = !this.showServiceFilter;
+  }
+  handleServiceClick(serviceId: string) {
+    // If it's already selected, remove it (clear filter)
+    if (this.filteredServices.includes(serviceId)) {
+      this.filterQueueByServices([]);
+    } else {
+      // Otherwise, apply the filter for this service
+      this.filterQueueByServices([serviceId]);
+    }
+  }
+
+  // Update the parameter type to match your existing code
+  filterQueueByServices(serviceIds: string[]) {
+    this.filteredServices = serviceIds;
+    if (serviceIds.length === 0) {
+      // Your existing code for no filters
+      if(this.selectedCounter?.specific){
+        this.queueService.queue = this.queueService.queue.filter((queue) => 
+          queue.type == this.selectedCounter?.specific && 
+          queue.division_id === this.division?.id
+        );
+        this.tickets = [...this.queueService.queue];
+      } else {
+        this.tickets = this.queueService.queue.filter(queue => 
+          queue.division_id === this.division?.id
+        );
+      }
+    } else {
+      // Your existing code for filtering
+      let filteredTickets = this.queueService.queue.filter(queue => 
+        queue.division_id === this.division?.id
+      );
+      
+      if(this.selectedCounter?.specific) {
+        filteredTickets = filteredTickets.filter((queue) => 
+          queue.type == this.selectedCounter?.specific
+        );
+      }
+      
+      this.tickets = filteredTickets.filter(ticket => {
+        const ticketServices = ticket.services.split(', ');
+        return serviceIds.some(id => ticketServices.includes(id));
+      });
+    }
+  }
+
   
+ 
+
+  clearServiceFilters() {
+    this.filteredServices = [];
+    if (this.selectedCounter?.specific) {
+      this.tickets = this.queueService.queue.filter((queue) => 
+        queue.type == this.selectedCounter?.specific
+      );
+    } else {
+      this.tickets = [...this.queueService.queue];
+    }
+  }
+
   getFormatName(id?:string){
     if(!id) return null;
     return this.formats.find(format=>format.id == id)?.name;
@@ -193,13 +284,40 @@ timerProgress: any;
 
   async loadContent(){
     this.API.setLoading(true);
+    if(this.serverTimeDifference == undefined) {
+      const serverTimeString = await this.API.serverTime();
+    
+      const serverTime = new Date(serverTimeString);
+      const localTime = new Date();
+      this.serverTimeDifference =  serverTime.getTime() - localTime.getTime();
+    }
+
     this.divisions = await this.dvisionService.getDivisions();
     this.division = await this.dvisionService.getDivision() ;
+    this.dvisionService.setDivision(this.division!);
     this.terminals = await this.terminalService.getAllTerminals();
     this.content = await this.contentService.getContentSetting();
-    
+    this.services = await this.serviceService.getAllSubServices(); //for filtration
     this.lastSession = await this.terminalService.getActiveSession()
     this.services = await this.serviceService.getAllSubServices();
+    await this.queueService.getTodayQueues();
+    const uniqueServiceIds = new Set<string>();
+    this.queueService.queue.forEach(ticket => {
+      if (ticket.division_id === this.division?.id && ticket.services) {
+        ticket.services.split(', ').forEach(serviceId => uniqueServiceIds.add(serviceId));
+      }
+    });
+
+  
+
+    this.divisionServices = this.services.filter(service => 
+      uniqueServiceIds.has(service.id) && 
+      (!service.division_id || service.division_id === this.division?.id)
+    );
+    
+
+    
+
     await this.loadFormats();
     if(this.lastSession){
       this.selectedCounter = this.terminals.find(terminal=>terminal.id == this.lastSession.terminal_id);
@@ -237,14 +355,28 @@ timerProgress: any;
         this.API.sendFeedback('warning','You have an active transaction.',5000);
       }
     }
+    
     this.subscription = this.queueService.queue$.subscribe((queueItems: Ticket[]) => {
-      if(this.selectedCounter?.specific){
-        this.queueService.queue = queueItems.filter((queue)=>queue.type == this.selectedCounter?.specific)
-        this.tickets = [...this.queueService.queue];
-      }else{
-        this.tickets = [...this.queueService.queue];
-      }
-    });
+  if(this.selectedCounter?.specific){
+    this.queueService.queue = queueItems.filter((queue)=>queue.type == this.selectedCounter?.specific);
+    let filtered = [...this.queueService.queue];
+    if (this.filteredServices.length > 0) {
+      filtered = filtered.filter(ticket => {
+        const ticketServices = ticket.services.split(', ');
+        return this.filteredServices.some(id => ticketServices.includes(id));
+      });
+    }
+    this.tickets = filtered;
+  } else {
+    if (this.filteredServices.length > 0) {
+      this.tickets = queueItems.filter(ticket => {
+        const ticketServices = ticket.services.split(', ');
+        return this.filteredServices.some(id => ticketServices.includes(id));
+      });
+    } else {
+      this.tickets = [...queueItems];
+    }
+  }});
 
     this.queueService.listenToQueue();
 
@@ -434,7 +566,7 @@ timerProgress: any;
         this.API.socketSend({
           event: 'number-calling',
           division: this.division?.id,
-          message: `${this.currentTicket?.type =='priority' ? 'Priority':''} number ${this.currentTicket?.number} at counter ${this.selectedCounter?.number}`
+          message: `${this.currentTicket?.type =='priority' ? 'Priority':''} number ${this.currentTicket?.number} on ${this.dvisionService.selectedDivision?.name} .Proceed to counter ${this.selectedCounter?.number}`
         })
         this.API.sendFeedback('success', `Priority transaction started with client.`, 5000);
       }
@@ -517,7 +649,7 @@ timerProgress: any;
         this.API.socketSend({
           event: 'number-calling',
           division: this.division?.id,
-          message: `${this.currentTicket?.metaType} number ${this.currentTicket?.number}. Proceed to counter ${this.selectedCounter?.number}`
+          message: `${this.currentTicket?.metaType  ?? (this.currentTicket?.type == 'priority'? 'Priority':'') } number ${this.currentTicket?.number} on ${this.dvisionService.selectedDivision?.name}. Proceed to counter ${this.selectedCounter?.number}`
         })
       } else {
         this.API.sendFeedback('warning', 'Could not get next client.', 5000);
@@ -541,7 +673,7 @@ timerProgress: any;
     this.isReturnTopActive = false;
     this.isReturnBottomActive = false;
     if (this.currentTicket) {
-      this.lastCalledNumber = (this.currentTicket.tag ) + '-' + 
+      this.lastCalledNumber = (this.currentTicket.tag ?? this.currentTicket.type ) + '-' + 
         this.currentTicket.number.toString().padStart(3, '0');
     }
     this.currentTicket = undefined;
@@ -585,12 +717,12 @@ timerProgress: any;
    */
   callNumber(): void {
     console.log(`Calling number ${this.currentTicket?.number}`);
-    this.API.sendFeedback('neutral', `Calling number ${this.currentTicket?.tag}-${this.currentTicket?.number.toString().padStart(3, '0')}`,5000)
+    this.API.sendFeedback('neutral', `Calling number ${this.currentTicket?.tag ?? this.currentTicket?.type[0].toUpperCase()}-${this.currentTicket?.number.toString().padStart(3, '0')}`,5000)
     
     this.API.socketSend({
       event: 'number-calling',
       division: this.division?.id,
-      message: `${this.currentTicket?.metaType} number ${this.currentTicket?.number}. Proceed to counter ${this.selectedCounter?.number}`
+      message: `${this.currentTicket?.metaType ?? (this.currentTicket?.type == 'priority'? 'Priority':'') } number ${this.currentTicket?.number} on ${this.dvisionService.selectedDivision?.name}. Proceed to counter ${this.selectedCounter?.number}`
     })
     // this.isCallNumberActive = false;
   }
@@ -632,7 +764,7 @@ timerProgress: any;
         this.API.socketSend({
           event: 'number-calling',
           division: this.division?.id,
-          message: `${this.currentTicket?.metaType} number ${this.currentTicket?.number}. Proceed to counter ${this.selectedCounter?.number}`
+          message: `${this.currentTicket?.metaType  ?? (this.currentTicket?.type == 'priority'? 'Priority':'') } number ${this.currentTicket?.number} on ${this.dvisionService.selectedDivision?.name}. Proceed to counter ${this.selectedCounter?.number}`
         })
       } else {
         this.API.sendFeedback('warning', 'Could not get next client.', 5000);
@@ -649,6 +781,11 @@ timerProgress: any;
   async returnBottom() {
     if(this.actionLoading) return;
     this.actionLoading = true;
+    
+    if(this.currentTicket) {
+      this.bottomTickets.add(this.currentTicket.id);
+    }
+    
     await this.queueService.resolveAttendedQueue('bottom');
     this.resetInterface();
     this.stopTimer();
@@ -657,11 +794,18 @@ timerProgress: any;
     this.API.socketSend({event:'admin-dashboard-events'})
     this.API.sendFeedback('warning', `Client has been put to bottom of queue.`,5000);
   }
+  
+  private serverTimeDifference?:number;
+
+  private  getServerTime(){
+      return new Date(new Date().getTime() + this.serverTimeDifference!);
+    }
+
 
   checkIfOnline(terminal:Terminal){
-    const now = new Date(); 
+;   
     const lastActive = new Date(terminal.last_active!);
-    const diffInMinutes = (now.getTime() - lastActive.getTime()) / 60000; 
+    const diffInMinutes = (this.getServerTime().getTime() - lastActive.getTime()) / 60000; 
 
     if (diffInMinutes < 1.5 && terminal._status !== 'maintenance' && terminal.session_status !== 'closed') {
         return 'online';
@@ -701,7 +845,7 @@ timerProgress: any;
    */
   calculateTimerProgress(): number {
     if (!this.timerStartTime) return 0;
-    const elapsedTime = Date.now() - this.timerStartTime;
+    const elapsedTime = this.getServerTime().getTime() - this.timerStartTime;
     const maxTime = 15 * 60 * 1000; // 15 minutes in milliseconds
     return Math.max(0, 100 - (elapsedTime / maxTime * 100));
   }
@@ -711,7 +855,7 @@ timerProgress: any;
     this.timerStartTime = Date.now();
     this.timerInterval = setInterval(() => {
       if (this.timerStartTime) {
-        const elapsedTime = Date.now() - this.timerStartTime;
+        const elapsedTime =this.getServerTime().getTime() - this.timerStartTime;
         const hours = Math.floor(elapsedTime / 3600000);
         const minutes = Math.floor((elapsedTime % 3600000) / 60000);
         const seconds = Math.floor((elapsedTime % 60000) / 1000);
@@ -748,7 +892,7 @@ timerProgress: any;
    * Updates the current date displayed in the component.
    */
   private updateCurrentDate(): void {
-    const now = new Date();
+    const now = this.getServerTime();
     this.currentDate = now.toLocaleDateString('en-PH', {
       year: 'numeric',
       month: 'long', // Full month name
