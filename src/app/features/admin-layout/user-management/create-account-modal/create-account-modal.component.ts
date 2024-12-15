@@ -33,7 +33,8 @@ export class CreateAccountModalComponent {
   @Input() user: PartialUser | null = null;
   @Input() divisions: Divisions[] = [];
   @Output() closeModal = new EventEmitter<void>();
-  @Output() accountCreated = new EventEmitter<Omit<PartialUser, 'password'>>();
+  // @Output() accountCreated = new EventEmitter<Omit<PartialUser, 'password'>>();
+  @Output() accountCreated = new EventEmitter<{user: Omit<PartialUser, 'password'>, isUpdate: boolean}>();
 
   newUser: PartialUser = {
     id: '',
@@ -144,8 +145,10 @@ export class CreateAccountModalComponent {
 
     if (data.success) {
       console.log('User created:', data.output);
+      // const { password, ...userWithoutPassword } = this.newUser;
+      // this.accountCreated.emit(userWithoutPassword);
       const { password, ...userWithoutPassword } = this.newUser;
-      this.accountCreated.emit(userWithoutPassword);
+      this.accountCreated.emit({ user: userWithoutPassword, isUpdate: false });
       this.close();
     } else {
       throw new Error(data.output || 'Failed to create user');
@@ -213,57 +216,120 @@ export class CreateAccountModalComponent {
     this.closeModal.emit();
   }
 
+  // async updateUser() {
+  //   try {
+  //     if (this.selectedRole === 'superadmin') {
+  //       this.newUser.role = 'superadmin';
+  //       this.newUser.division_id = 'a1b2c3d4e5f6g7h8i9j0klmnopqrst12';
+  //     } else if (this.selectedRole === 'admin') {
+  //       this.assignAdminRole();
+  //     }
+
+  //     const targetTable = this.selectedRole === 'admin' || this.selectedRole === 'superadmin'
+  //       ? 'administrators'
+  //       : 'desk_attendants';
+
+  //     const changeDeets: any = {
+  //       username: this.newUser.username,
+  //       fullname: this.newUser.fullname,
+  //       profile: this.newUser.profile || '',
+  //       division_id: this.newUser.division_id,
+  //     };
+
+  //     // if (this.showPasswordField && this.newUser.password) {
+  //     //   changeDeets.password = await this.API.hash(this.newUser.password);
+  //     // }
+  //     if (this.showPasswordField && this.newUser.password) {
+  //       try {
+  //         changeDeets.password = await this.API.hash(this.newUser.password);
+  //       } catch (error) {
+  //         this.API.sendFeedback('error', 'Failed to update password. Please try again.', 5000);
+  //         return; // Exit the method if password hashing fails
+  //       }
+  //     }
+
+  //     console.log('Update request for user:', {
+  //       targetTable,
+  //       changeDeets,
+  //       userId: this.newUser.id,
+  //     });
+
+  //     const data = await this.API.update({
+  //       tables: targetTable,
+  //       values: changeDeets,
+  //       conditions: `WHERE id = '${this.newUser.id}'`,
+  //     });
+
+
+  //     if (data.success) {
+  //       const { password, ...userWithoutPassword } = this.newUser;
+  //     this.accountCreated.emit({ user: userWithoutPassword, isUpdate: true });
+  //       this.close();
+  //     } else {
+  //       throw new Error(data.output || 'Failed to update user with unknown error');
+  //     }
+  //   } catch (error) {
+  //     console.error('Error updating user:', error);
+  //     this.showError = true;
+  //     this.errorMessage = error instanceof Error ? error.message : 'An error occurred. Please try again.';
+  //   }
+  // }
+
   async updateUser() {
-    try {
-      if (this.selectedRole === 'superadmin') {
-        this.newUser.role = 'superadmin';
-        this.newUser.division_id = 'a1b2c3d4e5f6g7h8i9j0klmnopqrst12';
-      } else if (this.selectedRole === 'admin') {
-        this.assignAdminRole();
-      }
-
-      const targetTable = this.selectedRole === 'admin' || this.selectedRole === 'superadmin'
-        ? 'administrators'
-        : 'desk_attendants';
-
-      const changeDeets: any = {
-        username: this.newUser.username,
-        fullname: this.newUser.fullname,
-        profile: this.newUser.profile || '',
-        division_id: this.newUser.division_id,
-      };
-
-      if (this.showPasswordField && this.newUser.password) {
-        changeDeets.password = await this.API.hash(this.newUser.password);
-      }
-
-      console.log('Update request for user:', {
-        targetTable,
-        changeDeets,
-        userId: this.newUser.id,
-      });
-
-      const data = await this.API.update({
-        tables: targetTable,
-        values: changeDeets,
-        conditions: `WHERE id = '${this.newUser.id}'`,
-      });
-
-      console.log('Update response:', data);
-
-      if (data.success) {
-        const { password, ...userWithoutPassword } = this.newUser;
-        this.accountCreated.emit(userWithoutPassword);
-        this.close();
-      } else {
-        throw new Error(data.output || 'Failed to update user with unknown error');
-      }
-    } catch (error) {
-      console.error('Error updating user:', error);
-      this.showError = true;
-      this.errorMessage = error instanceof Error ? error.message : 'An error occurred. Please try again.';
+  try {
+    if (this.selectedRole === 'superadmin') {
+      this.newUser.role = 'superadmin';
+      this.newUser.division_id = 'a1b2c3d4e5f6g7h8i9j0klmnopqrst12';
+    } else if (this.selectedRole === 'admin') {
+      this.assignAdminRole();
     }
+
+    const targetTable = this.selectedRole === 'admin' || this.selectedRole === 'superadmin'
+      ? 'administrators'
+      : 'desk_attendants';
+
+    const changeDeets: any = {
+      username: this.newUser.username,
+      fullname: this.newUser.fullname,
+      profile: this.newUser.profile || '',
+      division_id: this.newUser.division_id,
+    };
+
+    if (this.newUser.password) {
+      try {
+        changeDeets.password = await this.API.hash(this.newUser.password);
+      } catch (error) {
+        this.API.sendFeedback('error', 'Failed to hash password. Please try again.', 5000);
+        return;
+      }
+    }
+
+    console.log('Update request for user:', {
+      targetTable,
+      changeDeets,
+      userId: this.newUser.id,
+    });
+
+    const data = await this.API.update({
+      tables: targetTable,
+      values: changeDeets,
+      conditions: `WHERE id = '${this.newUser.id}'`,
+    });
+
+    if (data.success) {
+      const { password, ...userWithoutPassword } = this.newUser;
+      this.accountCreated.emit({ user: userWithoutPassword, isUpdate: true });
+      this.close();
+    } else {
+      this.API.sendFeedback('error', 'Failed to update user account. Please try again.', 5000);
+    }
+  } catch (error) {
+    console.error('Error updating user:', error);
+    this.API.sendFeedback('error', 'An error occurred while updating the user account.', 5000);
+    this.showError = true;
+    this.errorMessage = error instanceof Error ? error.message : 'An error occurred. Please try again.';
   }
+}
 
  
   showConfirmationDialog() {

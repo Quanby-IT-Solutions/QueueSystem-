@@ -142,7 +142,9 @@ export class QueueService  {
         })
   {
     const id = this.API.createUniqueID32();
-    const formattedDate = (await this.API.serverTime()).split(' ')[0];
+    const  now =  new Date();
+    const formattedDate = `${now.getMonth() + 1}/${now.getDate()}/${now.getFullYear()}`;
+    this.lastTimestamp = now.getTime();
     await this.getTodayQueues(true)
     // this.takeQueueNumber(info.type,this.kioskService.kiosk?.division_id!);
     let collision = true;
@@ -161,7 +163,7 @@ export class QueueService  {
               gender: info.gender,
               services:  info.services.join(', '),
               status:'waiting',
-              timestamp: await this.API.serverTime(),
+              timestamp: new DatePipe('en-US').transform(now, 'yyyy-MM-dd HH:mm:ss.SSSSSS'),
               student_id: info.student_id,
               collision:  `${formattedDate}:${this.kioskService.kiosk?.id}:${info.type}-${this.queueNumber[info.type]}` ,
             }
@@ -207,11 +209,12 @@ export class QueueService  {
         conditions:`WHERE id = '${queue.id}'`
       });
       if(!updateResponse.success) throw new Error(updateResponse.output);
+      const now = new Date();
       const attended = {
         id:this.API.createUniqueID32(),
         queue_id :queue.id,
         desk_id: session.id,
-        attended_on:await this.API.serverTime(),
+        attended_on:new DatePipe('en-US').transform(now, 'yyyy-MM-dd HH:mm:ss.SSSSSS'),
         finished_on: undefined,
         status:'ongoing',
       } as AttendedQueue;
@@ -228,6 +231,7 @@ export class QueueService  {
   }
   
   async resolveAttendedQueue(remark:'finished'|'skipped'|'bottom'|'return'){
+    const now  = new Date();
 
     try{
       if(this.attendedQueue){
@@ -245,9 +249,9 @@ export class QueueService  {
               gender:  this.attendedQueue.queue?.gender,
               services:  this.attendedQueue.queue?.services,
               status:'bottom',
-              timestamp: await this.API.serverTime(),
+              timestamp: new DatePipe('en-US').transform(now, 'yyyy-MM-dd HH:mm:ss.SSSSSS'),
               student_id:  this.attendedQueue.queue?.student_id,
-              collision: this.attendedQueue.queue?.collision?.split('>')[0] + ">"+ (await this.API.serverTime()).split(' ')[1],
+              collision: this.attendedQueue.queue?.collision?.split('>')[0] + ">"+ now.getTime(),
             }
           });
           if(!createResponse.success){
@@ -270,7 +274,7 @@ export class QueueService  {
               status:'waiting',
               timestamp: this.attendedQueue.queue?.timestamp,
               student_id:  this.attendedQueue.queue?.student_id,
-              collision: this.attendedQueue.queue?.collision?.split('>')[0] + ">"+ (await this.API.serverTime()).split(' ')[1],
+              collision: this.attendedQueue.queue?.collision?.split('>')[0] + ">"+ now.getTime(),
             }
           });
           if(!createResponse.success){
@@ -283,7 +287,7 @@ export class QueueService  {
         const updateResponse = await this.API.update({
           tables: 'attended_queue',
           values:{
-            finished_on: remark == 'skipped' ? undefined : await this.API.serverTime(),
+            finished_on: remark == 'skipped' ? undefined : new DatePipe('en-US').transform(now, 'yyyy-MM-dd HH:mm:ss.SSSSSS'),
             status: remark,
           },
           conditions:`WHERE id = '${this.attendedQueue.id}'`
@@ -301,18 +305,20 @@ export class QueueService  {
     }
   }
   async returnUnattendedQueue(attendedQueue?: AttendedQueue){
-
+    const now  = new Date();
     try{
       if(attendedQueue){
         const updateResponse = await this.API.update({
           tables: 'attended_queue',
           values:{
-            finished_on: await this.API.serverTime(),
+            finished_on: new DatePipe('en-US').transform(now, 'yyyy-MM-dd HH:mm:ss.SSSSSS'),
             status: 'return',
           },
           conditions:`WHERE id = '${attendedQueue.id}'`
         });
-        
+
+        const returnIndex = attendedQueue.queue?.collision?.split('>')[0] + ">"+ now.getTime()
+
         const createResponse = await this.API.create({
           tables: 'queue',
           values:{
@@ -328,7 +334,7 @@ export class QueueService  {
             status:'waiting',
             timestamp: attendedQueue.queue?.timestamp,
             student_id:  attendedQueue.queue?.student_id,
-            collision: attendedQueue.queue?.collision?.split('>')[0] + ">"+ (await this.API.serverTime()).split(' ')[1],
+            collision: attendedQueue.queue?.collision?.split('>')[0] + ">"+ now.getTime(),
           }
         });
         if(!createResponse.success){
