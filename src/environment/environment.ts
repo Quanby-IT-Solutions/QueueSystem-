@@ -1,4 +1,5 @@
 export const environment = {
+    compileFor: 'all',
     apiKey: '$2y$10$jDyFxPlQt0iz/JmEwFZGSOrCEwlu.GQRdTXT0gIbRlJHD6w2etZbi',
     // QUANBY LAB
     // api: 'https://quanbylab.com:85/q-api.php',
@@ -33,4 +34,5 @@ export const environment = {
     registrar: 'b2c3d4e5f6g7h8i9j0klmnopqrstuvw3',
     cashier: 'c3d4e5f6g7h8i9j0klmnopqrstuvwxy4',
     accountant: 'd4e5f6g7h8i9j0klmnopqrstuvwxyza5',
+    
 }   

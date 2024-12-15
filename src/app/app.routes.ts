@@ -25,17 +25,22 @@ import { FormatManagementComponent } from './features/admin-layout/format-manage
 import { DepartmentManagementComponent } from './features/admin-layout/department-management/department-management.component';
 import { KioskNoCodeComponent } from './features/kiosk-layout/kiosk-no-code/kiosk-no-code.component';
 import { VirtualKeyboardComponent } from './features/kiosk-layout/kiosk-forms/virtual-keyboard.component';
+import { environment } from '../environment/environment';
 export const routes: Routes = [
-  {
-    path: '',
-    redirectTo: '/login',
-    pathMatch: 'full'
-  },
-  
-  {
-    path: 'login', component: LoginLayoutComponent,
-  },
+ 
+  ...(environment.compileFor == 'admin' || environment.compileFor == 'desk' || environment.compileFor == 'all'?  
+  [
+    {
+      path: '',
+      redirectTo: '/login',
+      pathMatch: 'full'
+    },
+    {
+      path: 'login', component: LoginLayoutComponent,
+    }
+  ] as any:[]),
 
+ ...(environment.compileFor=='admin'  || environment.compileFor == 'all'? [
   {
     path: 'admin',
     component: AdminLayoutComponent,
@@ -54,7 +59,11 @@ export const routes: Routes = [
       { path: 'department-management', component: DepartmentManagementComponent },
     ]
   },
+ ]:[]),
 
+ 
+
+ ...(environment.compileFor=='desk'  || environment.compileFor == 'all' ? [
   {
     path: 'desk-attendant',
     component: DeskAttendantLayoutComponent,
@@ -67,7 +76,16 @@ export const routes: Routes = [
       { path: 'terminalmgmt', component: DaTerminalmgmtComponent },
     ]
   },
-  
+ ]:[]),
+
+ ...(environment.compileFor=='kiosk' ? [
+  {
+    path: '',
+    redirectTo: '/queueing-display',
+    pathMatch: 'full'
+  },
+ ]:[]),
+ ...(environment.compileFor=='kiosk' || environment.compileFor == 'all'? [
   {
     path:'kiosk',
     component:KioskLayoutComponent,
@@ -90,6 +108,11 @@ export const routes: Routes = [
   {
     path: 'queueing-display', component: QueueingLayoutComponent,
   },
+ ]:[]),
+
+ 
+  
+  
 
   {
     path: '**', // Wildcard route

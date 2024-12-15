@@ -145,7 +145,9 @@ export class LoginLayoutComponent implements OnInit, AfterViewInit {
 
     this.returnUrl = this.route.snapshot.queryParams['returnUrl'] || '/';
     this.selectedRole = this.route.snapshot.queryParams['role'] || '';
-    // this.selectedRole = 'desk_attendants';
+    if(environment.compileFor != 'all'){
+      this.selectedRole = environment.compileFor == 'admin' ? 'admin' : 'desk_attendants';
+    }
     if(this.selectedRole ==  'desk_attendants'){
       this.auth.initialize({api:environment.api, 
           apiKey: environment.apiKey, loginTable:['desk_attendants'],
