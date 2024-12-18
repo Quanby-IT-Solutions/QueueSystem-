@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { UswagonCoreService } from 'uswagon-core';
 import { UswagonAuthService } from 'uswagon-auth';
+import { AnimationOptions, LottieComponent } from 'ngx-lottie';
 
 interface Metric {
   label: string;
@@ -22,7 +23,7 @@ interface CustomerServedData {
 @Component({
   selector: 'app-da-dashboard',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, LottieComponent],
   templateUrl: './da-dashboard.component.html',
   styleUrls: ['./da-dashboard.component.css'],
 })
@@ -46,12 +47,40 @@ export class DaDashboardComponent implements OnInit, OnDestroy {
     await this.loadUserData();
     await this.fetchTerminalSessions();
     this.updateInterval = setInterval(() => this.fetchTerminalSessions(), 5000);
+
+    this.getRandomQuote();
+    this.quoteInterval = setInterval(() => this.getRandomQuote(), 3000);
   }
 
   ngOnDestroy() {
     if (this.updateInterval) {
       clearInterval(this.updateInterval);
     }
+    if (this.quoteInterval) {
+      clearInterval(this.quoteInterval);
+    }
+  }
+
+  lottieOptions: AnimationOptions = {
+    path: '/assets/animations/quote.json', 
+    autoplay: true,
+    loop: true,
+  }
+
+  inspirationalQuote: string = '';
+  quoteInterval: any;
+
+  quotes: string[] = [
+    '"Believe in yourself and all that you are!"',
+    '"Hard work beats talent when talent doesn’t work hard."',
+    '"Stay positive, work hard, and make it happen."',
+    '"The best way to predict the future is to create it."',
+    '"Success comes from consistency, not occasional effort."'
+  ];
+
+  getRandomQuote(): void {
+    const randomIndex = Math.floor(Math.random() * this.quotes.length);
+    this.inspirationalQuote = this.quotes[randomIndex];
   }
 
   async loadUserData() {
