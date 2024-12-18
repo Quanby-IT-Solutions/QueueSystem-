@@ -395,6 +395,44 @@ this.subscription = this.queueService.queue$.subscribe((queueItems: Ticket[]) =>
         if(this.updatingTerminalData) return;
         this.updatingTerminalData = true;
         await this.updateTerminalData();
+        this.lastSession = await this.terminalService.getActiveSession(),
+        if(this.lastSession && this.selectedCounter == undefined){
+          this.selectedCounter = this.terminals.find(terminal=>terminal.id == this.lastSession.terminal_id);
+          this.terminalService.refreshTerminalStatus(this.lastSession.id);
+          this.API.sendFeedback('warning','You have an ongoing session.',5000);
+          const {attendedQueue,queue} =await this.queueService.getQueueOnDesk();
+        
+          this.currentTicket = queue ? {...queue!} : undefined;
+    
+          this.currentClientDetails = {
+            name: this.currentTicket?.fullname || 'N/A',
+            date: this.currentTicket?.timestamp || this.currentDate,
+            services: this.services.filter(service=> this.currentTicket?.services.split(', ').includes(service.id)).map(service=>service.name),
+            student_id: this.currentTicket?.student_id || 'N/A',
+            department: this.currentTicket?.department_id || 'N/A',
+          };
+    
+         
+          const lastQueue = await this.queueService.getLastQueueOnDesk();
+      
+          if(lastQueue)[
+            this.lastCalledNumber = (lastQueue.tag) +'-' + lastQueue.number.toString().padStart(3, '0')
+          ]
+          if(this.currentTicket){
+            this.startTimer();
+            this.isNextClientActive = false;
+            this.isClientDoneActive = true;
+            this.isCallNumberActive = true;
+            this.isManualSelectActive = false;
+            this.isReturnTopActive = true;
+            this.isReturnBottomActive = true;
+            
+            this.timerStartTime = new Date(attendedQueue?.attended_on!).getTime();
+            
+            this.API.sendFeedback('warning','You have an active transaction.',5000);
+          }
+        }
+        
         this.updatingTerminalData = false;
       }
     })
