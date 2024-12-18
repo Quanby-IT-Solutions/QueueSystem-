@@ -293,14 +293,24 @@ timerProgress: any;
     }
 
     this.divisions = await this.dvisionService.getDivisions();
+
+    
+
     this.division = await this.dvisionService.getDivision() ;
     this.dvisionService.setDivision(this.division!);
-    this.terminals = await this.terminalService.getAllTerminals();
-    this.content = await this.contentService.getContentSetting();
-    this.services = await this.serviceService.getAllSubServices(); //for filtration
-    this.lastSession = await this.terminalService.getActiveSession()
-    this.services = await this.serviceService.getAllSubServices();
-    await this.queueService.getTodayQueues();
+
+
+    
+    [this.content,this.services,this.lastSession] = await Promise.all([
+      this.contentService.getContentSetting(),
+      this.serviceService.getAllSubServices(),
+      this.terminalService.getActiveSession(),
+      this.queueService.getTodayQueues(),
+      this.loadFormats(),
+      this.updateTerminalData()
+    ])
+ 
+
     const uniqueServiceIds = new Set<string>();
     this.queueService.queue.forEach(ticket => {
       if (ticket.division_id === this.division?.id && ticket.services) {
@@ -316,9 +326,9 @@ timerProgress: any;
     );
     
 
-    
+  
 
-    await this.loadFormats();
+
     if(this.lastSession){
       this.selectedCounter = this.terminals.find(terminal=>terminal.id == this.lastSession.terminal_id);
       this.terminalService.refreshTerminalStatus(this.lastSession.id);
@@ -356,7 +366,7 @@ timerProgress: any;
       }
     }
     
-    this.subscription = this.queueService.queue$.subscribe((queueItems: Ticket[]) => {
+this.subscription = this.queueService.queue$.subscribe((queueItems: Ticket[]) => {
   if(this.selectedCounter?.specific){
     this.queueService.queue = queueItems.filter((queue)=>queue.type == this.selectedCounter?.specific);
     let filtered = [...this.queueService.queue];
@@ -380,9 +390,6 @@ timerProgress: any;
 
     this.queueService.listenToQueue();
 
-    await this.queueService.getTodayQueues();
-
-    await this.updateTerminalData();
     this.API.addSocketListener('terminal-events', async(data)=>{
       if(data.event =='terminal-events'){
         await this.updateTerminalData();
@@ -427,7 +434,6 @@ timerProgress: any;
         this.API.sendFeedback('error','Your terminal is for maintenance. You have been logout!',5000)
       }
     }
-    this.services = await this.serviceService.getAllSubServices();
   }
 
 
