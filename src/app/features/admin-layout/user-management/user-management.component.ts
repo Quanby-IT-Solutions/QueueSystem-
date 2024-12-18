@@ -305,7 +305,7 @@ export class UserManagementComponent implements OnInit, OnDestroy {
             this.setCurrentUser(this.users[0]);
           }
         }
-        
+        await this.loadData();
         this.API.sendFeedback('success', 'User has been deleted!', 5000);
         console.log('User deleted successfully:', this.userToDelete.fullname);
       } else {

@@ -174,7 +174,7 @@ export class QueueService  {
               gender: info.gender,
               services:  info.services.join(', '),
               status:'waiting',
-              timestamp: new DatePipe('en-US').transform(now, 'yyyy-MM-dd HH:mm:ss.SSSSSS'),
+              timestamp: new DatePipe('en-US').transform(now, 'yyyy-MM-dd HH:mm:ss.SSSSSS') + 'z',
               student_id: info.student_id,
               collision:  `${formattedDate}:${this.kioskService.kiosk?.id}:${info.type}-${this.queueNumber[info.type]}` ,
             }
@@ -225,7 +225,7 @@ export class QueueService  {
         id:this.API.createUniqueID32(),
         queue_id :queue.id,
         desk_id: session.id,
-        attended_on:new DatePipe('en-US').transform(now, 'yyyy-MM-dd HH:mm:ss.SSSSSS'),
+        attended_on:new DatePipe('en-US').transform(now, 'yyyy-MM-dd HH:mm:ss.SSSSSS') + 'z',
         finished_on: undefined,
         status:'ongoing',
       } as AttendedQueue;
@@ -261,7 +261,7 @@ export class QueueService  {
               gender:  this.attendedQueue.queue?.gender,
               services:  this.attendedQueue.queue?.services,
               status:'bottom',
-              timestamp: new DatePipe('en-US').transform(now, 'yyyy-MM-dd HH:mm:ss.SSSSSS'),
+              timestamp: new DatePipe('en-US').transform(now, 'yyyy-MM-dd HH:mm:ss.SSSSSS') + 'z',
               student_id:  this.attendedQueue.queue?.student_id,
               collision: this.attendedQueue.queue?.collision?.split('>')[0] + ">"+ Number(returnIndex) + 1,
             }
@@ -300,7 +300,7 @@ export class QueueService  {
         const updateResponse = await this.API.update({
           tables: 'attended_queue',
           values:{
-            finished_on: remark == 'skipped' ? undefined : new DatePipe('en-US').transform(now, 'yyyy-MM-dd HH:mm:ss.SSSSSS'),
+            finished_on: remark == 'skipped' ? undefined : new DatePipe('en-US').transform(now, 'yyyy-MM-dd HH:mm:ss.SSSSSS') + 'z',
             status: remark,
           },
           conditions:`WHERE id = '${this.attendedQueue.id}'`
@@ -324,7 +324,7 @@ export class QueueService  {
         const updateResponse = await this.API.update({
           tables: 'attended_queue',
           values:{
-            finished_on: new DatePipe('en-US').transform(now, 'yyyy-MM-dd HH:mm:ss.SSSSSS'),
+            finished_on: new DatePipe('en-US').transform(now, 'yyyy-MM-dd HH:mm:ss.SSSSSS') + 'z',
             status: 'return',
           },
           conditions:`WHERE id = '${attendedQueue.id}'`
