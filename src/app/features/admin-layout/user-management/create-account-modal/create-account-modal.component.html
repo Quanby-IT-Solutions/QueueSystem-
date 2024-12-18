@@ -79,6 +79,7 @@
     
       <!-- Super Admin Button -->
       <button
+        *ngIf="isSuperAdmin"
         type="button"
         (click)="selectRole('superadmin')"
         [class.bg-purple-500]="selectedRole === 'superadmin'"

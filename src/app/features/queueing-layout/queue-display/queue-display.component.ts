@@ -10,11 +10,14 @@ import { TerminalService } from '../../../services/terminal.service';
 import { DivisionService } from '../../../services/division.service';
 import { UswagonCoreService } from 'uswagon-core';
 import { Terminal } from '../../admin-layout/terminal-management/types/terminal.types';
+import { tick } from '@angular/core/testing';
 
 interface Counter {
   id:string;
-  get status():string; 
+  status:string; 
   number: number;
+  terminal?:Terminal;
+  ticket?:AttendedQueue;
   ticketNumber?: string;
   personName?: string;
 }
@@ -153,6 +156,15 @@ export class QueueDisplayComponent implements OnInit, OnChanges, OnDestroy, Afte
   slice = 10;
   offset = 0;
 
+  async terminalStatusInterval(){
+    for(let i = 0;  i < this.counters.length; i++) {
+      this.counters[i].status = this.checkIfOnline(this.counters[i].terminal!);
+      if(this.counters[i].status != 'online' && this.counters[i].ticket){
+        await this.queueService.returnUnattendedQueue(this.counters[i].ticket);
+      }
+    }
+  }
+
 
   transitionCounters(){
     this.counterInterval = setInterval(()=>{
@@ -281,10 +293,13 @@ export class QueueDisplayComponent implements OnInit, OnChanges, OnDestroy, Afte
       this.loadQueue();
       this.refreshInterval = setInterval( async ()=>{
         this.API.socketSend({'refresh':true});
-        await this.loadTerminalData();
-        await this.queueService.getTodayQueues();
+        await this.terminalStatusInterval()
+        // await this.loadTerminalData();
+        // await this.queueService.getTodayQueues();
       },1000);
-    }  
+    } else{
+      this.serverTimeDifference = 0;
+    }
 
 
     this.view = this.route.snapshot.queryParams['view'];
@@ -443,6 +458,7 @@ export class QueueDisplayComponent implements OnInit, OnChanges, OnDestroy, Afte
    
 }
 
+
   computeFillers(midpoint:number,count:number){
     if(count==1){
       return [];
@@ -595,10 +611,29 @@ export class QueueDisplayComponent implements OnInit, OnChanges, OnDestroy, Afte
       
     });
      this.queueService.listenToQueue();
-    await this.queueService.getTodayQueues();
-    await this.loadTerminalData();
+     this.API.addSocketListener('listen-queue-display', async (message)=>{
+        if(message.event == 'queue-events'){
+          await this.queueService.getTodayQueues();
+          await this.loadTerminalData();
+        }
+     })
+   
+     await this.queueService.getTodayQueues();
+     await this.loadTerminalData();
   
   }
+
+  checkIfOnline(terminal:Terminal){
+    ;   
+        const lastActive = new Date(terminal.last_active!);
+        const diffInMinutes = (this.getServerTime().getTime() - lastActive.getTime()) / 60000; 
+    
+        if (diffInMinutes < 1.5 && terminal._status !== 'maintenance' && terminal.session_status !== 'closed') {
+            return 'online';
+        } else {
+            return terminal._status; 
+        }
+    }
 
   async loadTerminalData(){
     let existingTerminals:string[] = []
@@ -610,14 +645,14 @@ export class QueueDisplayComponent implements OnInit, OnChanges, OnDestroy, Afte
           existingTerminals.push(updatedTerminal.id);
           const existingTerminal = this.counters.find(t => t.id === updatedTerminal.id);
           const ticket = this.attendedQueue.find(t=> t.terminal_id ==  updatedTerminal.id);
-          if(updatedTerminal.status != 'online' && ticket){
-            await this.queueService.returnUnattendedQueue(ticket);
-          }
+        
           if (existingTerminal) {
             // Update properties of the existing terminal
             Object.assign(existingTerminal, {
               id: updatedTerminal.id,
               status: updatedTerminal.status,
+              ticket: ticket,
+              terminal: updatedTerminal,
               ticketNumber: ticket ==undefined ? undefined : (ticket.queue!.tag) + '-'+ ticket.number!.toString().padStart(3, '0'),
               personName: updatedTerminal.attendant,
               number:Number(updatedTerminal.number)
@@ -627,6 +662,8 @@ export class QueueDisplayComponent implements OnInit, OnChanges, OnDestroy, Afte
             this.counters.push({
               id: updatedTerminal.id,
               status: updatedTerminal.status,
+              ticket: ticket,
+              terminal: updatedTerminal,
               ticketNumber: ticket ==undefined ? undefined : (ticket.queue!.tag) + '-'+ ticket.number!.toString().padStart(3, '0'),
               personName: updatedTerminal.attendant,
               number:Number(updatedTerminal.number)
