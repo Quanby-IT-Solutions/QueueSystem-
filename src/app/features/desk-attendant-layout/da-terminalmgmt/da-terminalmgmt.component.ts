@@ -395,7 +395,7 @@ this.subscription = this.queueService.queue$.subscribe((queueItems: Ticket[]) =>
         if(this.updatingTerminalData) return;
         this.updatingTerminalData = true;
         await this.updateTerminalData();
-        this.lastSession = await this.terminalService.getActiveSession(),
+        this.lastSession = await this.terminalService.getActiveSession();
         if(this.lastSession && this.selectedCounter == undefined){
           this.selectedCounter = this.terminals.find(terminal=>terminal.id == this.lastSession.terminal_id);
           this.terminalService.refreshTerminalStatus(this.lastSession.id);
