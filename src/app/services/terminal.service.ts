@@ -308,7 +308,7 @@ async deleteTerminal(id:string){
       this.API.socketSend({event:'queue-events'})
       this.API.socketSend({event:'terminal-events'})
       // this.API.socketSend({event:'admin-dashboard-events'})
-    },1000)
+    },1000 * 60)
   }
 
   async terminateTerminalSession(){

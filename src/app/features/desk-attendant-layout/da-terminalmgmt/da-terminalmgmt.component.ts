@@ -176,9 +176,9 @@ timerProgress: any;
         }
       });
       
-      this.statusInterval = setInterval(()=>{
-        this.cdr.detectChanges();
-      },1500)
+      // this.statusInterval = setInterval(()=>{
+      //   this.cdr.detectChanges();
+      // },1500)
   }
 
   ngOnDestroy(): void {
@@ -392,12 +392,17 @@ this.subscription = this.queueService.queue$.subscribe((queueItems: Ticket[]) =>
 
     this.API.addSocketListener('terminal-events', async(data)=>{
       if(data.event =='terminal-events'){
+        if(this.updatingTerminalData) return;
+        this.updatingTerminalData = true;
         await this.updateTerminalData();
+        this.updatingTerminalData = false;
       }
     })
 
     this.API.setLoading(false);  
   }
+
+  private updatingTerminalData = false;
 
   async updateTerminalData(){
     const exisitingTerminals:string[] = [];
