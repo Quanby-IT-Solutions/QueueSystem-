@@ -1,4 +1,3 @@
-// virtual-keyboard.component.ts
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { trigger, transition, style, animate } from '@angular/animations';
@@ -11,71 +10,89 @@ import { trigger, transition, style, animate } from '@angular/animations';
     trigger('slideUp', [
       transition(':enter', [
         style({ transform: 'translateY(100%)', opacity: 0 }),
-        animate('200ms ease-out', style({ transform: 'translateY(0)', opacity: 1 }))
+        animate('300ms cubic-bezier(0.4, 0, 0.2, 1)', style({ transform: 'translateY(0)', opacity: 1 }))
       ]),
       transition(':leave', [
-        animate('200ms ease-in', style({ transform: 'translateY(100%)', opacity: 0 }))
+        animate('200ms cubic-bezier(0.4, 0, 0.2, 1)', style({ transform: 'translateY(100%)', opacity: 0 }))
       ])
     ])
   ],
   template: `
     <div [@slideUp] class="fixed bottom-0 left-0 right-0 z-[60]">
       <!-- Backdrop -->
-      <div class="fixed inset-0 bg-black/20 backdrop-blur-sm" (click)="onClose()"></div>
+      <div class="fixed inset-0 bg-black/10 backdrop-blur-[2px]" (click)="onClose()"></div>
       
-      <!-- Keyboard Container -->
-      <div class="relative bg-gray-100 border-t border-gray-200 shadow-lg p-4 pb-6">
+      <!-- Main Container -->
+      <div class="relative bg-[#f0f4ff]/80 p-6">
         <div class="max-w-4xl mx-auto">
           <!-- Input Preview -->
-          <div class="bg-white p-4 rounded-xl mb-6 min-h-[50px] text-xl font-medium shadow-inner">
-            {{value || 'Start typing...'}}
-            <div class="animate-pulse inline-block w-0.5 h-6 bg-[var(--primary)] ml-1"></div>
+          <div class="bg-white rounded-xl mb-6 shadow-sm">
+            <input 
+              [value]="value"
+              readonly
+              placeholder="Start typing..."
+              class="w-full px-6 py-4 text-lg rounded-xl focus:outline-none placeholder:text-gray-400"
+            >
           </div>
           
           <!-- Keyboard Layout -->
-          <div class="space-y-3">
-            <!-- Number row -->
-            <div class="flex justify-center gap-2">
+          <div class="bg-white rounded-2xl p-8 shadow-sm">
+            <!-- Numbers Row -->
+            <div class="flex justify-center gap-3 mb-3">
               <button *ngFor="let key of numbers" 
                 (click)="onKeyPress(key)"
-                class="w-14 h-14 bg-white rounded-xl shadow-md text-xl font-semibold hover:bg-[var(--primary-hover)] hover:text-white active:transform active:scale-95 transition-all duration-150">
+                class="w-20 h-14 bg-white rounded-xl shadow-sm text-lg font-medium hover:bg-blue-50 active:scale-95 transition-all flex items-center justify-center">
                 {{key}}
               </button>
             </div>
 
-            <!-- Letter rows -->
-            <div *ngFor="let row of letterRows; let i = index" 
-              class="flex justify-center gap-2"
-              [class.ml-4]="i === 1"
-              [class.ml-8]="i === 2">
+            <!-- Letters/Symbols (Main Keyboard) -->
+            <div *ngFor="let row of (symbolsMode ? symbolRows : letterRows); let i = index" 
+              class="flex justify-center gap-3 mb-3"
+              [class.ml-6]="i === 1"
+              [class.ml-10]="i === 2">
               <button *ngFor="let key of row"
                 (click)="onKeyPress(key)"
-                class="w-14 h-14 bg-white rounded-xl shadow-md text-xl font-semibold hover:bg-[var(--primary-hover)] hover:text-white active:transform active:scale-95 transition-all duration-150">
-                {{isShift ? key.toUpperCase() : key.toLowerCase()}}
+                class="w-20 h-14 bg-white rounded-xl shadow-sm text-lg font-medium hover:bg-blue-50 active:scale-95 transition-all flex items-center justify-center">
+                {{isShift ? key.toUpperCase() : key}}
               </button>
             </div>
 
-            <!-- Bottom row -->
-            <div class="flex justify-center items-center gap-2 mt-4">
+            <!-- Bottom Control Row -->
+            <div class="flex justify-center items-center gap-3 mt-4">
+              <!-- Shift -->
               <button (click)="toggleShift()"
-                [class.bg-[var(--primary)]="isShift"
-                [class.text-white]="isShift"
-                class="px-6 h-14 bg-white rounded-xl shadow-md text-lg font-semibold hover:bg-[var(--primary-hover)] hover:text-white active:transform active:scale-95 transition-all duration-150 flex items-center">
+                [class.bg-blue-50]="isShift"
+                class="w-14 h-14 bg-white rounded-xl shadow-sm hover:bg-blue-50 active:scale-95 transition-all flex items-center justify-center">
                 <span class="material-icons">keyboard_capslock</span>
               </button>
+
+              <!-- Symbols Toggle -->
+              <button (click)="toggleSymbols()"
+                [class.bg-blue-50]="symbolsMode"
+                class="w-20 h-14 bg-white rounded-xl shadow-sm text-base font-medium hover:bg-blue-50 active:scale-95 transition-all flex items-center justify-center">
+                ?123
+              </button>
               
+              <!-- Spacebar -->
               <button (click)="onSpace()"
-                class="w-96 h-14 bg-white rounded-xl shadow-md text-lg font-semibold hover:bg-[var(--primary-hover)] hover:text-white active:transform active:scale-95 transition-all duration-150">
+                class="h-14 bg-white rounded-xl shadow-sm text-base font-medium hover:bg-blue-50 active:scale-95 transition-all flex-grow flex items-center justify-center">
                 Space
               </button>
               
-              <button (click)="onBackspace()"
-                class="px-6 h-14 bg-white rounded-xl shadow-md text-lg font-semibold hover:bg-[var(--primary-hover)] hover:text-white active:transform active:scale-95 transition-all duration-150 flex items-center">
+              <!-- Backspace -->
+              <button 
+                (click)="onBackspace()"
+                (mousedown)="startBackspaceInterval()" 
+                (mouseup)="clearBackspaceInterval()"
+                (mouseleave)="clearBackspaceInterval()"
+                class="w-14 h-14 bg-white rounded-xl shadow-sm hover:bg-blue-50 active:scale-95 transition-all flex items-center justify-center">
                 <span class="material-icons">backspace</span>
               </button>
               
+              <!-- Done -->
               <button (click)="onClose()"
-                class="px-6 h-14 bg-[var(--primary)] text-white rounded-xl shadow-md text-lg font-semibold hover:bg-[var(--primary-hover)] active:transform active:scale-95 transition-all duration-150 flex items-center gap-2">
+                class="w-24 h-14 bg-[#2d5a27] text-white rounded-xl shadow-sm text-base font-medium hover:bg-[#224a1d] active:scale-95 transition-all flex items-center justify-center gap-2">
                 <span class="material-icons">check</span>
                 Done
               </button>
@@ -100,31 +117,64 @@ export class VirtualKeyboardComponent {
   @Output() close = new EventEmitter<void>();
 
   isShift = false;
+  symbolsMode = false;
+  private backspaceInterval: any;
+
   numbers = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0'];
+  
   letterRows = [
     ['q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p'],
     ['a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l'],
-    ['.','z', 'x', 'c', 'v', 'b', 'n', 'm', '-']
+    ['.', 'z', 'x', 'c', 'v', 'b', 'n', 'm', '-']
   ];
 
-  onKeyPress(key: string) {
-    this.valueChange.emit(this.value + (this.isShift ? key.toUpperCase() : key.toLowerCase()));
+  symbolRows = [
+    ['!', '@', '#', '$', '%', '^', '&', '*', '(', ')'],
+    ['=', '+', '{', '}', '[', ']', '\\', '|', ';'],
+    ['/', ':', '"', '\'', '<', '>', ',', '?', '~']
+  ];
+
+  onKeyPress(key: string): void {
+    this.valueChange.emit(this.value + (this.isShift ? key.toUpperCase() : key));
     if (this.isShift) this.isShift = false;
   }
 
-  onBackspace() {
+  onBackspace(): void {
     this.valueChange.emit(this.value.slice(0, -1));
   }
 
-  onSpace() {
+  startBackspaceInterval(): void {
+    this.onBackspace();
+    this.backspaceInterval = setInterval(() => {
+      this.onBackspace();
+    }, 150);
+  }
+
+  clearBackspaceInterval(): void {
+    if (this.backspaceInterval) {
+      clearInterval(this.backspaceInterval);
+      this.backspaceInterval = null;
+    }
+  }
+
+  onSpace(): void {
     this.valueChange.emit(this.value + ' ');
   }
 
-  toggleShift() {
+  toggleShift(): void {
     this.isShift = !this.isShift;
   }
 
-  onClose() {
+  toggleSymbols(): void {
+    this.symbolsMode = !this.symbolsMode;
+    this.isShift = false;
+  }
+
+  onClose(): void {
     this.close.emit();
+  }
+
+  ngOnDestroy(): void {
+    this.clearBackspaceInterval();
   }
 }
