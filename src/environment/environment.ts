@@ -1,5 +1,5 @@
 export const environment = {
-    compileFor: 'kiosk',
+    compileFor: 'all',
     apiKey: '$2y$10$jDyFxPlQt0iz/JmEwFZGSOrCEwlu.GQRdTXT0gIbRlJHD6w2etZbi',
     // QUANBY LAB
     // api: 'https://quanbylab.com:85/q-api.php',
