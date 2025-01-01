@@ -189,7 +189,7 @@ private async loadTerminalsAndKiosks() {
           'd.name as location',
           'k.status'
       ],
-      tables: 'kiosks k LEFT JOIN divisions d ON k.division_id = d.id',
+      tables: 'kiosks k LEFT JOIN divisions d ON k.division_id = d.id ORDER BY k.number ASC',
       conditions: ''
   });
 
@@ -200,12 +200,13 @@ private async loadTerminalsAndKiosks() {
           'd.name as location',
           't.status'
       ],
-      tables: 'terminals t LEFT JOIN divisions d ON t.division_id = d.id',
+      tables: 'terminals t LEFT JOIN divisions d ON t.division_id = d.id ORDER BY t.number ASC',
       conditions: ''
   });
 
+
   const kioskTicketCounts = await Promise.all(
-      kioskData.output.map(async (kiosk: any) => {
+      kioskData.output.map(async (kiosk: any, index:number) => {
           const ticketData = await this.API.read({
               selectors: ['COUNT(id) as ticketCount'],
               tables: 'queue',
@@ -222,13 +223,13 @@ private async loadTerminalsAndKiosks() {
               status: kiosk.status === 'available' ? 'Operational' : 'Out of Service',
               ticketCount,
               type: 'kiosk' as const,
-              kioskName: kiosk.kioskName
+              kioskName: index+1
           };
       })
   );
 
   const terminalTicketCounts = await Promise.all(
-      terminalData.output.map(async (terminal: any) => {
+      terminalData.output.map(async (terminal: any, index:number) => {
           const sessionData = await this.API.read({
               selectors: ['COUNT(id) as sessionCount'],
               tables: 'terminal_sessions',
@@ -245,7 +246,7 @@ private async loadTerminalsAndKiosks() {
               status: terminal.status === 'available' ? 'Operational' : 'Out of Service',
               ticketCount,
               type: 'terminal' as const,
-              terminalNumber: terminal.terminalNumber
+              terminalNumber: index+1
           };
       })
   );
