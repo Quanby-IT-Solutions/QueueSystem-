@@ -189,7 +189,7 @@ private async loadTerminalsAndKiosks() {
           'd.name as location',
           'k.status'
       ],
-      tables: 'kiosks k LEFT JOIN divisions d ON k.division_id = d.id',
+      tables: 'kiosks k LEFT JOIN divisions d ON k.division_id = d.id ORDER BY k.number ASC',
       conditions: ''
   });
 
@@ -200,7 +200,7 @@ private async loadTerminalsAndKiosks() {
           'd.name as location',
           't.status'
       ],
-      tables: 'terminals t LEFT JOIN divisions d ON t.division_id = d.id',
+      tables: 'terminals t LEFT JOIN divisions d ON t.division_id = d.id ORDER BY t.number ASC',
       conditions: ''
   });
 
@@ -209,7 +209,7 @@ private async loadTerminalsAndKiosks() {
           const ticketData = await this.API.read({
               selectors: ['COUNT(id) as ticketCount'],
               tables: 'queue',
-              conditions: `WHERE kiosk_id = '${kiosk.id}' ORDER BY kioskName`
+              conditions: `WHERE kiosk_id = '${kiosk.id}'`
           });
 
           const ticketCount = ticketData.success && ticketData.output.length > 0
@@ -232,7 +232,7 @@ private async loadTerminalsAndKiosks() {
           const sessionData = await this.API.read({
               selectors: ['COUNT(id) as sessionCount'],
               tables: 'terminal_sessions',
-              conditions: `WHERE terminal_id = '${terminal.id}' ORDER BY terminalNumber ASC`
+              conditions: `WHERE terminal_id = '${terminal.id}'`
           });
 
           const ticketCount = sessionData.success && sessionData.output.length > 0
