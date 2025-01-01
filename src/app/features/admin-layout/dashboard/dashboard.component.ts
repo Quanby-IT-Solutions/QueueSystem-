@@ -204,8 +204,10 @@ private async loadTerminalsAndKiosks() {
       conditions: ''
   });
 
+  const divisionKioskCount:{[key:string]:number} = {};
+
   const kioskTicketCounts = await Promise.all(
-      kioskData.output.map(async (kiosk: any, index:number) => {
+      kioskData.output.map(async (kiosk: any) => {
           const ticketData = await this.API.read({
               selectors: ['COUNT(id) as ticketCount'],
               tables: 'queue',
@@ -216,19 +218,26 @@ private async loadTerminalsAndKiosks() {
               ? parseInt(ticketData.output[0].ticketCount, 10)
               : 0;
 
+          if(!divisionKioskCount[kiosk.location]){
+            divisionKioskCount[kiosk.location] = 1;
+          }else{
+            divisionKioskCount[kiosk.location] +=1;
+          }
           return {
               id: kiosk.id,
               location: kiosk.location,
               status: kiosk.status === 'available' ? 'Operational' : 'Out of Service',
               ticketCount,
               type: 'kiosk' as const,
-              kioskName: index+ 1
+              kioskName:  divisionKioskCount[kiosk.location]
           };
       })
   );
 
+  const divisionTerminalsCount:{[key:string]:number} = {};
+
   const terminalTicketCounts = await Promise.all(
-      terminalData.output.map(async (terminal: any, index:number) => {
+      terminalData.output.map(async (terminal: any) => {
           const sessionData = await this.API.read({
               selectors: ['COUNT(id) as sessionCount'],
               tables: 'terminal_sessions',
@@ -238,14 +247,18 @@ private async loadTerminalsAndKiosks() {
           const ticketCount = sessionData.success && sessionData.output.length > 0
               ? parseInt(sessionData.output[0].sessionCount, 10)
               : 0;
-
+          if(!divisionTerminalsCount[terminal.location]){
+            divisionTerminalsCount[terminal.location] = 1;
+          }else{
+            divisionTerminalsCount[terminal.location] +=1;
+          }
           return {
               id: terminal.id,
               location: terminal.location,
               status: terminal.status === 'available' ? 'Operational' : 'Out of Service',
               ticketCount,
               type: 'terminal' as const,
-              terminalNumber: index + 1
+              terminalNumber: divisionTerminalsCount[terminal.location]
           };
       })
   );
