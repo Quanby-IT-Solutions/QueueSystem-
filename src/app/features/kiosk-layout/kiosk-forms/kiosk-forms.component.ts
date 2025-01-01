@@ -1,6 +1,6 @@
 //kiosk-forms.component.ts
 import { Component, model, OnDestroy, OnInit } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import jsPDF from 'jspdf';
@@ -74,6 +74,7 @@ export class KioskFormsComponent implements OnInit, OnDestroy {
     private departmentService:DepartmentService,
     private formatService:FormatService,
     private contentService:ContentService, 
+    private router:Router,
     private API: UswagonCoreService) {}
 
  
@@ -281,7 +282,10 @@ export class KioskFormsComponent implements OnInit, OnDestroy {
   }
 
 
-
+  goBackSelection(): void {
+    localStorage.removeItem('kiosk');
+    this.router.navigate(['/kiosk/selection']);
+   }
 
 //   async printImage(code: string) {
 //     const ticketWidth = 500;  // 483 pixels wide
