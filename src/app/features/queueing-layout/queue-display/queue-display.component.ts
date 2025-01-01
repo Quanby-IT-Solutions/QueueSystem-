@@ -11,6 +11,7 @@ import { DivisionService } from '../../../services/division.service';
 import { UswagonCoreService } from 'uswagon-core';
 import { Terminal } from '../../admin-layout/terminal-management/types/terminal.types';
 import { tick } from '@angular/core/testing';
+import { config } from '../../../../environment/config';
 
 interface Counter {
   id:string;
@@ -95,6 +96,7 @@ export class QueueDisplayComponent implements OnInit, OnChanges, OnDestroy, Afte
  
   // VARIABLES
   
+  config = config;
  
   @Input() division?:Division;
  

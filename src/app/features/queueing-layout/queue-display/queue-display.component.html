@@ -39,7 +39,7 @@
 </div>
 
 <div *ngIf="loading" class="main-container flex flex-col justify-center items-center relative aspect-[3840/2180]">
-  <app-lottie-animation class="animate-pop loader" animation="pcso"></app-lottie-animation>
+  <app-lottie-animation class="animate-pop loader" animation="loader"></app-lottie-animation>
   <div
   class="animate-pop loader-text">Loading...</div>
 </div>
@@ -61,12 +61,12 @@
           [ngStyle]="{
             'border-color': colors.primary_text + '80',
           }"
-          [src]="logoUrl ??'assets/specifics/pcso/pcso-logo.svg'" alt="University Logo" class="banner-logo w-28 h-28 min-[3500px]:w-96 min-[3500px]:h-96 border-dashed border-2 min-[3500px]:border-8   rounded-full shadow-md object-cover">
+          [src]="logoUrl ?? config.assets.logo" alt="University Logo" class="banner-logo w-28 h-28 min-[3500px]:w-96 min-[3500px]:h-96 border-dashed border-2 min-[3500px]:border-8   rounded-full shadow-md object-cover">
           <div class="banner-text flex flex-col justify-center   min-[3500px]:gap-3">
-            <h1 class="banner-title  min-[3500px]:leading-none  font-semibold tracking-wider min-[3500px]:tracking-wider text-shadow"
+            <h1 class="banner-title  min-[3500px]:leading-none text-2xl font-semibold tracking-wider min-[3500px]:tracking-wider text-shadow"
               [ngStyle]="{'color': colors.primary_text}">{{division!.name.toUpperCase()}}</h1>
-            <h1 class="banner-label text-white tracking-wider min-[3500px]:tracking-widest text-shadow"
-              [ngStyle]="{'color': colors.primary_text}">Philippine Charity Sweepstakes Office</h1>
+            <h1 class="banner-label text-white tracking-wider min-[3500px]:tracking-widest text-shadow text-2xl"
+              [ngStyle]="{'color': colors.primary_text}">Visayas State University</h1>
           </div>
         </div>
         <!-- SERVING -->
@@ -98,7 +98,7 @@
                   'color': item.ticketNumber ? colors.secondary_text : colors.tertiary_bg + '80',
                 }"
                 class="serving-item-content w-full flex-1 flex justify-center px-3 items-center min-[3500px]:px-10 ">
-                  <span class="serving-item-content-text tracking-wide text-lg 2xl:text-xl font-medium text-shadow min-[3500px]:text-8xl min-[3500px]:font-semibold">{{item.ticketNumber ?? 'VACANT'}}</span>
+                  <span class="serving-item-content-text tracking-wide text-lg 2xl:text-xl font-medium text-shadow min-[1000px]:text-2xl min-[3500px]:font-semibold">{{item.ticketNumber ?? 'VACANT'}}</span>
                   <!-- <span class="tracking-wide text-xs 2xl:text-sm text-shadow min-[3500px]:text-5xl min-[3500px]:font-medium">{{item.personName}}</span> -->
                 </div>
               </div>
@@ -311,7 +311,7 @@
                     min-[3500px]:px-14 min-[3500px]:py-10"
                     >
                       <img [src]="item.avatar" class="queue-item-icon w-9 h-9 min-[3500px]:w-36 min-[3500px]:h-36">
-                      <div class="queue-item-ticket text-lg font-semibold tracking-wider min-[3500px]:text-7xl min-[3500px]:font-semibold">{{item.ticketNumber}}</div>
+                      <div class="queue-item-ticket text-xl font-semibold tracking-wider min-[3500px]:text-7xl min-[3500px]:font-semibold">{{item.ticketNumber}}</div>
                       <!-- <div class="queue-item-flex-1 text-lg font-medium flex tracking-wider justify-end min-[3500px]:text-7xl min-[3500px]:font-semibold">{{item.personName}}</div> -->
                     </div>
                   </div>
@@ -334,9 +334,9 @@
       min-[3500px]:h-28
     ">
       <div class="w-full h-full relative">
-        <div  class="announcement-text absolute inline-flex min-w-[200%] animate-scroll-tailing h-full tracking-widest font-semibold min-[3500px]:text-6xl items-center  whitespace-nowrap">
-          <span class="flex-1 whitespace-nowrap  px-2 min-[3500px]:px-6 inline-block ">{{announcements}} </span>
-          <span class="flex-1 whitespace-nowrap  px-2 min-[3500px]:px-6 inline-block ">{{announcements}} </span>
+        <div  class="announcement-text absolute inline-flex min-w-[200%] animate-scroll-tailing h-full tracking-widest font-semibold min-[3500px]:text-8xl items-center  whitespace-nowrap ">
+          <span class="flex-1 whitespace-nowrap  px-2 min-[3500px]:px-6 inline-block text-xl uppercase">{{announcements}} </span>
+          <span class="flex-1 whitespace-nowrap  px-2 min-[3500px]:px-6 inline-block text-xl uppercase">{{announcements}} </span>
        </div>
       </div>
     </div>
