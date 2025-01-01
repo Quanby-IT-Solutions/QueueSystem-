@@ -61,7 +61,7 @@
           [ngStyle]="{
             'border-color': colors.primary_text + '80',
           }"
-          [src]="logoUrl ??'assets/logo/vsu.png'" alt="University Logo" class="banner-logo w-28 h-28 min-[3500px]:w-96 min-[3500px]:h-96 border-dashed border-2 min-[3500px]:border-8   rounded-full shadow-md object-cover">
+          [src]="logoUrl ?? config.assets.logo" alt="University Logo" class="banner-logo w-28 h-28 min-[3500px]:w-96 min-[3500px]:h-96 border-dashed border-2 min-[3500px]:border-8   rounded-full shadow-md object-cover">
           <div class="banner-text flex flex-col justify-center   min-[3500px]:gap-3">
             <h1 class="banner-title  min-[3500px]:leading-none text-2xl font-semibold tracking-wider min-[3500px]:tracking-wider text-shadow"
               [ngStyle]="{'color': colors.primary_text}">{{division!.name.toUpperCase()}}</h1>
