@@ -205,36 +205,7 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
         conditions: ''
     });
   
-    const divisionKioskCount:{[key:string]:number} = {};
-  
-    const kioskTicketCounts = await Promise.all(
-        kioskData.output.map(async (kiosk: any) => {
-            const ticketData = await this.API.read({
-                selectors: ['COUNT(id) as ticketCount'],
-                tables: 'queue',
-                conditions: `WHERE kiosk_id = '${kiosk.id}'`
-            });
-  
-            const ticketCount = ticketData.success && ticketData.output.length > 0
-                ? parseInt(ticketData.output[0].ticketCount, 10)
-                : 0;
-  
-            if(!divisionKioskCount[kiosk.location]){
-              divisionKioskCount[kiosk.location] = 1;
-            }else{
-              divisionKioskCount[kiosk.location] +=1;
-            }
-            return {
-                id: kiosk.id,
-                location: kiosk.location,
-                status: kiosk.status === 'available' ? 'Operational' : 'Out of Service',
-                ticketCount,
-                type: 'kiosk' as const,
-                kioskName:  divisionKioskCount[kiosk.location]
-            };
-        })
-    );
-  
+    
     const divisionTerminalsCount:{[key:string]:number} = {};
   
     const terminalTicketCounts = await Promise.all(
@@ -264,7 +235,7 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
         })
     );
   
-    const allData: KioskStatus[] = [...kioskTicketCounts, ...terminalTicketCounts];
+    const allData: KioskStatus[] = [ ...terminalTicketCounts];
   
     this.kioskStatus$ = of(allData);
     this.updateKioskPagination();
