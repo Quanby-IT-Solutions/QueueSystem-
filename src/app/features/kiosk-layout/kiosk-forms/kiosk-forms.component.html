@@ -14,19 +14,27 @@
 
    <!-- Below Image Header: Registrar and Time Info -->
    <div class="flex flex-col items-center justify-between w-full px-4 py-3 bg-white sm:flex-row sm:px-6 sm:py-4">
-    <h1 class="mb-2 text-center registrar-title text-[var(--primary)] sm:mb-0">{{this.division?.name?.toUpperCase()}}</h1>
+    <div 
+    (click)="goBackSelection()"
+    class="flex gap-2 items-center hover:scale-105 hover:cursor-pointer transition-all">
+      <span class="material-icons text-2xl w-10 font-bold ">
+        arrow_backward
+      </span> 
+      <h1 class="mb-2 text-center registrar-title text-[var(--primary)] sm:mb-0">{{this.division?.name?.toUpperCase()}}</h1>
+    </div>
     <div class="flex items-center gap-2 text-[var(--primary)] sm:gap-4">
       <div class="flex flex-col items-end">
-        <time class="text-3xl font-semibold sm:text-4xl">{{ currentTime | date:'h:mm' }}</time>
-        <span class="text-sm font-medium sm:text-md">{{ currentTime | date:'a'  }}</span>
+        <time class="text-3xl font-semibold sm:text-4xl">{{ currentDate | date:'h:mm' }}</time>
+        <span class="text-sm font-medium sm:text-md">{{ currentDate | date:'a'  }}</span>
       </div>
       <div class="h-[30px] w-[2px] text-[var(--primary)] sm:h-[40px]"></div>
       <div class="flex flex-col text-left uppercase">
-        <span class="text-2xl font sm:text-3xl">{{ currentTime | date:'EEEE' }}</span>
+        <span class="text-2xl font sm:text-3xl">{{ currentDate | date:'EEEE' }}</span>
         <span class="text-sm sm:text-md">{{ currentDate | date:'MMMM d, yyyy' }}</span>
       </div>
     </div>
   </div>
+
 
   <!-- Main Form Section -->
   <main class="flex flex-col w-full mt-4 bg-white">
