@@ -205,11 +205,11 @@ private async loadTerminalsAndKiosks() {
   });
 
   const kioskTicketCounts = await Promise.all(
-      kioskData.output.map(async (kiosk: any) => {
+      kioskData.output.map(async (kiosk: any, index:number) => {
           const ticketData = await this.API.read({
               selectors: ['COUNT(id) as ticketCount'],
               tables: 'queue',
-              conditions: `WHERE kiosk_id = '${kiosk.id}'`
+              conditions: `WHERE kiosk_id = '${kiosk.id}' ORDER BY kioskName`
           });
 
           const ticketCount = ticketData.success && ticketData.output.length > 0
@@ -222,17 +222,17 @@ private async loadTerminalsAndKiosks() {
               status: kiosk.status === 'available' ? 'Operational' : 'Out of Service',
               ticketCount,
               type: 'kiosk' as const,
-              kioskName: kiosk.kioskName
+              kioskName: index+ 1
           };
       })
   );
 
   const terminalTicketCounts = await Promise.all(
-      terminalData.output.map(async (terminal: any) => {
+      terminalData.output.map(async (terminal: any, index:number) => {
           const sessionData = await this.API.read({
               selectors: ['COUNT(id) as sessionCount'],
               tables: 'terminal_sessions',
-              conditions: `WHERE terminal_id = '${terminal.id}'`
+              conditions: `WHERE terminal_id = '${terminal.id}' ORDER BY terminalNumber ASC`
           });
 
           const ticketCount = sessionData.success && sessionData.output.length > 0
@@ -245,7 +245,7 @@ private async loadTerminalsAndKiosks() {
               status: terminal.status === 'available' ? 'Operational' : 'Out of Service',
               ticketCount,
               type: 'terminal' as const,
-              terminalNumber: terminal.terminalNumber
+              terminalNumber: index + 1
           };
       })
   );
