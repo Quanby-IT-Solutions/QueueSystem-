@@ -612,7 +612,7 @@ export class QueueDisplayComponent implements OnInit, OnChanges, OnDestroy, Afte
     });
      this.queueService.listenToQueue();
      this.API.addSocketListener('listen-queue-display', async (message)=>{
-        if(message.event == 'queue-events'){
+        if(message.event == 'queue-events' ){
           await this.queueService.getTodayQueues();
           await this.loadTerminalData();
         }

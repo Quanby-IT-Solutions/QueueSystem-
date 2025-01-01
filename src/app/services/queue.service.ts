@@ -235,6 +235,7 @@ export class QueueService  {
       });
       attended.queue = queue; 
       this.attendedQueue = attended;
+      this.API.socketSend({event:'queue-events'})
       if(!createResponse.success) throw new Error(createResponse.output);
     }catch(e:any){
       throw new Error(e.message);
@@ -312,6 +313,7 @@ export class QueueService  {
         await this.getTodayQueues();
 
       }
+      this.API.socketSend({event:'queue-events'})
     }catch(e:any){
 
       throw new Error('Something went wrong. Please try again');
@@ -355,10 +357,11 @@ export class QueueService  {
           throw new Error(createResponse.output);
         }
 
-   
+        
         if(!updateResponse.success) throw new Error(updateResponse.output);
         this.resolveTakenQueue(attendedQueue.id);
         this.attendedQueue = undefined;
+        this.API.socketSend({event:'queue-events'})
         await this.getTodayQueues();
 
       }
@@ -410,6 +413,7 @@ export class QueueService  {
       division: targetQueue.division_id,
       queue_id: targetQueue.id,
     });
+    
 
     return targetQueue;
   }
