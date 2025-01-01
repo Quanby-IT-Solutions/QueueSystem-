@@ -159,7 +159,6 @@ async deleteTerminal(id:string){
       latest_session.status
       ORDER BY terminals.number ASC 
       `});
-
    
     if(response.success){
       
@@ -212,6 +211,8 @@ async deleteTerminal(id:string){
         throw new Error('Unable to update terminal session');
       }
     }
+
+    const now = await this.getServerTime()
     const id = this.API.createUniqueID32();
     const response = await this.API.create({
       tables: 'terminal_sessions',
@@ -219,8 +220,8 @@ async deleteTerminal(id:string){
         id:id,
         terminal_id: terminal_id,
         attendant_id:this.auth.getUser().id,
-        start_time: await this.getServerTime(),
-        last_active: await this.getServerTime(),
+        start_time: new DatePipe('en-US').transform(now, 'yyyy-MM-dd HH:mm:ss.SSSSSS') + 'z', 
+        last_active:  new DatePipe('en-US').transform(now, 'yyyy-MM-dd HH:mm:ss.SSSSSS') + 'z',
       }  
     });
  
@@ -300,11 +301,13 @@ async deleteTerminal(id:string){
   statusInterval:any;
 
   async refreshTerminalStatus(terminal_session:string){
+    
     this.statusInterval = setInterval(async()=>{
+      const now =  await this.getServerTime()
       const response = await this.API.update({
         tables: 'terminal_sessions',
         values:{
-          last_active: await this.getServerTime()
+          last_active:new DatePipe('en-US').transform(now, 'yyyy-MM-dd HH:mm:ss.SSSSSS') + 'z', 
         }  ,
         conditions: `WHERE id = '${terminal_session}'`
       });
@@ -316,7 +319,7 @@ async deleteTerminal(id:string){
       this.API.socketSend({event:'queue-events'})
       this.API.socketSend({event:'terminal-events'})
       // this.API.socketSend({event:'admin-dashboard-events'})
-    },1000)
+    },1000 * 60)
   }
 
   async terminateTerminalSession(){
