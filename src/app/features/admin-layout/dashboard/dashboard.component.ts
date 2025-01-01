@@ -181,82 +181,95 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
 
 
 
-private async loadTerminalsAndKiosks() {
-  const kioskData = await this.API.read({
-      selectors: [
-          'k.id',
-          'k.number as kioskName',
-          'd.name as location',
-          'k.status'
-      ],
-      tables: 'kiosks k LEFT JOIN divisions d ON k.division_id = d.id ORDER BY k.number ASC',
-      conditions: ''
-  });
 
-  const terminalData = await this.API.read({
-      selectors: [
-          't.id',
-          't.number as terminalNumber',
-          'd.name as location',
-          't.status'
-      ],
-      tables: 'terminals t LEFT JOIN divisions d ON t.division_id = d.id ORDER BY t.number ASC',
-      conditions: ''
-  });
-
-
-  const kioskTicketCounts = await Promise.all(
-      kioskData.output.map(async (kiosk: any, index:number) => {
-          const ticketData = await this.API.read({
-              selectors: ['COUNT(id) as ticketCount'],
-              tables: 'queue',
-              conditions: `WHERE kiosk_id = '${kiosk.id}'`
-          });
-
-          const ticketCount = ticketData.success && ticketData.output.length > 0
-              ? parseInt(ticketData.output[0].ticketCount, 10)
-              : 0;
-
-          return {
-              id: kiosk.id,
-              location: kiosk.location,
-              status: kiosk.status === 'available' ? 'Operational' : 'Out of Service',
-              ticketCount,
-              type: 'kiosk' as const,
-              kioskName: index+1
-          };
-      })
-  );
-
-  const terminalTicketCounts = await Promise.all(
-      terminalData.output.map(async (terminal: any, index:number) => {
-          const sessionData = await this.API.read({
-              selectors: ['COUNT(id) as sessionCount'],
-              tables: 'terminal_sessions',
-              conditions: `WHERE terminal_id = '${terminal.id}'`
-          });
-
-          const ticketCount = sessionData.success && sessionData.output.length > 0
-              ? parseInt(sessionData.output[0].sessionCount, 10)
-              : 0;
-
-          return {
-              id: terminal.id,
-              location: terminal.location,
-              status: terminal.status === 'available' ? 'Operational' : 'Out of Service',
-              ticketCount,
-              type: 'terminal' as const,
-              terminalNumber: index+1
-          };
-      })
-  );
-
-  const allData: KioskStatus[] = [...kioskTicketCounts, ...terminalTicketCounts];
-
-  this.kioskStatus$ = of(allData);
-  this.updateKioskPagination();
-}
-
+  private async loadTerminalsAndKiosks() {
+    const kioskData = await this.API.read({
+        selectors: [
+            'k.id',
+            'k.number as kioskName',
+            'd.name as location',
+            'k.status'
+        ],
+        tables: 'kiosks k LEFT JOIN divisions d ON k.division_id = d.id ORDER BY k.number ASC',
+        conditions: ''
+    });
+  
+    const terminalData = await this.API.read({
+        selectors: [
+            't.id',
+            't.number as terminalNumber',
+            'd.name as location',
+            't.status'
+        ],
+        tables: 'terminals t LEFT JOIN divisions d ON t.division_id = d.id ORDER BY t.number ASC',
+        conditions: ''
+    });
+  
+    const divisionKioskCount:{[key:string]:number} = {};
+  
+    const kioskTicketCounts = await Promise.all(
+        kioskData.output.map(async (kiosk: any) => {
+            const ticketData = await this.API.read({
+                selectors: ['COUNT(id) as ticketCount'],
+                tables: 'queue',
+                conditions: `WHERE kiosk_id = '${kiosk.id}'`
+            });
+  
+            const ticketCount = ticketData.success && ticketData.output.length > 0
+                ? parseInt(ticketData.output[0].ticketCount, 10)
+                : 0;
+  
+            if(!divisionKioskCount[kiosk.location]){
+              divisionKioskCount[kiosk.location] = 1;
+            }else{
+              divisionKioskCount[kiosk.location] +=1;
+            }
+            return {
+                id: kiosk.id,
+                location: kiosk.location,
+                status: kiosk.status === 'available' ? 'Operational' : 'Out of Service',
+                ticketCount,
+                type: 'kiosk' as const,
+                kioskName:  divisionKioskCount[kiosk.location]
+            };
+        })
+    );
+  
+    const divisionTerminalsCount:{[key:string]:number} = {};
+  
+    const terminalTicketCounts = await Promise.all(
+        terminalData.output.map(async (terminal: any) => {
+            const sessionData = await this.API.read({
+                selectors: ['COUNT(id) as sessionCount'],
+                tables: 'terminal_sessions',
+                conditions: `WHERE terminal_id = '${terminal.id}'`
+            });
+  
+            const ticketCount = sessionData.success && sessionData.output.length > 0
+                ? parseInt(sessionData.output[0].sessionCount, 10)
+                : 0;
+            if(!divisionTerminalsCount[terminal.location]){
+              divisionTerminalsCount[terminal.location] = 1;
+            }else{
+              divisionTerminalsCount[terminal.location] +=1;
+            }
+            return {
+                id: terminal.id,
+                location: terminal.location,
+                status: terminal.status === 'available' ? 'Operational' : 'Out of Service',
+                ticketCount,
+                type: 'terminal' as const,
+                terminalNumber: divisionTerminalsCount[terminal.location]
+            };
+        })
+    );
+  
+    const allData: KioskStatus[] = [...kioskTicketCounts, ...terminalTicketCounts];
+  
+    this.kioskStatus$ = of(allData);
+    this.updateKioskPagination();
+  }
+  
 
 
   
