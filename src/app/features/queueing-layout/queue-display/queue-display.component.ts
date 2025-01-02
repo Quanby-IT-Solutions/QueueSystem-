@@ -626,7 +626,7 @@ export class QueueDisplayComponent implements OnInit, OnChanges, OnDestroy, Afte
   }
 
   checkIfOnline(terminal:Terminal){
-    ;   
+    if(!terminal) return 'available';
         const lastActive = new Date(terminal.last_active!);
         const diffInMinutes = (this.getServerTime().getTime() - lastActive.getTime()) / 60000; 
     
