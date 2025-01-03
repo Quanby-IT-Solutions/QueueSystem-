@@ -176,7 +176,7 @@ async deleteTerminal(id:string){
         response.output[i] = {
           ...response.output[i],
           get status():string { 
-            const lastActive = new Date(this.last_active);
+            const lastActive = new Date(this.last_active.replaceAll('z',''));
             const diffInMinutes = (now.getTime() - lastActive.getTime()) / 60000; 
     
             if (diffInMinutes < 1.5 && this._status !== 'maintenance' && this.session_status !== 'closed') {
@@ -220,8 +220,8 @@ async deleteTerminal(id:string){
         id:id,
         terminal_id: terminal_id,
         attendant_id:this.auth.getUser().id,
-        start_time: new DatePipe('en-US').transform(now, 'yyyy-MM-dd HH:mm:ss.SSSSSS') + 'z', 
-        last_active:  new DatePipe('en-US').transform(now, 'yyyy-MM-dd HH:mm:ss.SSSSSS') + 'z',
+        start_time: new DatePipe('en-US').transform(now, 'yyyy-MM-dd HH:mm:ss.SSSSSS') , 
+        last_active:  new DatePipe('en-US').transform(now, 'yyyy-MM-dd HH:mm:ss.SSSSSS') ,
       }  
     });
  
@@ -256,8 +256,7 @@ async deleteTerminal(id:string){
     }else{
       const lastSession = response.output[0];
       const now = await this.getServerTime();
-      const lastActive = new Date(lastSession.last_active);
- 
+      const lastActive = new Date(lastSession.last_active.replaceAll('z',''));
       const diffInMinutes = (now.getTime() - lastActive.getTime()) / 60000; 
       if (diffInMinutes <= 1.5) {
         return lastSession; 
@@ -288,7 +287,7 @@ async deleteTerminal(id:string){
       for(let i=0; i<response.output.length; i++){
         const lastSession = response.output[i];
         const now = await this.getServerTime();
-        const lastActive = new Date(lastSession.last_active);
+        const lastActive = new Date(lastSession.last_active.replaceAll('z',''));
   
         const diffInMinutes = (now.getTime() - lastActive.getTime()) / 60000; 
         if (diffInMinutes <= 1.5) {
@@ -307,7 +306,7 @@ async deleteTerminal(id:string){
       const response = await this.API.update({
         tables: 'terminal_sessions',
         values:{
-          last_active:new DatePipe('en-US').transform(now, 'yyyy-MM-dd HH:mm:ss.SSSSSS') + 'z', 
+          last_active:new DatePipe('en-US').transform(now, 'yyyy-MM-dd HH:mm:ss.SSSSSS'), 
         }  ,
         conditions: `WHERE id = '${terminal_session}'`
       });
