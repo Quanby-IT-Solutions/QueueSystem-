@@ -1,6 +1,6 @@
 export const config = {
     texts:{
-        title: 'PHILIPPINE CHARITY SWEEPSTAKES OFFICE',
+        title: 'Philippine Charity Sweepstakes Office',
         atitle: 'PCSO',
         location: 'Pacific Mall, Landco Business Center, F. Imperial St',
     },
