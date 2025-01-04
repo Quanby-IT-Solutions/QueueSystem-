@@ -640,12 +640,6 @@ this.subscription = this.queueService.queue$.subscribe((queueItems: Ticket[]) =>
     if (this.actionLoading) return;
     try {
       this.actionLoading = true;
-      if(this.currentTicket != null && this.currentTicket.type == 'priority'){
-        this.API.sendFeedback('warning','Finish priority transaction first.',5000);
-        this.actionLoading = false;
-        return;
-      }
-
       // If there's a current transaction, finish it first
       if (this.currentTicket) {
         await this.queueService.resolveAttendedQueue('finished');
