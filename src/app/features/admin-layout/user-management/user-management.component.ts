@@ -232,31 +232,56 @@ export class UserManagementComponent implements OnInit, OnDestroy {
     this.showDeleteConfirmation = true;
   }
 
+  // async onConfirmDelete() {
+  //   if (!this.userToDelete) return;
+  //   this.showDeleteConfirmation = false;
+  
+  //   try {
+  //     const response = await this.API.delete({
+  //       tables: this.userToDelete.role === 'Desk attendant' ? 'desk_attendants' : 'administrators',
+  //       conditions: `WHERE id = '${this.userToDelete.id}'`
+  //     });
+  
+  //     if (response && response.success) {
+  //       this.users = this.users.filter(u => u.id !== this.userToDelete!.id);
+  //       this.filteredUsers = this.filteredUsers.filter(u => u.id !== this.userToDelete!.id);
+  //       this.API.sendFeedback('success', 'User has been deleted!', 5000);
+  //       console.log('User deleted successfully:', this.userToDelete.fullname);
+  //     } else {
+  //       alert(`Failed to delete user: ${response.output || 'Unknown error'}`);
+  //     }
+  //   } catch (error) {
+  //     console.error('Error occurred during user deletion:', error);
+  //   } finally {
+  //     this.userToDelete = null;
+  //   }
+  // }
+  
   async onConfirmDelete() {
-    if (!this.userToDelete) return;
-    this.showDeleteConfirmation = false;
-  
-    try {
-      const response = await this.API.delete({
-        tables: this.userToDelete.role === 'Desk attendant' ? 'desk_attendants' : 'administrators',
-        conditions: `WHERE id = '${this.userToDelete.id}'`
-      });
-  
-      if (response && response.success) {
-        this.users = this.users.filter(u => u.id !== this.userToDelete!.id);
-        this.filteredUsers = this.filteredUsers.filter(u => u.id !== this.userToDelete!.id);
-        this.API.sendFeedback('success', 'User has been deleted!', 5000);
-        console.log('User deleted successfully:', this.userToDelete.fullname);
-      } else {
-        alert(`Failed to delete user: ${response.output || 'Unknown error'}`);
-      }
-    } catch (error) {
-      console.error('Error occurred during user deletion:', error);
-    } finally {
-      this.userToDelete = null;
+  if (!this.userToDelete) return;
+  this.showDeleteConfirmation = false;
+
+  try {
+    const response = await this.API.delete({
+      tables: this.userToDelete.role === 'Desk attendant' ? 'desk_attendants' : 'administrators',
+      conditions: `WHERE id = '${this.userToDelete.id}'`
+    });
+
+    if (response && response.success) {
+      this.API.sendFeedback('success', 'User has been deleted!', 5000);
+      console.log('User deleted successfully:', this.userToDelete.fullname);
+      await this.loadData(); // Reload data after deletion
+    } else {
+      alert(`Failed to delete user: ${response.output || 'Unknown error'}`);
     }
+  } catch (error) {
+    console.error('Error occurred during user deletion:', error);
+  } finally {
+    this.userToDelete = null;
   }
-  
+}
+
+
   onCancelDelete() {
     this.showDeleteConfirmation = false;
     this.userToDelete = null;
