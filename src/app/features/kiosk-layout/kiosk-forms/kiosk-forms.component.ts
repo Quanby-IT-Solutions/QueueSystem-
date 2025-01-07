@@ -34,6 +34,8 @@ export class KioskFormsComponent implements OnInit, OnDestroy {
   departmentName: string = '';
   currentPeriod: string = 'AM';
   currentTime: Date = new Date();
+  private timeInterval: any; 
+
   currentDate: Date = new Date();
   isChecklistVisible: boolean = false;
   isFormVisible: boolean = false;
@@ -109,13 +111,28 @@ export class KioskFormsComponent implements OnInit, OnDestroy {
     return this.selectedServices.map(item=>item.name).join(', ')
   }
 
+  // ngOnDestroy(): void {
+  //   if(this.serviceInterval){
+  //     clearInterval(this.serviceInterval)
+  //   }
+  // }
+
   ngOnDestroy(): void {
-    if(this.serviceInterval){
-      clearInterval(this.serviceInterval)
+    // Clear the interval to prevent memory leaks
+    if (this.timeInterval) {
+      clearInterval(this.timeInterval);
+    }
+
+    if (this.serviceInterval) {
+      clearInterval(this.serviceInterval);
     }
   }
 
+ 
+
   async ngOnInit() {
+
+    this.startClock();
     this.route.queryParams.subscribe(params => {
       this.departmentName = params['department'] || 'Department Name';
     });
@@ -357,5 +374,11 @@ export class KioskFormsComponent implements OnInit, OnDestroy {
       img.onerror = reject;
       img.src = base64Image;
     });
+  }
+
+   private startClock() {
+    this.timeInterval = setInterval(() => {
+      this.currentDate = new Date();
+    }, 1000);
   }
 }
