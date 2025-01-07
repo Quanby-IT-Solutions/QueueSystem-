@@ -181,93 +181,118 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
 
 
 
-private async loadTerminalsAndKiosks() {
-  const kioskData = await this.API.read({
-      selectors: [
-          'k.id',
-          'k.number as kioskName',
-          'd.name as location',
-          'k.status'
-      ],
-      tables: 'kiosks k LEFT JOIN divisions d ON k.division_id = d.id ORDER BY k.number ASC',
-      conditions: ''
-  });
+    private async loadTerminalsAndKiosks() {
+      const kioskData = await this.API.read({
+          selectors: [
+              'k.id',
+              'k.number as kioskName',
+              'd.name as location',
+              'k.status'
+          ],
+          tables: 'kiosks k LEFT JOIN divisions d ON k.division_id = d.id ORDER BY k.number ASC',
+          conditions: ''
+      });
 
-  const terminalData = await this.API.read({
-      selectors: [
-          't.id',
-          't.number as terminalNumber',
-          'd.name as location',
-          't.status'
-      ],
-      tables: 'terminals t LEFT JOIN divisions d ON t.division_id = d.id ORDER BY t.number ASC',
-      conditions: ''
-  });
+      const terminalData = await this.API.read({
+          selectors: [
+              't.id',
+              't.number as terminalNumber',
+              'd.name as location',
+              't.status'
+          ],
+          tables: 'terminals t LEFT JOIN divisions d ON t.division_id = d.id ORDER BY t.number ASC',
+          conditions: ''
+      });
 
-  const divisionKioskCount:{[key:string]:number} = {};
+      const divisionKioskCount:{[key:string]:number} = {};
 
-  const kioskTicketCounts = await Promise.all(
-      kioskData.output.map(async (kiosk: any) => {
-          const ticketData = await this.API.read({
-              selectors: ['COUNT(id) as ticketCount'],
-              tables: 'queue',
-              conditions: `WHERE kiosk_id = '${kiosk.id}'`
-          });
+      const kioskTicketCounts = await Promise.all(
+          kioskData.output.map(async (kiosk: any) => {
+              const ticketData = await this.API.read({
+                  selectors: ['COUNT(id) as ticketCount'],
+                  tables: 'queue',
+                  conditions: `WHERE kiosk_id = '${kiosk.id}'`
+              });
 
-          const ticketCount = ticketData.success && ticketData.output.length > 0
-              ? parseInt(ticketData.output[0].ticketCount, 10)
-              : 0;
+              const ticketCount = ticketData.success && ticketData.output.length > 0
+                  ? parseInt(ticketData.output[0].ticketCount, 10)
+                  : 0;
 
-          if(!divisionKioskCount[kiosk.location]){
-            divisionKioskCount[kiosk.location] = 1;
-          }else{
-            divisionKioskCount[kiosk.location] +=1;
-          }
-          return {
-              id: kiosk.id,
-              location: kiosk.location,
-              status: kiosk.status === 'available' ? 'Operational' : 'Out of Service',
-              ticketCount,
-              type: 'kiosk' as const,
-              kioskName:  divisionKioskCount[kiosk.location]
-          };
-      })
-  );
+              if(!divisionKioskCount[kiosk.location]){
+                divisionKioskCount[kiosk.location] = 1;
+              }else{
+                divisionKioskCount[kiosk.location] +=1;
+              }
+              return {
+                  id: kiosk.id,
+                  location: kiosk.location,
+                  status: kiosk.status === 'available' ? 'Operational' : 'Out of Service',
+                  ticketCount,
+                  type: 'kiosk' as const,
+                  kioskName:  divisionKioskCount[kiosk.location]
+              };
+          })
+      );
 
-  const divisionTerminalsCount:{[key:string]:number} = {};
+      const divisionTerminalsCount:{[key:string]:number} = {};
 
-  const terminalTicketCounts = await Promise.all(
-      terminalData.output.map(async (terminal: any) => {
-          const sessionData = await this.API.read({
-              selectors: ['COUNT(id) as sessionCount'],
-              tables: 'terminal_sessions',
-              conditions: `WHERE terminal_id = '${terminal.id}'`
-          });
+      const terminalTicketCounts = await Promise.all(
+          terminalData.output.map(async (terminal: any) => {
+              const sessionData = await this.API.read({
+                  selectors: ['COUNT(id) as sessionCount'],
+                  tables: 'terminal_sessions',
+                  conditions: `WHERE terminal_id = '${terminal.id}'`
+              });
 
-          const ticketCount = sessionData.success && sessionData.output.length > 0
-              ? parseInt(sessionData.output[0].sessionCount, 10)
-              : 0;
-          if(!divisionTerminalsCount[terminal.location]){
-            divisionTerminalsCount[terminal.location] = 1;
-          }else{
-            divisionTerminalsCount[terminal.location] +=1;
-          }
-          return {
-              id: terminal.id,
-              location: terminal.location,
-              status: terminal.status === 'available' ? 'Operational' : 'Out of Service',
-              ticketCount,
-              type: 'terminal' as const,
-              terminalNumber: divisionTerminalsCount[terminal.location]
-          };
-      })
-  );
+              const ticketCount = sessionData.success && sessionData.output.length > 0
+                  ? parseInt(sessionData.output[0].sessionCount, 10)
+                  : 0;
+              if(!divisionTerminalsCount[terminal.location]){
+                divisionTerminalsCount[terminal.location] = 1;
+              }else{
+                divisionTerminalsCount[terminal.location] +=1;
+              }
+              return {
+                  id: terminal.id,
+                  location: terminal.location,
+                  status: terminal.status === 'available' ? 'Operational' : 'Out of Service',
+                  ticketCount,
+                  type: 'terminal' as const,
+                  terminalNumber: divisionTerminalsCount[terminal.location]
+              };
+          })
+      );
 
-  const allData: KioskStatus[] = [...kioskTicketCounts, ...terminalTicketCounts];
+      const allData: KioskStatus[] = [...kioskTicketCounts, ...terminalTicketCounts];
 
-  this.kioskStatus$ = of(allData);
-  this.updateKioskPagination();
-}
+      this.kioskStatus$ = of(allData);
+      this.updateKioskPagination();
+    }
+  
+  
+    private queueAnalytics(): Observable<QueueAnalytics[]> {
+    const allQueues = this.queueService.allQueue;
+    const divisions = this.divisions;
+
+    const analytics = divisions.map((division) => {
+      const divisionQueues = allQueues.filter(queue => queue.division_id === division.id);
+      const currentTicket = divisionQueues.find(queue => queue.status === 'serving')?.number || 0;
+      const waitingCount = divisionQueues.filter(queue => queue.status === 'waiting').length;
+      const avgWaitTime = this.calculateWaitingTime(division.id);
+      const status = waitingCount > 20 ? 'Busy' : waitingCount > 10 ? 'Moderate' : 'Normal';
+
+      return {
+        office: division.name,
+        currentTicket,
+        waitingCount,
+        avgWaitTime: `${avgWaitTime} mins`,
+        status,
+      } as QueueAnalytics;
+    });
+
+      return of(analytics);
+    }
+
 
 
 
@@ -461,8 +486,10 @@ private async loadTerminalsAndKiosks() {
         // Add other necessary data refreshes
       ]);
 
+      
+
       // Update all observables and states
-      this.queueAnalytics$ = this.getMockQueueAnalytics();
+      this.queueAnalytics$ = this.queueAnalytics();
       // this.staffPerformance$ = this.getMockStaffPerformance();
       // this.kioskStatus$ = this.getMockKioskStatus();
       this.updateOverallMetrics();
@@ -494,7 +521,7 @@ private async loadTerminalsAndKiosks() {
     }
   }
 
-
+  
 
   async downloadReport() {
     try {
@@ -508,7 +535,7 @@ private async loadTerminalsAndKiosks() {
 
       // Todays Queue
       
-      let queueRows = this.queueService.allTodayQueue;
+      let queueRows = this.queueService.allQueue;
       if(!this.isSuperAdmin){
         queueRows = queueRows.filter(queue=>queue.division_id == this.divisionService.selectedDivision!.id);
       }
@@ -536,17 +563,16 @@ private async loadTerminalsAndKiosks() {
       ];
 
       const queueDataSheet = XLSX.utils.aoa_to_sheet(queueList);
-      XLSX.utils.book_append_sheet(wb, queueDataSheet, 'Today Queue');
+      XLSX.utils.book_append_sheet(wb, queueDataSheet, 'Queue');
 
       // Overall Metrics Sheet
       const metrics = await firstValueFrom(this.overallMetrics$);
       const metricsData = [
-        ['Metric', 'Value', 'Period'],
+        ['Department', 'Queue'],
         ...metrics.map(metric => [
           metric.title,
           metric.value.toString(),
-          this.selectedFilter.toUpperCase()
-        ]),
+        ]), 
         // Additional metrics for non-super admins
         ...((!this.isSuperAdmin) ? [
           ['Available Kiosks', this.availableKiosks.toString(), 'units available'],
@@ -588,7 +614,7 @@ private async loadTerminalsAndKiosks() {
       if (kioskData?.length) {
         const kioskSheet = XLSX.utils.json_to_sheet(kioskData.map(k => ({
           'ID': k.id,
-          'Location': k.location,
+          'Office': k.location,
           'Status': k.status,
         
         })));
@@ -734,24 +760,7 @@ const datasets = filteredMetrics.map((metric) => {
     return waiting > 20 ? 'Busy' : waiting > 15 ? 'Moderate' : 'Normal'
   }
 
-  getMockQueueAnalytics(): Observable<QueueAnalytics[]> {
-    const perDivision = this.divisions.reduce((prev:any[],item)=>{
-      return [...prev,
-        {
-          office: item.name,
-          currentTicket:0,
-          waitingCount: this.queueService.allTodayQueue.filter(queue=>queue.division_id == item.id).length,
-          avgWaitTime: `${this.calculateWaitingTime(item.id)} minutes`,
-          status: this.getStatus()
-        }
-
-      ]
-    },[])
-    return of([
-      ...perDivision,
-      { office: 'Total', currentTicket: 45, waitingCount: this.queueService.allTodayQueue.length, avgWaitTime: `${this.calculateWaitingTime()} minutes`, status: 'Busy' },
-    ]);
-  }
+  
 
 
 
@@ -1126,7 +1135,7 @@ const datasets = filteredMetrics.map((metric) => {
     await this.queueService.getAllQueues();
     await this.queueService.getAllTodayQueues();
     await this.queueService.geAllAttendedQueues();
-    this.queueAnalytics$ = this.getMockQueueAnalytics();
+    this.queueAnalytics$ = this.queueAnalytics();
     // this.staffPerformance$ = this.getMockStaffPerformance();
     // this.kioskStatus$ = this.getMockKioskStatus();
     this.updateOverallMetrics();
