@@ -125,7 +125,11 @@
           <div class="flex items-center">
             <div class="w-12 h-12 flex-shrink-0">
               <img 
-                [src]="currentTicket?.gender === 'female' ? 'assets/queue-display/female_1.png' : currentTicket?.gender == 'other' ? 'assets/default.jpg' :'assets/queue-display/Male_1.png'" 
+              [src]="currentTicket?.gender === 'female' 
+                      ? 'assets/queue-display/female_1.png' 
+                      : currentTicket?.gender === 'male' 
+                          ? 'assets/queue-display/Male_1.png' 
+                          : 'assets/default.jpg'"
                 alt="Avatar" 
                 class="w-12 h-12 rounded-full object-cover">
             </div>
@@ -228,7 +232,12 @@
                   <div class="flex items-center space-x-3">
                     <div class="flex-shrink-0 w-10 h-10">
                       <img 
-                        [src]="ticket.gender === 'female' ? 'assets/queue-display/female_1.png' :currentTicket?.gender == 'other' ? 'assets/default.jpg': 'assets/queue-display/Male_1.png'" 
+                        [src]="ticket.gender === 'female' 
+                        ? 'assets/queue-display/female_1.png' 
+                        : ticket.gender === 'male' 
+                            ? 'assets/queue-display/Male_1.png' 
+                            : 'assets/default.jpg'"
+
                         alt="Avatar"
                         class="w-10 h-10 rounded-full object-cover">
                     </div>
