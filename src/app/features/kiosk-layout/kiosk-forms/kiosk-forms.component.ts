@@ -171,6 +171,12 @@ export class KioskFormsComponent implements OnInit, OnDestroy {
       clearInterval(this.serviceInterval)
     }
 
+    this.API.addSocketListener('listen-kiosk-content', async (message)=>{
+      if(message.event == 'kiosk-events' ){
+        this.services = await this.serviceService.getAllServices(this.divisionService.selectedDivision?.id!);
+        this.formats = await this.formatService.getFrom(this.divisionService.selectedDivision!.id);
+      }
+   })
     this.queueService.listenToQueue();
   }
   

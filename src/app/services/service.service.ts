@@ -38,6 +38,7 @@ async addSubService(service_id:string,name:string){
   if(!response.success){
     throw new Error('Something went wrong');
   }
+  this.API.socketSend({event:'kiosk-events'});
 }
 
  async addService(name:string){
@@ -56,6 +57,7 @@ async addSubService(service_id:string,name:string){
    if(!response.success){
      throw new Error('Something went wrong');
    }
+   this.API.socketSend({event:'kiosk-events'});
  }
 
  async updateSubService(id:string, name:string){
@@ -70,6 +72,7 @@ async addSubService(service_id:string,name:string){
   if(!response.success){
     throw new Error('Something went wrong.');
   }  
+  this.API.socketSend({event:'kiosk-events'});
 }
 
  async updateService(id:string, name:string){
@@ -85,6 +88,7 @@ async addSubService(service_id:string,name:string){
   if(!response.success){
     throw new Error('Something went wrong.');
   }
+  this.API.socketSend({event:'kiosk-events'});
 }
 
 async deleteSubService(id:string){
@@ -96,6 +100,7 @@ async deleteSubService(id:string){
   if(!response.success){
     throw new Error('Unable to delete service');
   }
+  this.API.socketSend({event:'kiosk-events'});
 }
  async deleteService(id:string){
    const response = await this.API.delete({
@@ -106,6 +111,7 @@ async deleteSubService(id:string){
    if(!response.success){
      throw new Error('Unable to delete service');
    }
+   this.API.socketSend({event:'kiosk-events'});
  }
 
  async getSubServices(service_id:string){

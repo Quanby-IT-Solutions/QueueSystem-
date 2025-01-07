@@ -902,7 +902,7 @@ this.subscription = this.queueService.queue$.subscribe((queueItems: Ticket[]) =>
 
   // Update startTimer method to include progress calculation
   private startTimer(): void {
-    this.timerStartTime = Date.now();
+    this.timerStartTime = this.getServerTime().getTime();
     this.timerInterval = setInterval(() => {
       if (this.timerStartTime) {
         const elapsedTime =this.getServerTime().getTime() - this.timerStartTime;

@@ -18,6 +18,16 @@ export class FormatService extends CrudService<Format>{
       super.setTable('formats');
       
   }
+
+  override async add(item:Format){
+    await super.add(item);
+    this.API.socketSend({event:'kiosk-events'});
+  }
+
+  override async update(id:string,item:Format){
+    await super.update(id,item);
+    this.API.socketSend({event:'kiosk-events'});
+  }
   
   override async delete(id:string){
     this.API.delete({
@@ -32,6 +42,7 @@ export class FormatService extends CrudService<Format>{
       conditions:`WHERE specific = '${id}'`
     })
     await super.delete(id);
+    this.API.socketSend({event:'kiosk-events'});
   }
 
   async getFrom(division_id:string){
