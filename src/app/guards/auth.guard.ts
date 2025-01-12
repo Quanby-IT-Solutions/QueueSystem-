@@ -26,7 +26,7 @@ export class AuthGuard implements CanActivate {
 
     
     if(requiredRole == 'admin'){
-      return ['cashier','registrar','accountant','superadmin'].includes(currentUser);
+      return ['cashier','registrar','accountant','admin','superadmin'].includes(currentUser);
     }
 
     if (this.checkUserRole(currentUser, requiredRole)) {

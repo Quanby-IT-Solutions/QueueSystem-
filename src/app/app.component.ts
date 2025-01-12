@@ -29,6 +29,8 @@ export class AppComponent {
           'registrar': '/admin/dashboard',
           'accountant': '/admin/dashboard',
           'cashier': '/admin/dashboard',
+          'admin': '/admin/dashboard',
+          
         }
 
     });

@@ -164,8 +164,7 @@ export class CreateAccountModalComponent {
         this.newUser.role = 'accountant';
         break;
       default:
-        this.showError = true;
-        this.errorMessage = 'Please select a valid division for the admin role.';
+        this.newUser.role = 'admin';
     }
   }
 

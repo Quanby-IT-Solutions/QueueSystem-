@@ -162,6 +162,8 @@ export class LoginLayoutComponent implements OnInit, AfterViewInit {
             'registrar': '/admin/dashboard',
             'accountant': '/admin/dashboard',
             'cashier': '/admin/dashboard',
+            'admin': '/admin/dashboard',
+
           }
 
       });
