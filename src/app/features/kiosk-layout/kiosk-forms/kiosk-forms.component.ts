@@ -43,7 +43,7 @@ export class KioskFormsComponent implements OnInit, OnDestroy {
 
   queueNumber: string | null = null;
   selectedServices: Service[] = [];
-  selectedType: 'regular' | 'priority'|string = 'regular';
+  selectedType: 'regular' | 'priority'|string = '';
   customerName: string = '';
   group: string = '';
   gender: string = '';
@@ -254,6 +254,11 @@ export class KioskFormsComponent implements OnInit, OnDestroy {
   }
   if(this.gender.trim() == ''){
     this.API.sendFeedback('error','Gender is required!',5000);
+    this.isLoading =false;
+    throw new Error();
+  }
+  if(this.selectedType.trim() == ''){
+    this.API.sendFeedback('error','Priority type is required!',5000);
     this.isLoading =false;
     throw new Error();
   }

@@ -461,11 +461,13 @@ export class QueueDisplayComponent implements OnInit, OnChanges, OnDestroy, Afte
 }
 
 
-  computeFillers(midpoint:number,count:number){
+  computeFillers(midpoint:number){
+    let count = this.countOnlineCounters();
+    
     if(count==1){
       return [];
     }
-    if(midpoint == Math.round(count/2))
+    if(midpoint == Math.round((count)/2))
       return new Array(5-midpoint);
     return [];
   }
