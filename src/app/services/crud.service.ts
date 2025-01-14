@@ -12,7 +12,7 @@ constructor(
     private core:UswagonCoreService) { }
 
 table?:string;  
-limit:number = 10;
+limit:number = 100000000000;
 offset:number = 0;
 filters:string = '';
 order:string[] = [];
