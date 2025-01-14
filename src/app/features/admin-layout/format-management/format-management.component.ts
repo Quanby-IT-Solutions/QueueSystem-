@@ -48,8 +48,8 @@ export class FormatManagementComponent {
     this.API.setLoading(true);
     this.divisions = await this.divisionService.getDivisions();
     this.selectedDivision = this.divisions?.[0];
-    this.kiosks = (await this.kioskService.getAllKiosks(this.selectedDivision!.id));
     this.formats = (await this.formatService.getFrom(this.selectedDivision?.id));
+    this.kiosks = (await this.kioskService.getAllKiosks(this.selectedDivision!.id));
     this.API.setLoading(false);    
   }
 
@@ -63,6 +63,7 @@ export class FormatManagementComponent {
     this.divisionService.setDivision(division)
     this.API.setLoading(true);
     this.formats = (await this.formatService.getFrom(division.id));
+    this.kiosks = (await this.kioskService.getAllKiosks(this.selectedDivision!.id));
     this.API.setLoading(false);
   }
 
