@@ -55,6 +55,10 @@
               <div class="flex w-full mt-2">
                 <div class="flex justify-end w-full">
                   <div class="flex gap-2">
+                    <button
+                    (click)="selectFormat(format);openSetKiosk()" class="rounded-lg px-6 py-1 text-white flex gap-2 bg-blue-500">
+                    {{ getKioskName(format.description)  ?? 'Assign to'}}
+                    </button>
                     <button  (click)="selectFormat(format);openDialog('delete')" class="flex items-center justify-center px-2 py-1 text-white bg-red-500 rounded-lg hover:bg-red-600 ">
                       <span  class="material-icons"> delete </span>
                     </button>
@@ -96,5 +100,12 @@
     [existingitem]="selectedFormat"
     (onClose)="closeDialog($event)"
   >
-
   </app-create-format>
+
+    <!-- Set Kiosk Modal -->
+    <app-set-kiosk
+    *ngIf="setKioskModal"
+    [kiosks]="kiosks"
+    [format]="selectedFormat"
+    (onClose)="closeSetKiosk($event)"
+    />

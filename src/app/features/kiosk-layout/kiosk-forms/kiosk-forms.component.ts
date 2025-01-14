@@ -6,7 +6,7 @@ import { FormsModule } from '@angular/forms';
 import jsPDF from 'jspdf';
 import { UswagonCoreService } from 'uswagon-core';
 import { QueueService } from '../../../services/queue.service';
-import { KioskService } from '../../../services/kiosk.service';
+import { Kiosk, KioskService } from '../../../services/kiosk.service';
 import { DivisionService } from '../../../services/division.service';
 import { FeedbackComponent } from '../../../shared/modals/feedback/feedback.component';
 import { ServiceService } from '../../../services/service.service';
@@ -61,6 +61,8 @@ export class KioskFormsComponent implements OnInit, OnDestroy {
   departments:Department[] = [];
   divisions:Division[] = [];
   serviceInterval:any;
+  anonymous:boolean = false;
+
   successDescription = '';
   priorityDetails = `<div class='flex flex-col leading-none py-2 gap-2'>
     Please ensure that you have VALID ID to be considered as priority. <div class="text-sm px-6  text-red-900/85 ">* Without ID desk attendants are ALLOWED to put you at the bottom of queue.</div>
@@ -139,6 +141,7 @@ export class KioskFormsComponent implements OnInit, OnDestroy {
 
     if (this.kioskService.kiosk != undefined) {
       this.kioskService.kiosk = await this.kioskService.getKiosk(this.kioskService.kiosk.id!);
+      this.anonymous = this.kioskService.kiosk.last_online == 'anonymous';
 
       this.division =await  this.divisionService.getDivision(this.kioskService.kiosk.division_id)
       this.divisionService.setDivision(this.division!);
@@ -165,6 +168,7 @@ export class KioskFormsComponent implements OnInit, OnDestroy {
         }
       ]
     }
+    this.formats = this.formats.filter(format=> format.description == this.kioskService.kiosk?.id  || !format.description )
     this.departments = await this.departmentService.getAllDepartments();
     this.divisions = await this.divisionService.getDivisions();
     if(this.serviceInterval){
@@ -173,8 +177,25 @@ export class KioskFormsComponent implements OnInit, OnDestroy {
 
     this.API.addSocketListener('listen-kiosk-content', async (message)=>{
       if(message.event == 'kiosk-events' ){
+        this.kioskService.kiosk = await this.kioskService.getKiosk(this.kioskService.kiosk!.id!);
+        this.anonymous = this.kioskService.kiosk.last_online == 'anonymous';
         this.services = await this.serviceService.getAllServices(this.divisionService.selectedDivision?.id!);
         this.formats = await this.formatService.getFrom(this.divisionService.selectedDivision!.id);
+        this.formats = this.formats.filter(format=> format.description == this.kioskService.kiosk?.id  || !format.description )
+        if(this.formats.length <= 0){
+          this.formats = [
+            {
+              id: 'priority',
+              name:'priority',
+              prefix:'P'
+            },
+            {
+              id: 'regular',
+              name:'regular',
+              prefix:'R'
+            }
+          ]
+        }
       }
    })
     this.queueService.listenToQueue();
@@ -247,22 +268,16 @@ export class KioskFormsComponent implements OnInit, OnDestroy {
     throw new Error();
   }
 
-  if(this.customerName.trim() == ''){
-    this.API.sendFeedback('error','Fullname is required!',5000);
-       this.isLoading =false;
-    throw new Error();
-  }
-  if(this.gender.trim() == ''){
-    this.API.sendFeedback('error','Gender is required!',5000);
-    this.isLoading =false;
-    throw new Error();
-  }
+
   if(this.selectedType.trim() == ''){
     this.API.sendFeedback('error','Priority type is required!',5000);
     this.isLoading =false;
     throw new Error();
   }
    try{
+    if(this.gender ==''){
+      this.gender = 'other';
+    }
     const number = await this.queueService.addToQueue({
       fullname: this.customerName.trim(),
       type: this.selectedType,

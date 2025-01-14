@@ -30,7 +30,7 @@ export class KioskManagementComponent implements OnInit {
 
   selectedKiosk?:Kiosk;
 
-  modalType?:'maintenance'|'delete';
+  modalType?:'anonymous'|'maintenance'|'delete';
 
   openKioskModal:boolean = false;
 
@@ -99,6 +99,20 @@ export class KioskManagementComponent implements OnInit {
     }
     this.actionLoading =false;
   }
+
+  async toggleAnonymous(item:Kiosk){
+    if(this.actionLoading) return ;
+    this.actionLoading = true;
+    this.API.setLoading(true);
+    try{
+      await this.kioskService.updateKioskType(item.id!,item.last_online == 'anonymous' ? '' : 'anonymous');
+      await this.closeDialog(true);
+      this.API.sendFeedback('success', 'Kiosk status has been updated!',5000);
+    }catch(e:any){
+      this.API.sendFeedback('success', e.message,5000);
+    }
+    this.actionLoading =false;
+  }
   async deleteKiosk(item:Kiosk){
     this.API.setLoading(true);
     try{
@@ -116,7 +130,7 @@ export class KioskManagementComponent implements OnInit {
 
   
 
-  openDialog(type:'maintenance'|'delete'){
+  openDialog(type:'maintenance'|'delete'|'anonymous'){
     this.modalType = type;
   }
   async closeDialog(shouldRefresh:boolean){

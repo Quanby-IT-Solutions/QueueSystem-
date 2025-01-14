@@ -100,7 +100,7 @@
         <section *ngIf="!isFormVisible" class="w-full p-6">
           <h2 class="p-2 mb-4 text-lg font-semibold text-gray-800">Basic Information</h2>
           <form class="p-2 space-y-4">
-            <div class="grid grid-cols-1 md:grid-rows-2 gap-4 sm:grid-cols-2 grid-rows-4 grid-flow-col">
+            <div class="grid grid-cols-1 {{anonymous?'':'md:grid-rows-2 sm:grid-cols-2 grid-rows-4 grid-flow-col'}}  gap-4  ">
               <div>
                 <label for="group" class="block mb-1 text-sm font-medium text-gray-600">Category</label>
                 <select 
@@ -124,17 +124,6 @@
 
                   <!-- Dropdown content: visible when isDropdownOpen is true -->
                   <div *ngIf="isDropdownOpen" class="absolute left-0 z-10 w-full mt-2 bg-white border border-gray-300 rounded-md shadow-lg">
-                    <div class="p-2">
-                      <input
-                        type="text"
-                        [(ngModel)]="searchTerm"
-                        (input)="filterChecklist()"
-                        placeholder="Type a service"
-                        class="w-full px-3 py-2 border border-gray-300 rounded-md"
-                        name="searchTerm"
-                        autocomplete="off"
-                      />
-                    </div>
                     <div class="p-2 overflow-y-auto max-h-48">
                       <div *ngFor="let item of filteredServiceChecklist">
                         <label class="flex items-center">
@@ -156,8 +145,10 @@
 
 
               <!-- Other Form Fields -->
-              <div>
-                <label for="gender" class="block mb-1 text-sm font-medium text-gray-600">Gender <span class="text-red-500">*</span></label>
+              <div
+                *ngIf="!anonymous"
+              >
+                <label for="gender" class="block mb-1 text-sm font-medium text-gray-600">Gender</label>
                 <select [(ngModel)]="gender" name="gender" id="gender" class="w-full px-3 py-2 text-sm bg-white border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-green-500">
                   <option value="">Select gender</option>
                   <option value="Male">Male</option>
@@ -165,8 +156,10 @@
                   <option value="Other">Other</option>
                 </select>
               </div>
-              <div>
-                <label for="name" class="block mb-1 text-sm font-medium text-gray-600">Name <span class="text-red-500">*</span></label>
+              <div
+              *ngIf="!anonymous"
+              >
+                <label for="name" class="block mb-1 text-sm font-medium text-gray-600">Name </label>
                 <input  [(ngModel)]="customerName" id="name" type="text" placeholder="Type your name (eg. Juan Cruz)" name="name" class="w-full px-3 py-2 text-sm bg-white border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-green-500">
               </div>
               <!-- <div>
@@ -203,11 +196,15 @@
                 <label class="block mb-1 text-sm font-medium text-gray-600">Services <span *ngIf="selectedServices.length<=0" class="font-thin text-red-400">*Please select at least one service</span></label>
                 <div class="w-full px-3 py-2 text-sm bg-white border border-gray-300 rounded-md">{{ showServiceNames() || 'Nothing was selected.' }}</div>
               </div>
-              <div>
+              <div
+                *ngIf="!anonymous"
+              >
                 <label class="block mb-1 text-sm font-medium text-gray-600">Gender <span *ngIf="gender == ''" class="font-thin text-red-400">*Please specify gender.</span></label>
                 <div class="w-full px-3 py-2 text-sm bg-white border border-gray-300 rounded-md">{{ gender || 'Not Specified' }}</div>
               </div>
-              <div>
+              <div
+              *ngIf="!anonymous"
+              >
                 <label class="block mb-1 text-sm font-medium text-gray-600">Name <span *ngIf="customerName == ''" class="font-thin text-red-400">*Please specify your name</span></label>
                 <div class="w-full px-3 py-2 text-sm bg-white border border-gray-300 rounded-md">{{ customerName || 'Not Specified' }}</div>
               </div>

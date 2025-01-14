@@ -9,16 +9,19 @@ import { ConfirmationComponent } from '../../../shared/modals/confirmation/confi
 import { CreateFormatComponent } from './modals/create-format/create-format.component';
 import { UswagonCoreService } from 'uswagon-core';
 import { DivisionService } from '../../../services/division.service';
+import { SetKioskComponent } from './modals/set-kiosk/set-kiosk.component';
+import { Kiosk, KioskService } from '../../../services/kiosk.service';
 @Component({
   selector: 'app-format-management',
   standalone: true,
-  imports: [LottieAnimationComponent,CommonModule,ConfirmationComponent,CreateFormatComponent],
+  imports: [LottieAnimationComponent,CommonModule,ConfirmationComponent,CreateFormatComponent, SetKioskComponent],
   templateUrl: './format-management.component.html',
   styleUrl: './format-management.component.css'
 })
 export class FormatManagementComponent {
 
   formats: Format[]=[];
+  kiosks:Kiosk[]=[];
   isSuperAdmin:boolean = this.auth.accountLoggedIn() == 'superadmin';
 
   selectedFormat?:Format;
@@ -35,6 +38,7 @@ export class FormatManagementComponent {
   constructor(
     private divisionService:DivisionService,
     private auth:UswagonAuthService,private API:UswagonCoreService,
+    private kioskService:KioskService,
     private formatService:FormatService) {}
   ngOnInit(): void {
     this.loadContent();
@@ -44,10 +48,16 @@ export class FormatManagementComponent {
     this.API.setLoading(true);
     this.divisions = await this.divisionService.getDivisions();
     this.selectedDivision = this.divisions?.[0];
+    this.kiosks = (await this.kioskService.getAllKiosks(this.selectedDivision!.id));
     this.formats = (await this.formatService.getFrom(this.selectedDivision?.id));
     this.API.setLoading(false);    
   }
 
+  getKioskName(id?:string){
+    if(!id) return null;
+    const index = this.kiosks.findIndex(kiosk=>kiosk.id == id);
+    return `Kiosk ${index+1}`;
+  }
   async selectDivision(division:Division){
     this.selectedDivision = division;
     this.divisionService.setDivision(division)
@@ -70,6 +80,23 @@ export class FormatManagementComponent {
       .join(' '); // Join the words back into a single string
   }
   
+
+  setKioskModal:boolean = false;
+  
+  openSetKiosk(){
+    this.setKioskModal = true;
+  }
+
+  async closeSetKiosk(refresh:boolean){
+    this.setKioskModal  = false;
+    if(refresh){
+      this.API.sendFeedback('success', 'Format designation has been updated!',5000)
+      this.API.setLoading(true);
+      this.formats = (await this.formatService.getFrom(this.selectedDivision!.id));
+      this.API.setLoading(false);
+    }
+  }
+
 
   addFormat(){
     this.selectedFormat = {

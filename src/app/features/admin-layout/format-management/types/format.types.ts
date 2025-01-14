@@ -3,6 +3,7 @@ export interface Format {
     name:string;
     division_id?:string;
     prefix:string;
+    description?:string;
 }
 
 export interface Division{

@@ -126,10 +126,26 @@ export class KioskService extends CrudService<Kiosk>{
    });
 
    if(!response.success){
-     throw new Error('Unable to add terminal');
+     throw new Error('Unable to update status');
    }
-
+   
  }
+
+ async updateKioskType(id:string, type: 'anonymous'|''){
+  const response = await this.API.update({
+    tables: 'kiosks',
+    values:{
+      last_online:type
+    }  ,
+    conditions: `WHERE id = '${id}'`
+  });
+
+  if(!response.success){
+    throw new Error('Unable to update type');
+  }
+
+  this.API.socketSend({event:'kiosk-events'});
+}
 
  async updateKiosk(kiosk:Kiosk, touched:boolean){
   if(touched){
