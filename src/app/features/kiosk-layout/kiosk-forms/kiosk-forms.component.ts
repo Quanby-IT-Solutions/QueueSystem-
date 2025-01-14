@@ -179,6 +179,8 @@ export class KioskFormsComponent implements OnInit, OnDestroy {
       if(message.event == 'kiosk-events' ){
         this.kioskService.kiosk = await this.kioskService.getKiosk(this.kioskService.kiosk!.id!);
         this.anonymous = this.kioskService.kiosk.last_online == 'anonymous';
+        this.division =await  this.divisionService.getDivision(this.kioskService.kiosk.division_id)
+        this.divisionService.setDivision(this.division!);
         this.services = await this.serviceService.getAllServices(this.divisionService.selectedDivision?.id!);
         this.formats = await this.formatService.getFrom(this.divisionService.selectedDivision!.id);
         this.formats = this.formats.filter(format=> format.description == this.kioskService.kiosk?.id  || !format.description )
