@@ -176,12 +176,16 @@
             </div> -->
 
 
-            <div  class="flex justify-center flex-wrap gap-8 p-10 mt-10">
+            <div class="flex flex-wrap justify-center gap-8 p-10 mt-10">
               <button  
-              *ngFor='let format of formats'
-              type="button" (click)="handleButtonClick(format.id!)" class="border-dashed border-2 border-[var(--primary-light)]flex flex-col p-4 items-center justify-center text-white font-semibold text-lg  transition {{selectedType == format.id ? 'bg-yellow-400':'bg-[var(--primary-dark)]'}} rounded-lg  hover:bg-yellow-300">
-                <img src="{{format.id == 'priority' ? './assets/kiosk/Priority.png':'./assets/kiosk/Regular.png'}}" alt="{{format.id}}-icon" class="object-contain w-40 h-40">
-                <span class="text-shadow">{{format.name.toUpperCase()}}</span>
+                *ngFor='let format of formats'
+                type="button" (click)="handleButtonClick(format.id!)" 
+                class="border-dashed border-2 border-[var(--primary-light)] flex flex-col p-4 items-center justify-center text-white font-semibold text-lg transition 
+                {{selectedType == format.id ? 'bg-yellow-400':'bg-[var(--primary-dark)]'}} rounded-lg hover:bg-yellow-300 
+                w-64 h-64"> <!-- Adjust width and height -->
+                <img src="{{format.id == 'priority' ? './assets/kiosk/Priority.png':'./assets/kiosk/Regular.png'}}" 
+                     alt="{{format.id}}-icon" class="object-contain w-40 h-40">
+                <span class="text-shadow">{{format.name.toUpperCase().replaceAll('.','')}}</span>
               </button>
             </div>
           </form>
@@ -221,9 +225,9 @@
               <ng-container  *ngFor='let format of formats'>
                 <button  
                 *ngIf="selectedType == format.id"
-                type="button" (click)="handleButtonClick(format.id!)" class="border-dashed border-2 border-[var(--primary-light)]flex flex-col p-4 items-center justify-center text-white font-semibold text-lg  transition {{selectedType == format.id ? 'bg-yellow-400':'bg-[var(--primary-dark)]'}} rounded-lg  hover:bg-yellow-300">
+                type="button" (click)="handleButtonClick(format.id!)" class="border-dashed border-2 border-[var(--primary-light)] flex flex-col p-4 items-center justify-center text-white font-semibold text-lg  transition {{selectedType == format.id ? 'bg-yellow-400':'bg-[var(--primary-dark)]'}} rounded-lg  hover:bg-yellow-300">
                   <img src="{{format.id == 'priority' ? './assets/kiosk/Priority.png':'./assets/kiosk/Regular.png'}}" alt="{{format.id}}-icon" class="object-contain w-40 h-40">
-                  <span class="text-shadow">{{format.name.toUpperCase()}}</span>
+                  <span class="text-shadow">{{format.name.toUpperCase().replaceAll('.','')}}</span>
                 </button>
               </ng-container>
             </div>

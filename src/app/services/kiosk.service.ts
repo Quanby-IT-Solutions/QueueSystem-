@@ -17,6 +17,7 @@ export interface Kiosk{
   code:string;
   division?:string;
   last_online?:string;
+  description?:string;
   status?:string;
 }
 @Injectable({
@@ -51,6 +52,7 @@ export class KioskService extends CrudService<Kiosk>{
       id:data.id,
       location:data.location,
       date:data.date,
+      type:data.type,
       time:data.time,
       services: data.services
     })
@@ -135,7 +137,7 @@ export class KioskService extends CrudService<Kiosk>{
   const response = await this.API.update({
     tables: 'kiosks',
     values:{
-      last_online:type
+      description:type
     }  ,
     conditions: `WHERE id = '${id}'`
   });

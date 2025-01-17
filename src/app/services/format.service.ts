@@ -24,11 +24,13 @@ export class FormatService extends CrudService<Format>{
   override async add(item:Format){
     await super.add(item);
     this.API.socketSend({event:'kiosk-events'});
+    this.API.socketSend({event:'queue-events'});
   }
 
   override async update(id:string,item:Format){
     await super.update(id,item);
     this.API.socketSend({event:'kiosk-events'});
+    this.API.socketSend({event:'queue-events'});
   }
   
   override async delete(id:string){
@@ -45,6 +47,7 @@ export class FormatService extends CrudService<Format>{
     })
     await super.delete(id);
     this.API.socketSend({event:'kiosk-events'});
+    this.API.socketSend({event:'queue-events'});
   }
 
   async getFrom(division_id:string){

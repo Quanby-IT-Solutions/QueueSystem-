@@ -141,7 +141,7 @@ export class KioskFormsComponent implements OnInit, OnDestroy {
 
     if (this.kioskService.kiosk != undefined) {
       this.kioskService.kiosk = await this.kioskService.getKiosk(this.kioskService.kiosk.id!);
-      this.anonymous = this.kioskService.kiosk.last_online == 'anonymous';
+      this.anonymous = this.kioskService.kiosk.description == 'anonymous';
 
       this.division =await  this.divisionService.getDivision(this.kioskService.kiosk.division_id)
       this.divisionService.setDivision(this.division!);
@@ -178,7 +178,7 @@ export class KioskFormsComponent implements OnInit, OnDestroy {
     this.API.addSocketListener('listen-kiosk-content', async (message)=>{
       if(message.event == 'kiosk-events' ){
         this.kioskService.kiosk = await this.kioskService.getKiosk(this.kioskService.kiosk!.id!);
-        this.anonymous = this.kioskService.kiosk.last_online == 'anonymous';
+        this.anonymous = this.kioskService.kiosk.description == 'anonymous';
         this.division =await  this.divisionService.getDivision(this.kioskService.kiosk.division_id)
         this.divisionService.setDivision(this.division!);
         this.services = await this.serviceService.getAllServices(this.divisionService.selectedDivision?.id!);
@@ -246,6 +246,12 @@ export class KioskFormsComponent implements OnInit, OnDestroy {
     this.showModal = false;
   }
 
+  getFormatName(id?:string){
+    if(!id) return null;
+    return this.formats.find(format=>format.id == id)?.name;
+  }
+
+
   closeModal(): void {
     this.showModal = false;
   }
@@ -302,7 +308,8 @@ export class KioskFormsComponent implements OnInit, OnDestroy {
       location: this.department.trim() == '' ? undefined : this.department.trim(),
       date: this.currentDate.toLocaleDateString(),
       time:this.currentTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-      services: this.selectedServices.map(service=> service.name)
+      services: this.selectedServices.map(service=> service.name),
+      type:this.getFormatName(this.selectedType),
     })
     // Reset
     this.selectedServices = this.subServices

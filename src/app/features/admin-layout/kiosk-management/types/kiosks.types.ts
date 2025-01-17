@@ -5,6 +5,7 @@ export interface Kiosk{
     printer_ip:string;
     code:string;
     last_online?:string;
+    description?:string;
     division?:string;
     status?:string;
   }

@@ -389,6 +389,11 @@ this.subscription = this.queueService.queue$.subscribe((queueItems: Ticket[]) =>
   }});
 
     this.queueService.listenToQueue();
+    this.API.addSocketListener('kiosk-events', async(data)=>{
+      if(data.event =='kiosk-events'){
+        this.formats = await this.formatService.getFrom(this.dvisionService.selectedDivision?.id!);
+      }
+    });
 
     this.API.addSocketListener('terminal-events', async(data)=>{
       if(data.event =='terminal-events'){
@@ -781,8 +786,12 @@ this.subscription = this.queueService.queue$.subscribe((queueItems: Ticket[]) =>
    * Toggles the manual select state.
    */
   async manualSelect() {
+    if (this.actionLoading) return;
+    this.actionLoading = true;
+    const selectedTicket = this.selectedTicket;
+    this.selectedTicket = undefined;
    try{
-      const nextTicket = await this.queueService.manualSelect({...this.selectedTicket!})
+      const nextTicket = await this.queueService.manualSelect({...selectedTicket!})
       if (nextTicket) {
         this.currentTicket = nextTicket;
         this.currentClientDetails = {
@@ -811,6 +820,7 @@ this.subscription = this.queueService.queue$.subscribe((queueItems: Ticket[]) =>
         
         this.API.sendFeedback('success', `Transaction started with client.`, 5000);
         this.logService.pushLog('transaction-manual',`started a manual select transaction.`);
+        this.actionLoading = false;
         this.API.socketSend({
           event: 'number-calling',
           division: this.division?.id,
@@ -840,7 +850,6 @@ this.subscription = this.queueService.queue$.subscribe((queueItems: Ticket[]) =>
     this.resetInterface();
     this.stopTimer();
     this.actionLoading = false;
-    this.API.socketSend({event:'queue-events'})
     this.API.socketSend({event:'admin-dashboard-events'})
     this.API.sendFeedback('warning', `Client has been put to bottom of queue.`,5000);
   }

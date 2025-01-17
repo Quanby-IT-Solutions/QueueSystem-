@@ -12,6 +12,8 @@ import { UswagonCoreService } from 'uswagon-core';
 import { Terminal } from '../../admin-layout/terminal-management/types/terminal.types';
 import { tick } from '@angular/core/testing';
 import { config } from '../../../../environment/config';
+import { FormatService } from '../../../services/format.service';
+import { Format } from '../../admin-layout/format-management/types/format.types';
 
 interface Counter {
   id:string;
@@ -229,6 +231,7 @@ export class QueueDisplayComponent implements OnInit, OnChanges, OnDestroy, Afte
   subscription?: Subscription;
 
   loading:boolean = false;
+  formats:Format[]=[];
   
 
   view:number = 0;
@@ -236,6 +239,7 @@ export class QueueDisplayComponent implements OnInit, OnChanges, OnDestroy, Afte
   constructor(
     private divisionService:DivisionService,
     private queueService:QueueService,
+    private formatService:FormatService,
     private terminalService:TerminalService,
     private thirdPartyService: ThirdPartyService,
     private API:UswagonCoreService,
@@ -553,6 +557,12 @@ export class QueueDisplayComponent implements OnInit, OnChanges, OnDestroy, Afte
     }
   }
 
+  getFormatName(id?:string){
+    if(!id) return null;
+    return this.formats.find(format=>format.id == id)?.name;
+  }
+
+
   toggleVideoUpNextIFrame(): void {
     this.showVideo = !this.showVideo;
   
@@ -601,6 +611,7 @@ export class QueueDisplayComponent implements OnInit, OnChanges, OnDestroy, Afte
 
 
     this.divisionService.setDivision(this.division);
+    this.formats = await this.formatService.getFrom(this.divisionService.selectedDivision!.id);
     
     this.subscription = this.queueService.queue$.subscribe((queueItems: any[]) => {
       this.upNextItems = queueItems.reduce((prev: UpNextItem[], item: any) => {

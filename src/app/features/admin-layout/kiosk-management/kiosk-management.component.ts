@@ -105,7 +105,7 @@ export class KioskManagementComponent implements OnInit {
     this.actionLoading = true;
     this.API.setLoading(true);
     try{
-      await this.kioskService.updateKioskType(item.id!,item.last_online == 'anonymous' ? '' : 'anonymous');
+      await this.kioskService.updateKioskType(item.id!,item.description == 'anonymous' ? '' : 'anonymous');
       await this.closeDialog(true);
       this.API.sendFeedback('success', 'Kiosk status has been updated!',5000);
     }catch(e:any){
