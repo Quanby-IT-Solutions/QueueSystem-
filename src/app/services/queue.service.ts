@@ -255,7 +255,6 @@ export class QueueService  {
           conditions:`WHERE id = '${this.attendedQueue.id}'`
         });
         if(!updateResponse.success) {
-          alert(updateResponse.output)
           throw new Error(updateResponse.output);
         }
    
