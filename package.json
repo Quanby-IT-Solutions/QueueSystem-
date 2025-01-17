@@ -6,7 +6,9 @@
     "start": "ng serve",
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
-    "test": "ng test"
+    "test": "ng test",
+    "uswagon-install": "git clone https://github.com/ryukkn/uswagon-core-lib.git",
+    "uswagon-update": "cd uswagon-core-lib && git pull && ng cache clean"
   },
   "scarfSettings": {
     "enabled": false
