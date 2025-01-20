@@ -33,7 +33,7 @@ export class DeskAttendantLayoutComponent {
     })
     this.API.sendFeedback('success',`Hi, ${this.auth.getUser().fullname} 👋`,5000)
     this.API.addSocketListener('get-out', (message)=>{
-      if(message.event =='get-out'){
+      if(message.event =='get-out' && message.id == this.auth.getUser().id){
         this.API.sendFeedback('error','You have been logged out by another user of this account.');
         this.auth.logout();
       }      
