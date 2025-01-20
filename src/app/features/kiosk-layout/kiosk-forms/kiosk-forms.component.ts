@@ -14,7 +14,6 @@ import { Department, Division, Service, SubService } from '../types/kiosk-layout
 import { DepartmentService } from '../../../services/department.service';
 import { SnackbarComponent } from '../../../shared/snackbar/snackbar.component';
 import { LottieAnimationComponent } from '../../../shared/components/lottie-animation/lottie-animation.component';
-import { ConfirmationComponent } from '../../../shared/modals/confirmation/confirmation.component';
 import { config } from '../../../../environment/config';
 import { ContentService } from '../../../services/content.service';
 import { FormatService } from '../../../services/format.service';
@@ -24,7 +23,7 @@ import { Format } from '../../admin-layout/format-management/types/format.types'
 @Component({
   selector: 'app-kiosk-forms',
   standalone: true,
-  imports: [CommonModule, FormsModule, FeedbackComponent,SnackbarComponent,ConfirmationComponent, LottieAnimationComponent],
+  imports: [CommonModule, FormsModule, FeedbackComponent,SnackbarComponent, LottieAnimationComponent],
   templateUrl: './kiosk-forms.component.html',
   styleUrls: ['./kiosk-forms.component.css']
 })
@@ -231,8 +230,8 @@ export class KioskFormsComponent implements OnInit, OnDestroy {
   async confirmChecklist() {
     try{
       await this.submitForm();
-    }catch(e){
-      this.API.sendFeedback('error','Something went wrong.', 5000);
+    }catch(e:any){
+      this.API.sendFeedback('error',e.message, 5000);
     }
   }
 
@@ -271,16 +270,14 @@ export class KioskFormsComponent implements OnInit, OnDestroy {
   this.isLoading = true;
 
   if(this.selectedServices.length <=0){
-    this.API.sendFeedback('error','Please select a service!', 5000);
     this.isLoading =false;
-    throw new Error();
+    throw new Error('Please select a service!');
   }
 
 
   if(this.selectedType.trim() == ''){
-    this.API.sendFeedback('error','Priority type is required!',5000);
     this.isLoading =false;
-    throw new Error();
+    throw new Error('Priority type is required!');
   }
    try{
     if(this.gender ==''){
@@ -313,7 +310,9 @@ export class KioskFormsComponent implements OnInit, OnDestroy {
     })
     // Reset
     this.selectedServices = this.subServices
-    .filter(item => item.selected)
+    .filter(item => item.selected);
+    this.subServices = [];
+    this.group = '';
     this.isChecklistVisible = true;
     this.isFormVisible = false;
     this.gender = '';

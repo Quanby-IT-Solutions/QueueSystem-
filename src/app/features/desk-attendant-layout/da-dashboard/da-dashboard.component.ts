@@ -50,6 +50,7 @@ export class DaDashboardComponent implements OnInit, OnDestroy {
 
     this.getRandomQuote();
     this.quoteInterval = setInterval(() => this.getRandomQuote(), 3000);
+    
   }
 
   ngOnDestroy() {

@@ -18,6 +18,7 @@ import { ServiceService } from '../../../services/service.service';
 import { LogsService } from '../../../services/logs.service';
 import { Format } from '../../admin-layout/format-management/types/format.types';
 import { FormatService } from '../../../services/format.service';
+import { UswagonAuthService } from 'uswagon-auth';
 
 
 interface Terminal{
@@ -141,7 +142,6 @@ timerProgress: any;
     private dvisionService:DivisionService,
     private API:UswagonCoreService,
     private queueService:QueueService,
-    private cdr:ChangeDetectorRef,
     private formatService:FormatService,
     private contentService:ContentService,
     private logService:LogsService,

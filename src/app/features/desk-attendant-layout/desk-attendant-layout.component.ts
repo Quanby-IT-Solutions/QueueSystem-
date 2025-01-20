@@ -32,6 +32,16 @@ export class DeskAttendantLayoutComponent {
       this.cdr.detectChanges();
     })
     this.API.sendFeedback('success',`Hi, ${this.auth.getUser().fullname} 👋`,5000)
+    this.API.addSocketListener('get-out', (message)=>{
+      if(message.event =='get-out'){
+        this.API.sendFeedback('error','You have been logged out by another user of this account.');
+        this.auth.logout();
+      }      
+    });
+    this.API.socketSend({
+      event: 'get-out',
+      id: this.auth.getUser().id
+    });
   }
 
   showUploadProgress(){

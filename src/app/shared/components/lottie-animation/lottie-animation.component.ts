@@ -17,7 +17,7 @@ export class LottieAnimationComponent implements OnChanges {
   @Input() loop:boolean = true;
 
   options: AnimationOptions = {
-    path: `/assets/animations/loader.json`,
+    path: `/assets/animations/box.json`,
     loop: true,
     autoplay: true
   };
