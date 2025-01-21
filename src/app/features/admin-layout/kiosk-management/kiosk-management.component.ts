@@ -120,7 +120,7 @@ export class KioskManagementComponent implements OnInit {
     }
     this.kioskService.thermalPrint({
       printer_ip: item.printer_ip,
-      number:'X-001',
+      number:'TEST PRINT',
       date: new Date().toLocaleDateString(),
       time:new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       services: ['Test Print'],
