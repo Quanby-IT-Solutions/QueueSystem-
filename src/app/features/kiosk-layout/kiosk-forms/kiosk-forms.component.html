@@ -203,13 +203,13 @@
               <div
                 *ngIf="!anonymous"
               >
-                <label class="block mb-1 text-sm font-medium text-gray-600">Gender <span *ngIf="gender == ''" class="font-thin text-red-400">*Please specify gender.</span></label>
+                <label class="block mb-1 text-sm font-medium text-gray-600">Gender</label>
                 <div class="w-full px-3 py-2 text-sm bg-white border border-gray-300 rounded-md">{{ gender || 'Not Specified' }}</div>
               </div>
               <div
               *ngIf="!anonymous"
               >
-                <label class="block mb-1 text-sm font-medium text-gray-600">Name <span *ngIf="customerName == ''" class="font-thin text-red-400">*Please specify your name</span></label>
+                <label class="block mb-1 text-sm font-medium text-gray-600">Name </label>
                 <div class="w-full px-3 py-2 text-sm bg-white border border-gray-300 rounded-md">{{ customerName || 'Not Specified' }}</div>
               </div>
               <!-- <div>

@@ -45,10 +45,10 @@ export class KioskService extends CrudService<Kiosk>{
   async thermalPrint(data:any){
     this.API.socketSend({
       event: 'printing',
-      printer_ip: this.kiosk?.printer_ip,
+      printer_ip: data.printer_ip ?? this.kiosk?.printer_ip,
       number: data.number,
-      name: data.name,
-      gender:data.gender,
+      name: data.name ?? '',
+      gender:data.gender ?? 'other',
       id:data.id,
       location:data.location,
       date:data.date,

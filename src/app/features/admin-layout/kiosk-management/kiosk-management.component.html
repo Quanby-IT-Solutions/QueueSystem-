@@ -64,6 +64,9 @@
                   <button  (click)="selectKiosk(kiosk);openDialog('anonymous')" class="flex items-center justify-center px-2 py-1 text-white  rounded-lg {{kiosk.description != 'anonymous'? 'bg-green-500 hover:bg-green-600':'bg-gray-500 hover:bg-gray-600'}} ">
                     <span  class="material-icons"> face </span>
                   </button>
+                  <button  (click)="selectKiosk(kiosk);openDialog('test-print')" class="flex items-center justify-center px-2 py-1 text-white  rounded-lg bg-green-500 hover:bg-green-600 ">
+                    <span  class="material-icons"> print </span>
+                  </button>
                 </div>
                 <div *ngIf="kiosk.status == 'online'"></div>
                 
@@ -106,6 +109,16 @@
     description="{{selectedKiosk?.description!='anonymous'? 'This will remove name and gender fields of the kiosk form.':'This will add the name and gender fields in the kiosk form.'}}"
     (onCancel)="closeDialog(false)"
     (onConfirm)="toggleAnonymous(selectedKiosk!)"
+></app-confirmation>
+
+<app-confirmation
+    *ngIf="modalType== 'test-print'"
+    [type]="'custom'"
+    animation="confirmation"
+    title="Test Kiosk Printer"
+    description="Perform test print on this IP Address : {{selectedKiosk?.printer_ip || '-UNSET-'}}"
+    (onCancel)="closeDialog(false)"
+    (onConfirm)="testPrint(selectedKiosk!)"
 ></app-confirmation>
 <!-- Delete Modal -->
 <app-confirmation

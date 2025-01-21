@@ -30,7 +30,7 @@ export class KioskManagementComponent implements OnInit {
 
   selectedKiosk?:Kiosk;
 
-  modalType?:'anonymous'|'maintenance'|'delete';
+  modalType?:'anonymous'|'maintenance'|'delete'|'test-print';
 
   openKioskModal:boolean = false;
 
@@ -113,6 +113,23 @@ export class KioskManagementComponent implements OnInit {
     }
     this.actionLoading =false;
   }
+  async testPrint(item:Kiosk){
+    if(!item.printer_ip?.trim()){
+      this.API.sendFeedback('error', 'Please set printer IP!',5000);
+      return;
+    }
+    this.kioskService.thermalPrint({
+      printer_ip: item.printer_ip,
+      number:'X-001',
+      date: new Date().toLocaleDateString(),
+      time:new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      services: ['Test Print'],
+      type:'Sample Client'
+    })
+    this.API.sendFeedback('success', `Sent test print on ${item.printer_ip}`,5000);
+    this.selectedKiosk = undefined;
+    this.modalType = undefined;
+  }
   async deleteKiosk(item:Kiosk){
     this.API.setLoading(true);
     try{
@@ -130,7 +147,7 @@ export class KioskManagementComponent implements OnInit {
 
   
 
-  openDialog(type:'maintenance'|'delete'|'anonymous'){
+  openDialog(type:'maintenance'|'delete'|'anonymous'|'test-print'){
     this.modalType = type;
   }
   async closeDialog(shouldRefresh:boolean){
