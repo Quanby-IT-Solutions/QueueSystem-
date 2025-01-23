@@ -21,7 +21,7 @@ export class ThirdPartyService {
   getWeatherData(): Observable<any> {
     return interval(2.16e+7).pipe(
       startWith(null), 
-      switchMap(() => this.http.get<any>(`http://api.weatherapi.com/v1/forecast.json?key=${this.weatherKey}&q=Leyte&days=1`))
+      switchMap(() => this.http.get<any>(`http://api.weatherapi.com/v1/forecast.json?key=${this.weatherKey}&q=Manila&days=1`))
     );
   }
 }

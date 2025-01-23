@@ -310,7 +310,7 @@
                     min-[3500px]:border-8 min-[3500px]:rounded-3xl min-[3500px]:gap-12
                     min-[3500px]:px-14 min-[3500px]:py-10"
                     >
-                      <img [src]="item.avatar" class="queue-item-icon w-9 h-9 min-[3500px]:w-36 min-[3500px]:h-36">
+                      <img [src]="item.avatar" class="queue-item-icon w-9 h-9 min-[3500px]:w-36 min-[3500px]:h-36 rounded-full">
                       <div class="flex flex-col gap-1 items-start">
                         <div class="queue-item-ticket text-xl font-semibold tracking-wider min-[3500px]:text-7xl min-[3500px]:font-semibold">{{item.ticketNumber}}</div>
                         <div class="queue-item-flex-1 text-xs opacity-75 font-medium flex justify-end min-[3500px]:text-3xl min-[3500px]:font-semibold">{{getFormatName(item.type)?.replaceAll('.','')}}</div>
