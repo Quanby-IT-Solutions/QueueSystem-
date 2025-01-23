@@ -155,7 +155,7 @@ export class QueueDisplayComponent implements OnInit, OnChanges, OnDestroy, Afte
   weatherCurrencySwitchTimer:number = 6000;
   videoSwitchTimer:number = 8000;
 
-  counterSwitchTimer:number = 5000;
+  counterSwitchTimer:number = 10000;
   counterInterval:any ;
   slice = 10;
   offset = 0;
