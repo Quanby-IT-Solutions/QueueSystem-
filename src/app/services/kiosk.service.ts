@@ -74,7 +74,7 @@ export class KioskService extends CrudService<Kiosk>{
         if(this.kiosk!.status == 'maintenance'){
           throw new Error('Kiosk is in maintenance.');
         }
-        localStorage.setItem('kiosk', JSON.stringify(this.kiosk));
+        sessionStorage.setItem('kiosk', JSON.stringify(this.kiosk));
         return response.output[0];
       }else{
         throw new Error('Invalid kiosk code.');

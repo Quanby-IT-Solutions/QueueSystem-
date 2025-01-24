@@ -8,10 +8,10 @@ export const kioskGuard: CanActivateFn = (route, state) => {
   const router = inject(Router);
 
   if( route.queryParamMap.get('reset')){
-    localStorage.removeItem('kiosk');
+    sessionStorage.removeItem('kiosk');
   }
 
-  const kiosk = localStorage.getItem('kiosk');
+  const kiosk = sessionStorage.getItem('kiosk');
   if(kiosk){
     kioskService.kiosk = JSON.parse(kiosk) as any;
   }
