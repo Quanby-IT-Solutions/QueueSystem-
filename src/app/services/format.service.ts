@@ -59,7 +59,7 @@ export class FormatService extends CrudService<Format>{
     const  responseGet = await this.API.read({
       selectors:['*'],
       tables:'formats',
-      conditions:`WHERE id = '${id}`
+      conditions:`WHERE id = '${id}'`
     })
     if(!responseGet.success){
       throw new Error('Unable to set termnal client');

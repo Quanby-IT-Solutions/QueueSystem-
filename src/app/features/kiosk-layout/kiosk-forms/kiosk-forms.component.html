@@ -179,7 +179,7 @@
             <div class="flex flex-wrap justify-center gap-8 p-10 mt-10">
               <button  
               [ngStyle]="{
-                backgroundColor: selectedType == format.id ? '#facc15': getFormatDetails(format.description).color ?? 'var(--primary-dark)'
+                backgroundColor: selectedType == format.id && !anonymous ? '#facc15': getFormatDetails(format.description).color ?? 'var(--primary-dark)'
               }"
                 *ngFor='let format of formats'
                 type="button" (click)="handleButtonClick(format.id!)" 
@@ -228,7 +228,7 @@
               <ng-container  *ngFor='let format of formats'>
                 <button 
                  [ngStyle]="{
-                backgroundColor: selectedType == format.id ? '#facc15': getFormatDetails(format.description).color ?? 'var(--primary-dark)'
+                backgroundColor: selectedType == format.id && !anonymous ? '#facc15': getFormatDetails(format.description).color ?? 'var(--primary-dark)'
               }"
                 *ngIf="selectedType == format.id"
                 type="button" (click)="handleButtonClick(format.id!)" class="border-dashed border-2 border-[var(--primary-light)] flex flex-col p-4 items-center justify-center text-white font-semibold text-lg  transition rounded-lg  hover:bg-yellow-300">

@@ -347,7 +347,7 @@ export class KioskFormsComponent implements OnInit, OnDestroy {
 
 
   goBackSelection(): void {
-    localStorage.removeItem('kiosk');
+    sessionStorage.removeItem('kiosk');
     this.router.navigate(['/kiosk/selection']);
    }
 
