@@ -30,7 +30,7 @@ export class KioskManagementComponent implements OnInit {
 
   selectedKiosk?:Kiosk;
 
-  modalType?:'anonymous'|'maintenance'|'delete'|'test-print';
+  modalType?:'maintenance'|'delete'|'test-print'|'fast';
 
   openKioskModal:boolean = false;
 
@@ -100,6 +100,16 @@ export class KioskManagementComponent implements OnInit {
     this.actionLoading =false;
   }
 
+
+  getKioskDetails(details?:string){
+    if(!details) return {};
+    try{
+      const detailsObj = JSON.parse(details);
+      return detailsObj;
+    }catch(e){
+      return {};
+    }
+  }
   async toggleAnonymous(item:Kiosk){
     if(this.actionLoading) return ;
     this.actionLoading = true;
@@ -130,6 +140,12 @@ export class KioskManagementComponent implements OnInit {
     this.selectedKiosk = undefined;
     this.modalType = undefined;
   }
+
+  async toggleFast(item:Kiosk){
+    this.API.sendFeedback('success', `Toggled Fast-Mode on Kiosk`,5000);
+    this.selectedKiosk = undefined;
+    this.modalType = undefined;
+  }
   async deleteKiosk(item:Kiosk){
     this.API.setLoading(true);
     try{
@@ -147,7 +163,7 @@ export class KioskManagementComponent implements OnInit {
 
   
 
-  openDialog(type:'maintenance'|'delete'|'anonymous'|'test-print'){
+  openDialog(type:'maintenance'|'delete'|'test-print'|'fast'){
     this.modalType = type;
   }
   async closeDialog(shouldRefresh:boolean){

@@ -129,6 +129,16 @@ export class KioskFormsComponent implements OnInit, OnDestroy {
     }
   }
 
+
+  getFormatDetails(details?:string){
+    if(!details) return {};
+    try{
+      const detailsObj = JSON.parse(details);
+      return detailsObj;
+    }catch(e){
+      return {};
+    }
+  }
  
 
   async ngOnInit() {
@@ -167,7 +177,7 @@ export class KioskFormsComponent implements OnInit, OnDestroy {
         }
       ]
     }
-    this.formats = this.formats.filter(format=> format.description == this.kioskService.kiosk?.id  || !format.description )
+    this.formats = this.formats.filter(format=> this.getFormatDetails(format.description).kiosk == this.kioskService.kiosk?.id  || !this.getFormatDetails(format.description).kiosk )
     this.departments = await this.departmentService.getAllDepartments();
     this.divisions = await this.divisionService.getDivisions();
     if(this.serviceInterval){
@@ -182,7 +192,7 @@ export class KioskFormsComponent implements OnInit, OnDestroy {
         this.divisionService.setDivision(this.division!);
         this.services = await this.serviceService.getAllServices(this.divisionService.selectedDivision?.id!);
         this.formats = await this.formatService.getFrom(this.divisionService.selectedDivision!.id);
-        this.formats = this.formats.filter(format=> format.description == this.kioskService.kiosk?.id  || !format.description )
+        this.formats = this.formats.filter(format=> this.getFormatDetails(format.description).kiosk == this.kioskService.kiosk?.id  || !this.getFormatDetails(format.description).kiosk )
         if(this.formats.length <= 0){
           this.formats = [
             {
@@ -206,6 +216,9 @@ export class KioskFormsComponent implements OnInit, OnDestroy {
   handleButtonClick(type: string): void {
     this.isChecklistVisible = true;
     this.selectedType = type;
+    if(this.anonymous){
+      this.submitForm();
+    }
   }
 
   async toggleSelection(service_id: string) {
@@ -269,7 +282,7 @@ export class KioskFormsComponent implements OnInit, OnDestroy {
     }
   this.isLoading = true;
 
-  if(this.selectedServices.length <=0){
+  if(this.selectedServices.length <=0 && !this.anonymous){
     this.isLoading =false;
     throw new Error('Please select a service!');
   }

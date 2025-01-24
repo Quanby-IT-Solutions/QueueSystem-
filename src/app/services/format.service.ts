@@ -56,10 +56,25 @@ export class FormatService extends CrudService<Format>{
   }
 
   async setKiosk(id:string, kiosk:string){
+    const  responseGet = await this.API.read({
+      selectors:['*'],
+      tables:'formats',
+      conditions:`WHERE id = '${id}`
+    })
+    if(!responseGet.success){
+      throw new Error('Unable to set termnal client');
+    }
+
+    const desc = responseGet.output[0].description;
+    let descObj:any = {};
+    if(desc){
+      descObj = JSON.parse(desc);
+    }
+    descObj.kiosk = kiosk;
     const response = await this.API.update({
       tables: 'formats',
       values:{
-        description:kiosk
+        description: JSON.stringify(descObj)
       }  ,
       conditions: `WHERE id = '${id}'`
     });
@@ -70,4 +85,41 @@ export class FormatService extends CrudService<Format>{
     this.API.socketSend({event:'kiosk-events'});
     this.logService.pushLog('set-kiosk-format', 'set ckiosk to a format');
   }
+
+  async setColor(id:string, color:string){
+    const  responseGet = await this.API.read({
+      selectors:['*'],
+      tables:'formats',
+      conditions:`WHERE id = '${id}'`
+    })
+    if(!responseGet.success){
+      throw new Error('Unable to set color');
+    }
+
+    const desc = responseGet.output[0].description;
+    let descObj:any = {};
+    if(desc){
+      try{
+        descObj = JSON.parse(desc);
+      }
+      catch(e){}
+    }
+    descObj.color = color;
+    const response = await this.API.update({
+      tables: 'formats',
+      values:{
+        description: JSON.stringify(descObj)
+      }  ,
+      conditions: `WHERE id = '${id}'`
+    });
+  
+    if(!response.success){
+      throw new Error('Unable to set color');
+    }
+    this.API.socketSend({event:'kiosk-events'});
+    this.logService.pushLog('set-kiosk-format', 'set ckiosk to a format');
+  }
+
 }
+
+

@@ -12,11 +12,11 @@
     </button>
   
     <!-- Division selection -->
-    <div *ngIf="!selectedDivision" class="w-full h-full flex gap-1 items-center bg-black">
+    <div *ngIf="!selectedDivision" class="w-full h-full flex gap-1 items-center overflow-y-auto bg-black">
       <div 
         (click)="selectDivision(division.id)"
         *ngFor="let division of divisions" 
-        class="group transition-all gap-6 h-full text-5xl flex flex-col items-center bg-green-950 hover:bg-green-800 text-white hover:tracking-wider font-thin justify-center cursor-pointer flex-1 rounded-lg"
+        class="group transition-all gap-6 h-full min-w-72 text-5xl flex flex-col items-center bg-green-950 hover:bg-green-800 text-white hover:tracking-wider font-thin justify-center cursor-pointer flex-1 rounded-lg"
       > 
         <img [src]="contentMap[division.id]?.logo ?? 'assets/specifics/pcso/pcso-logo.svg'" 
           class="transition-all w-52 h-52 group-hover:scale-105 rounded-full" 
@@ -25,7 +25,7 @@
         <span class="text-center">{{ division.name }}</span>
       </div>
     </div>
-  
+    
     <!-- Selected division content -->
     <!-- <div *ngIf="selectedDivision" class="w-full h-full font-thin flex justify-center items-center min-[3500px]:hidden text-4xl bg-black text-white">
       Set browser resolution to 3840 x 2180

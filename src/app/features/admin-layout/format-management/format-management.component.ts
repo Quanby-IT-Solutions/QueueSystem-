@@ -58,6 +58,17 @@ export class FormatManagementComponent {
     const index = this.kiosks.findIndex(kiosk=>kiosk.id == id);
     return `Kiosk ${index+1}`;
   }
+
+  getFormatDetails(details?:string){
+    if(!details) return {};
+    try{
+      const detailsObj = JSON.parse(details);
+      return detailsObj;
+    }catch(e){
+      return {};
+    }
+  }
+
   async selectDivision(division:Division){
     this.selectedDivision = division;
     this.divisionService.setDivision(division)
@@ -72,6 +83,15 @@ export class FormatManagementComponent {
     'available' : 'bg-green-500',
     'maintenance' : 'bg-red-500',
     'online' : 'bg-orange-500',
+  }
+
+  async updateColor(event:any, index:number){
+    const input = event.target as HTMLInputElement;
+    const descObj = this.getFormatDetails(this.formats[index].description)
+    descObj.color = input.value;
+    this.formats[index].description = JSON.stringify(descObj);
+    await this.formatService.setColor(this.formats[index].id!,  input.value);
+    this.API.sendFeedback('success', 'Format color has been changed!',5000);
   }
 
   capitalizeFirstLetters(input: string): string {
@@ -128,7 +148,7 @@ export class FormatManagementComponent {
     this.selectedFormat = item;
   }
 
-  
+
 
   openDialog(type:'maintenance'|'delete'){
     this.modalType = type;

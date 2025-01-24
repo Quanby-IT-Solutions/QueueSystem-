@@ -61,8 +61,8 @@
                   <button  (click)="updateKiosk(kiosk)" class="flex items-center justify-center px-2 py-1 text-white bg-green-500 rounded-lg hover:bg-green-600 ">
                     <span  class="material-icons"> edit </span>
                   </button>
-                  <button  (click)="selectKiosk(kiosk);openDialog('anonymous')" class="flex items-center justify-center px-2 py-1 text-white  rounded-lg {{kiosk.description != 'anonymous'? 'bg-green-500 hover:bg-green-600':'bg-gray-500 hover:bg-gray-600'}} ">
-                    <span  class="material-icons"> face </span>
+                  <button  (click)="selectKiosk(kiosk);openDialog('fast')" class="flex items-center justify-center px-2 py-1 text-white  rounded-lg {{kiosk.description == 'anonymous'? 'bg-green-500 hover:bg-green-600':'bg-gray-500 hover:bg-gray-600'}} ">
+                    <span  class="material-icons"> bolt </span>
                   </button>
                   <button  (click)="selectKiosk(kiosk);openDialog('test-print')" class="flex items-center justify-center px-2 py-1 text-white  rounded-lg bg-green-500 hover:bg-green-600 ">
                     <span  class="material-icons"> print </span>
@@ -70,9 +70,6 @@
                 </div>
                 <div *ngIf="kiosk.status == 'online'"></div>
                 
-                <button (click)="selectKiosk(kiosk);openDialog('maintenance')" class="rounded-lg px-10 py-1 text-white {{statusMap[kiosk.status!]}}">
-                  {{kiosk.status == 'online'? 'In Use': kiosk.status != 'maintenance'? 'Available':'Maintenance'}}
-                </button>
               </div>
             </div>
           </div>
@@ -102,11 +99,11 @@
 ></app-confirmation>
 <!-- Anonymous Modal -->
 <app-confirmation
-    *ngIf="modalType== 'anonymous'"
+    *ngIf="modalType== 'fast'"
     [type]="'custom'"
     animation="confirmation"
-    title="Make {{selectedKiosk?.description!='anonymous'? 'Anonymous?':'Non-Anonymous?'}} "
-    description="{{selectedKiosk?.description!='anonymous'? 'This will remove name and gender fields of the kiosk form.':'This will add the name and gender fields in the kiosk form.'}}"
+    title="{{selectedKiosk?.description!='anonymous'? 'Enable Fast Mode?':'Disable Fast Mode?'}} "
+    description="{{selectedKiosk?.description!='anonymous'? 'This will remove name, gender, service fields of the kiosk form.':'This will add the name, gender and service fields in the kiosk form.'}}"
     (onCancel)="closeDialog(false)"
     (onConfirm)="toggleAnonymous(selectedKiosk!)"
 ></app-confirmation>
@@ -120,6 +117,7 @@
     (onCancel)="closeDialog(false)"
     (onConfirm)="testPrint(selectedKiosk!)"
 ></app-confirmation>
+
 <!-- Delete Modal -->
 <app-confirmation
     *ngIf="modalType== 'delete'"
