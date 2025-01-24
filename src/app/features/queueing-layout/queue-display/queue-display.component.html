@@ -43,7 +43,7 @@
   <div class="layout-container w-full flex-1 relative">
     <!-- Main Content -->
     <div
-      class="main-content w-full h-full flex flex-row px-4 pt-4 pb-8 2xl:pb-14  min-[3500px]:px-16  min-[3500px]:pt-14 min-[3500px]:pb-40 relative z-50">
+      class="main-content w-full h-full flex flex-row px-4 pt-4 pb-12 2xl:pb-1  min-[3500px]:px-16  min-[3500px]:pt-14 min-[3500px]:pb-40 relative z-50">
       <!-- Left Side -->
       <div class="left-side flex-[1_1_0%] flex flex-col gap-3  min-[3500px]:gap-5">
         <!-- Division Banner -->
@@ -77,8 +77,8 @@
                   'backgroundColor': colors.tertiary_bg,
                   'color': colors.primary_text
                 }"
-                  class="serving-item-header w-1/4 px-3 flex flex-col items-center justify-center font-medium text-2xl 2xl:text-2xl  shadow-sm text-shadow tracking-wide  min-[3500px]:text-8xl min-[3500px]:px-10 min-[3500px]:font-semibold ">
-                  <span class="serving-item-label text-[0.5rem] leading-none min-[3500px]:text-3xl">COUNTER</span>
+                  class="serving-item-header w-1/4 px-3 flex flex-col items-center justify-center font-medium text-2xl lg:text-3xl 2xl:text-2xl  shadow-sm text-shadow tracking-wide  min-[3500px]:text-8xl min-[3500px]:px-10 min-[3500px]:font-semibold ">
+                  <span class="serving-item-label text-[0.5rem] lg:text-[0.8rem] leading-none min-[3500px]:text-3xl">COUNTER</span>
                   <span>{{item.number}}</span>
                 </div>
                 <div [ngStyle]="{
@@ -87,7 +87,7 @@
                 }"
                   class="serving-item-content w-full flex-1 flex justify-center px-3 items-center min-[3500px]:px-10 ">
                   <span
-                    class="serving-item-content-text tracking-wide text-lg 2xl:text-xl font-medium text-shadow min-[1000px]:text-2xl min-[3500px]:font-semibold">{{item.ticketNumber
+                    class="serving-item-content-text text-sm tracking-wide md:text-lg 2xl:text-xl font-medium text-shadow min-[1000px]:text-2xl min-[3500px]:font-semibold">{{item.ticketNumber
                     ?? 'VACANT'}}</span>
                   <!-- <span class="tracking-wide text-xs 2xl:text-sm text-shadow min-[3500px]:text-5xl min-[3500px]:font-medium">{{item.personName}}</span> -->
                 </div>
@@ -101,7 +101,7 @@
       </div>
       <!-- Right Side -->
       <div
-        class="right-side flex-[1_1_0%] flex flex-col justify-center items-center w-full gap-2 py-4 min-[3500px]:gap-8">
+        class="right-side flex-[1_1_0%] flex flex-col justify-center items-center w-full gap-2 pt-4  min-[3500px]:gap-8">
         <!-- Widget Row -->
         <div class="widget-row flex flex-[4_4_0%] gap-3 w-full min-[3500px]:gap-8 relative">
           <!-- Video -->
