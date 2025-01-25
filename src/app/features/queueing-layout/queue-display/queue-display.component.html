@@ -65,7 +65,7 @@
         <div class="serving-container flex-1 w-full flex flex-col gap-2  px-4 min-[3500px]:px-8 min-[3500px]:gap-14">
           <h2 [ngStyle]="{'color': colors.primary_text}"
             class="serving-title font-medium text-xl 2xl:text-2xl tracking-widest px-2 min-[3500px]:font-semibold min-[3500px]:px-4 min-[3500px]:text-8xl">
-            Serving Now:</h2>
+            SERVING NOW:</h2>
           <div class="serving-items flex-1 grid grid-cols-2 grid-rows-5 grid-flow-col   gap-2 min-[3500px]:gap-5">
             <!-- Counter -->
             <ng-container *ngFor="let item of getOnlineCounters()| slice:offset:offset+slice;let i = index">
@@ -226,7 +226,7 @@
               'backgroundColor': colors.secondary_bg
             }"
               class="queue-container-inner h-full rounded-lg shadow-lg w-full overflow-hidden px-3 py-2 flex flex-col min-[3500px]:rounded-3xl  min-[3500px]:px-20 min-[3500px]:py-16">
-              <h1 class="queue-title font-medium min-[3500px]:font-semibold " *ngIf="upNextItems.length > 0">UP NEXT
+              <h1 class="queue-title text-xl font-medium min-[3500px]:font-semibold " *ngIf="upNextItems.length > 0">UP NEXT
               </h1>
               <div class="font-thin w-full h-full flex justify-center items-center" *ngIf="upNextItems.length <= 0">
                 <div class="px-2 py-1 text-center flex flex-col items-center justify-center">
@@ -288,10 +288,10 @@
         <div
           class="announcement-text absolute inline-flex min-w-[200%] animate-scroll-tailing h-full tracking-widest font-semibold min-[3500px]:text-8xl items-center  whitespace-nowrap ">
           <span
-            class="flex-1 whitespace-nowrap  px-2 min-[3500px]:px-6 inline-block text-2xl uppercase">{{announcements}}
+            class="flex-1 whitespace-nowrap  px-2 min-[3500px]:px-6 inline-block text-2xl uppercase announcement-text">{{announcements}}
           </span>
           <span
-            class="flex-1 whitespace-nowrap  px-2 min-[3500px]:px-6 inline-block text-2xl uppercase">{{announcements}}
+            class="flex-1 whitespace-nowrap  px-2 min-[3500px]:px-6 inline-block text-2xl uppercase announcement-text">{{announcements}}
           </span>
         </div>
       </div>
