@@ -70,12 +70,12 @@
             <!-- Counter -->
             <ng-container *ngFor="let item of getOnlineCounters()| slice:offset:offset+slice;let i = index">
               <div *ngIf="item.status == 'online'" [ngStyle]="{
-                'border-color': colors.primary_text + '80',
+                'border-color': item.pulsing? colors.tertiary_bg +'20' : colors.primary_text + '80',
               }"
-                class="animate-pop serving-item-outer h-full rounded-lg shadow-lg flex overflow-hidden border-dashed border-2  min-[3500px]:rounded-3xl min-[3500px]:border-8">
+                class="{{item.pulsing ? 'animate-pop-pulse':'animate-pop'}}  serving-item-outer h-full rounded-lg shadow-lg flex overflow-hidden border-dashed border-2  min-[3500px]:rounded-3xl min-[3500px]:border-8">
                 <div [ngStyle]="{
                   'backgroundColor': colors.tertiary_bg,
-                  'color': colors.primary_text
+                  'color':   colors.primary_text
                 }"
                   class="serving-item-header w-1/4 px-3 flex flex-col items-center justify-center font-medium text-2xl lg:text-5xl 2xl:text-2xl  shadow-sm text-shadow tracking-wide  min-[3500px]:text-8xl min-[3500px]:px-10 min-[3500px]:font-semibold ">
                   <span>{{item.number}}</span>
@@ -83,9 +83,9 @@
                 </div> 
                 <div [ngStyle]="{
                   'backgroundColor': colors.secondary_bg,
-                  'color': item.ticketNumber ? colors.secondary_text : colors.tertiary_bg + '80',
+                  'color': item.ticketNumber ? item.pulsing? colors.tertiary_bg : colors.secondary_text : colors.tertiary_bg + '80',
                 }"
-                  class="serving-item-content w-full flex-1 flex justify-center px-3 items-center min-[3500px]:px-10 ">
+                  class="serving-item-content   w-full flex-1 flex justify-center px-3 items-center min-[3500px]:px-10 ">
                   <span
                     class="serving-item-content-text text-sm tracking-wide lg:text-3xl 2xl:text-xl font-medium text-shadow min-[3500px]:font-semibold">{{item.ticketNumber
                     ?? 'VACANT'}}</span>

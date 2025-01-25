@@ -65,11 +65,28 @@ body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
       opacity: 1;
     }
   }
+
+  @keyframes pop-pulse {
+    0% {
+      transform: scale(1);
+    }
+    50% {
+      transform: scale(1.1);
+    }
+    100% {
+      transform: scale(1);
+    }
+  }
+  
   
   .animate-pop {
     animation: pop 0.2s ease forwards;
     }
 
+
+    .animate-pop-pulse {
+      animation: pop-pulse 2s ease-in-out infinite;
+    }
 
   .bg-gray-50 {
     background-color: #eaedfa!important;
