@@ -443,7 +443,7 @@ this.subscription = this.queueService.queue$.subscribe((queueItems: Ticket[]) =>
           this.currentTicket = queue ? {...queue!} : undefined;
     
           this.currentClientDetails = {
-            name: this.currentTicket?.fullname || 'N/A',
+            name: this.currentTicket?.fullname || 'Anonymous',
             date: this.currentTicket?.timestamp || this.currentDate,
             services: this.services.filter(service=> this.currentTicket?.services.split(', ').includes(service.id)).map(service=>service.name),
             student_id: this.currentTicket?.student_id || 'N/A',
@@ -631,7 +631,7 @@ this.subscription = this.queueService.queue$.subscribe((queueItems: Ticket[]) =>
         this.logService.pushLog('transaction-start',`started a transaction (priority).`);
         this.currentTicket = nextTicket;
         this.currentClientDetails = {
-          name: nextTicket.fullname || 'N/A',
+          name: nextTicket.fullname || 'Anonymous',
           date: nextTicket.timestamp || this.currentDate,
           services: this.services.filter(service=> nextTicket.services.split(', ').includes(service.id)).map(service=>service.name),
           student_id: nextTicket.student_id || 'N/A',
@@ -705,7 +705,7 @@ this.subscription = this.queueService.queue$.subscribe((queueItems: Ticket[]) =>
         this.logService.pushLog('transaction-start',`started a transaction (regular).`);
         this.currentTicket = nextTicket;
         this.currentClientDetails = {
-          name: nextTicket.fullname || 'N/A',
+          name: nextTicket.fullname || 'Anonymous',
           date: nextTicket.timestamp || this.currentDate,
           services:this.services.filter(service=> nextTicket.services.split(', ').includes(service.id)).map(service=>service.name),
           
@@ -825,7 +825,7 @@ this.subscription = this.queueService.queue$.subscribe((queueItems: Ticket[]) =>
       if (nextTicket) {
         this.currentTicket = nextTicket;
         this.currentClientDetails = {
-          name: nextTicket.fullname || 'N/A',
+          name: nextTicket.fullname || 'Anonymous',
           date: nextTicket.timestamp || this.currentDate,
           services:this.services.filter(service=> nextTicket.services.split(', ').includes(service.id)).map(service=>service.name),
           
