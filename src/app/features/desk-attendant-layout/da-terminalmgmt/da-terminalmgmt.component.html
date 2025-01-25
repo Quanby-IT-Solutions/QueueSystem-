@@ -65,50 +65,91 @@
     <!-- Header -->
     <header class="flex justify-between items-center">
       <h1 class="text-2xl font-medium text-gray-800"><span class="portrait:hidden ">You are currently on </span> <span class="font-semibold text-[var(--primary)]">TERMINAL {{this.selectedCounter.number}}</span></h1>
-      <div class="flex gap-3">
-        <div class="relative">
-          <button 
-            (click)="toggleServiceFilter()" 
-            class="bg-gray-900 text-white px-4 py-2 rounded-md hover:bg-gray-800 transition-colors duration-200 flex items-center space-x-2">
-            <span class="material-icons text-sm">filter_list</span>
-            <span>Filter Services</span>
-            <span *ngIf="filteredServices.length > 0" 
-                  class="bg-blue-700 text-xs px-2 py-0.5 rounded-full ml-2">
-              {{filteredServices.length}}
-            </span>
-          </button>
-        
-          <div class="flex gap-6 items-center">
-            <!-- Service Filter Section -->
-            <div *ngIf="showServiceFilter" class="relative">
-              <div class="absolute right-0 mt-2 w-64 bg-white rounded-lg shadow-lg border border-gray-200 z-50">
-                <div class="p-3 border-b flex justify-between items-center">
-                  <h3 class="font-semibold">{{division?.name}} Services</h3>
-                  <button (click)="toggleServiceFilter()" class="text-gray-500 hover:text-gray-700">
-                    <span class="material-icons text-sm">clear</span>
-                  </button>
-                </div>
-                <div class="max-h-64 overflow-y-auto">
-                  <ng-container *ngIf="divisionServices.length > 0; else noServices">
-                    <div *ngFor="let service of divisionServices" 
-                         (click)="handleServiceClick(service.id)"
-                         class="px-4 py-2 hover:bg-gray-50 cursor-pointer flex items-center justify-between">
-                      <span>{{service.name}}</span>
-                      <span *ngIf="filteredServices.includes(service.id)" 
-                            class="material-icons text-blue-500 text-sm">check</span>
-                    </div>
-                  </ng-container>
-                  <ng-template #noServices>
-                    <div class="px-4 py-2 text-gray-500 text-center">
-                      No services available for this division
-                    </div>
-                  </ng-template>
-                </div>
+      <div class="flex items-center gap-4">
+        <!-- Filter Buttons Container -->
+        <div class="flex items-center gap-3">
+          <div class="relative">
+            <!-- Filter Services Button -->
+            <button 
+              (click)="toggleServiceFilter()" 
+              class="bg-gray-900 text-white px-4 py-2 rounded-md hover:bg-gray-800 transition-colors duration-200 flex items-center space-x-2">
+              <span class="material-icons text-sm">filter_list</span>
+              <span>Filter Services</span>
+              <span *ngIf="filteredServices.length > 0" 
+                    class="bg-blue-700 text-xs px-2 py-0.5 rounded-full ml-2">
+                {{filteredServices.length}}
+              </span>
+            </button>
+      
+            <!-- Service Filter Dropdown -->
+            <div *ngIf="showServiceFilter" class="absolute mt-2 w-64 bg-white rounded-lg shadow-lg border border-gray-200 z-50">
+              <div class="p-3 border-b flex justify-between items-center">
+                <h3 class="font-semibold">{{division?.name}} Services</h3>
+                <button (click)="toggleServiceFilter()" class="text-gray-500 hover:text-gray-700">
+                  <span class="material-icons text-sm">clear</span>
+                </button>
+              </div>
+              <div class="max-h-64 overflow-y-auto">
+                <ng-container *ngIf="divisionServices.length > 0; else noServices">
+                  <div *ngFor="let service of divisionServices" 
+                       (click)="handleServiceClick(service.id)"
+                       class="px-4 py-2 hover:bg-gray-50 cursor-pointer flex items-center justify-between">
+                    <span>{{service.name}}</span>
+                    <span *ngIf="filteredServices.includes(service.id)" 
+                          class="material-icons text-blue-500 text-sm">check</span>
+                  </div>
+                </ng-container>
+                <ng-template #noServices>
+                  <div class="px-4 py-2 text-gray-500 text-center">
+                    No services available for this division
+                  </div>
+                </ng-template>
+              </div>
+            </div>
+          </div>
+      
+          <div class="relative">
+            <!-- Filter Types Button -->
+            <button 
+              (click)="toggleTypeFilter()" 
+              class="bg-gray-900 text-white px-4 py-2 rounded-md hover:bg-gray-800 transition-colors duration-200 flex items-center space-x-2">
+              <span class="material-icons text-sm">filter_list</span>
+              <span>Filter Types</span>
+              <span *ngIf="filteredTypes.length > 0" 
+                    class="bg-blue-700 text-xs px-2 py-0.5 rounded-full ml-2">
+                {{filteredTypes.length}}
+              </span>
+            </button>
+      
+            <!-- Type Filter Dropdown -->
+            <div *ngIf="showTypeFilter" class="absolute mt-2 w-64 bg-white rounded-lg shadow-lg border border-gray-200 z-50">
+              <div class="p-3 border-b flex justify-between items-center">
+                <h3 class="font-semibold">Filter by Type</h3>
+                <button (click)="toggleTypeFilter()" class="text-gray-500 hover:text-gray-700">
+                  <span class="material-icons text-sm">clear</span>
+                </button>
+              </div>
+              <div class="max-h-64 overflow-y-auto">
+                <ng-container *ngIf="formats.length > 0; else noTypes">
+                  <div *ngFor="let format of formats" 
+                       (click)="format.id ? handleTypeClick(format.id) : null"
+                       class="px-4 py-2 hover:bg-gray-50 cursor-pointer flex items-center justify-between">
+                    <span>{{format.name}}</span>
+                    <span *ngIf="filteredTypes.includes(format.id ?? '')" 
+                          class="material-icons text-blue-500 text-sm">check</span>
+                  </div>
+                </ng-container>
+                <ng-template #noTypes>
+                  <div class="px-4 py-2 text-gray-500 text-center">
+                    No types available
+                  </div>
+                </ng-template>
               </div>
             </div>
           </div>
         </div>
-    
+      
+        <!-- End Session Button -->
         <button 
           (click)="openTerminateModal()" 
           class="bg-red-900 text-white px-4 py-2 rounded-md hover:bg-red-950 transition-colors duration-200 flex items-center space-x-2">
@@ -116,6 +157,7 @@
           <span>End Session</span>
         </button>
       </div>
+      
     </header>
 
     <!-- Current and Upcoming Section -->
@@ -136,7 +178,7 @@
                 class="w-12 h-12 rounded-full object-cover">
             </div>
             <div class="ml-3">
-              <p class="text-base font-medium text-gray-800">{{ currentClientDetails?.name || 'Anonymous' }}</p>
+              <p class="text-base font-medium text-gray-800">{{ currentClientDetails?.name || 'N/A' }}</p>
               <p class="text-sm text-gray-500">{{ currentTicket ? (currentTicket.tag) +'-' + currentTicket.number.toString().padStart(3, '0') : 'N/A' }}</p>
             </div>
           </div>
@@ -246,7 +288,7 @@
                     <div class="flex-1 min-w-0">
                       <div class="flex items-center gap-2">
                         <p class="text-sm font-medium text-gray-900 truncate">
-                          {{ ticket.fullname || 'Anonymous' }}
+                          {{ ticket.fullname || 'N/A' }}
                         </p>
                         <span *ngIf="ticket.status === 'bottom'" 
                               class="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium text-yellow-800 bg-yellow-100 rounded-full">
@@ -262,17 +304,10 @@
                   </span>
                 </td>
                 <td class="p-3 text-sm w-1/6 truncate">
-                  <div
-                    *ngIf="!ticket.services"
-                  >
-                    {{getFormatDetails(ticket.type) ?? 'N/A'}}
-                  </div>
-                  <ng-container *ngIf="ticket.services" >
-                    <ng-container  *ngFor="let service of services">
-                      <div *ngIf="ticket?.services?.split(', ')?.includes(service.id)">
-                        {{ service.name }}
-                      </div>
-                    </ng-container>
+                  <ng-container  *ngFor="let service of services">
+                    <div *ngIf="ticket?.services?.split(', ')?.includes(service.id)">
+                      {{ service.name }}
+                    </div>
                   </ng-container>
                   <span *ngIf="!ticket.services?.split(', ')?.length">N/A</span>
                 </td>

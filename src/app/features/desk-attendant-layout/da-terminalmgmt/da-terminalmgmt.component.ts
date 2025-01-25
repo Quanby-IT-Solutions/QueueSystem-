@@ -104,9 +104,10 @@ export class DaTerminalmgmtComponent implements OnInit, OnDestroy {
   showServiceFilter: boolean = false;
   terminateModal:boolean = false;
   divisionServices: Service[] = [];
-  tickets: Ticket[] = [
-    
-  ];
+  tickets: Ticket[] = [];
+  filteredTypes: string[] = [];
+  showTypeFilter: boolean = false;
+
 
   currentClientDetails: ClientDetails | null = null;
 
@@ -155,32 +156,44 @@ timerProgress: any;
       this.updateCurrentDate();
       this.dateInterval = setInterval(() => this.updateCurrentDate(), 60000);
       this.loadContent();
-  
+      this.loadFormats();
+    
       this.subscription = this.queueService.queue$.subscribe((queueItems: Ticket[]) => {
-        if(this.selectedCounter?.specific){
-          this.queueService.queue = queueItems.filter((queue)=>queue.type == this.selectedCounter?.specific)
+        if (this.selectedCounter?.specific) {
+          // Filter queue based on the selected counter's specificity
+          this.queueService.queue = queueItems.filter(
+            (queue) => queue.type === this.selectedCounter?.specific
+          );
           this.tickets = [...this.queueService.queue];
         } else {
           this.tickets = [...queueItems];
         }
-        
+    
+        // Apply type and service filters
+        this.filterQueueByTypeAndService();
+    
         // Update bottom tickets to only include tickets still in queue
         this.bottomTickets = new Set(
-          Array.from(this.bottomTickets).filter(id => 
-            queueItems.some(ticket => ticket.id === id)
+          Array.from(this.bottomTickets).filter((id) =>
+            queueItems.some((ticket) => ticket.id === id)
           )
         );
-  
-        // Clear selection if selected ticket no longer exists in queue
-        if (this.selectedTicket && !queueItems.find(t => t.id === this.selectedTicket!.id)) {
+    
+        // Clear selection if the selected ticket no longer exists in the queue
+        if (
+          this.selectedTicket &&
+          !queueItems.find((t) => t.id === this.selectedTicket!.id)
+        ) {
           this.selectedTicket = undefined;
         }
       });
-      
-      // this.statusInterval = setInterval(()=>{
+    
+      // Uncomment if needed for status updates
+      // this.statusInterval = setInterval(() => {
       //   this.cdr.detectChanges();
-      // },1500)
-  }
+      // }, 1500);
+    }
+    
 
   ngOnDestroy(): void {
     this.clearIntervals();
@@ -214,6 +227,8 @@ timerProgress: any;
       ]
     }
   }
+
+  
   // filter toggle
   toggleServiceFilter() {
     this.showServiceFilter = !this.showServiceFilter;
@@ -653,6 +668,7 @@ this.subscription = this.queueService.queue$.subscribe((queueItems: Ticket[]) =>
 
 
 
+
   async nextClient() {
     if (this.actionLoading) return;
     try {
@@ -1002,4 +1018,40 @@ this.subscription = this.queueService.queue$.subscribe((queueItems: Ticket[]) =>
     this.isReturnTopActive = false;
     this.isReturnBottomActive = false;
   }
+  // Toggle Type Filter Visibility
+  toggleTypeFilter(): void {
+    this.showTypeFilter = !this.showTypeFilter;
+  }
+
+  // Handle Type Selection
+  handleTypeClick(typeId: string): void {
+    if (this.filteredTypes.includes(typeId)) {
+      this.filteredTypes = this.filteredTypes.filter(id => id !== typeId);
+    } else {
+      this.filteredTypes.push(typeId);
+    }
+    this.filterQueueByTypeAndService();
+  }
+
+  // Filter Tickets by Both Services and Types
+  filterQueueByTypeAndService(): void {
+    const serviceSet = new Set(this.filteredServices);
+    const typeSet = new Set(this.filteredTypes);
+
+    this.tickets = this.queueService.queue.filter(ticket => {
+      const matchesServices = this.filteredServices.length === 0 
+        || ticket.services.split(', ').some(service => serviceSet.has(service));
+      const matchesType = this.filteredTypes.length === 0 
+        || typeSet.has(ticket.type);
+
+      return matchesServices && matchesType;
+    });
+  }
+
+  // Clear Type Filters
+  clearTypeFilters(): void {
+    this.filteredTypes = [];
+    this.filterQueueByTypeAndService();
+  }
+
 }
