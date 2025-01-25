@@ -47,6 +47,7 @@ interface Ticket {
   timestamp:string;
   type:string;
   tag?:string;
+  color?:string;
   metaType?:string;
   fullname:string;
   services:string;
