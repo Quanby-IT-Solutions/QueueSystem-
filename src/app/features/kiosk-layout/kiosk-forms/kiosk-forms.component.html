@@ -100,7 +100,7 @@
         <section *ngIf="!isFormVisible" class="w-full p-6">
           <h2  *ngIf="!anonymous" class="p-2 mb-4 text-lg font-semibold text-gray-800">Basic Information</h2>
           <form class="p-2 space-y-4">
-            <div class="grid grid-cols-1 {{anonymous?'':'md:grid-rows-2 sm:grid-cols-2 grid-rows-4 grid-flow-col'}}  gap-4  ">
+            <div class="grid grid-cols-1 {{anonymous?'':'md:grid-rows-2 sm:grid-cols-2 grid-rows- grid-flow-col'}}  gap-4  ">
               <div  *ngIf="!anonymous">
                 <label for="group" class="block mb-1 text-sm font-medium text-gray-600">Category</label>
                 <select 
@@ -176,7 +176,7 @@
             </div> -->
 
 
-            <div class="flex flex-wrap justify-center gap-8 p-10 mt-10">
+            <div class="flex flex-wrap justify-center gap-4 p-2 mt-2">
               <button  
                 [ngStyle]="{
                   backgroundColor: selectedType == format.id && !anonymous ? '#facc15': getFormatDetails(format.description).color ?? 'var(--primary-dark)'
@@ -184,10 +184,10 @@
                 *ngFor='let format of formats'
                 type="button" 
                 (click)="handleButtonClick(format.id!)" 
-                class="relative border-dashed border-2 border-[var(--primary-light)] flex flex-col p-4 items-center justify-center text-white font-semibold text-lg transition 
+                class="relative border-dashed border-2 border-[var(--primary-light)] flex flex-col p-2 items-center justify-center text-white font-semibold text-lg transition 
                 rounded-lg hover:bg-yellow-300 
-                w-52 h-52 lg:w-64 lg:h-64"> <!-- Adjust width and height -->
-            
+                w-[calc(50%-8px)] sm:w-[calc(25%-8px)] h-52 lg:w-64 lg:h-64"> <!-- Adjust width and height -->
+              
                 <!-- Logo at top left -->
                 <img src="./assets/specifics/pcso/pcso-logo.svg" 
                      alt="Top Left Logo" 
@@ -202,6 +202,7 @@
                 <span class="text-shadow">{{format.name.toUpperCase().replaceAll('.','')}}</span>
               </button>
             </div>
+            
             
           </form>
         </section>
