@@ -6,15 +6,16 @@
   line-height: 1.2;
 }
 
+
 @container queue-main (max-width:400px){
   .queue-item-icon,
   .weather-icon{
     width: 0.5rem !important;
     height: 0.5rem !important;
   }
-  .weather-left-container,   .currency-label,
+  .weather-left-container,   .currency-label,.announcement-banner,
   .announcement-text,.banner-label{
-     font-size: 0.5rem !important;
+     font-size: 0.5rem;
    }
  
 
@@ -88,7 +89,7 @@
   }
   .weather-left-container,   .currency-label,
  .announcement-text,.banner-label{
-    font-size: 0.5rem!important;
+    font-size: 0.5rem;
   }
 
   .serving-container{
@@ -213,6 +214,16 @@
     height: 0.8rem;
   }
 
+}
+
+@container queue-main (min-width:800px) and (max-width:1200px){
+  .serving-item-header,.serving-item-content-text{
+    font-size: 1.3rem;
+   }
+  
+   .queue-item-ticket{
+    font-size: 1rem;
+   }
 }
 /* @container queue-main (min-width:800px) and (max-width:2000px){
   .banner-title{
