@@ -77,17 +77,17 @@
                   'backgroundColor': colors.tertiary_bg,
                   'color': colors.primary_text
                 }"
-                  class="serving-item-header w-1/4 px-3 flex flex-col items-center justify-center font-medium text-2xl lg:text-3xl 2xl:text-2xl  shadow-sm text-shadow tracking-wide  min-[3500px]:text-8xl min-[3500px]:px-10 min-[3500px]:font-semibold ">
-                  <span class="serving-item-label text-[0.5rem] lg:text-[0.8rem] leading-none min-[3500px]:text-3xl">COUNTER</span>
+                  class="serving-item-header w-1/4 px-3 flex flex-col items-center justify-center font-medium text-2xl lg:text-5xl 2xl:text-2xl  shadow-sm text-shadow tracking-wide  min-[3500px]:text-8xl min-[3500px]:px-10 min-[3500px]:font-semibold ">
                   <span>{{item.number}}</span>
-                </div>
+                  <!-- <span class="serving-item-label text-[0.5rem] lg:text-[0.8rem] leading-none min-[3500px]:text-3xl">COUNTER</span> -->
+                </div> 
                 <div [ngStyle]="{
                   'backgroundColor': colors.secondary_bg,
                   'color': item.ticketNumber ? colors.secondary_text : colors.tertiary_bg + '80',
                 }"
                   class="serving-item-content w-full flex-1 flex justify-center px-3 items-center min-[3500px]:px-10 ">
                   <span
-                    class="serving-item-content-text text-sm tracking-wide md:text-lg 2xl:text-xl font-medium text-shadow min-[1000px]:text-2xl min-[3500px]:font-semibold">{{item.ticketNumber
+                    class="serving-item-content-text text-sm tracking-wide lg:text-3xl 2xl:text-xl font-medium text-shadow min-[3500px]:font-semibold">{{item.ticketNumber
                     ?? 'VACANT'}}</span>
                   <!-- <span class="tracking-wide text-xs 2xl:text-sm text-shadow min-[3500px]:text-5xl min-[3500px]:font-medium">{{item.personName}}</span> -->
                 </div>
@@ -247,10 +247,10 @@
                     min-[3500px]:border-8 min-[3500px]:rounded-3xl min-[3500px]:gap-12
                     min-[3500px]:px-14 min-[3500px]:py-10">
                       <img [src]="item.avatar"
-                        class="queue-item-icon w-9 h-9 min-[3500px]:w-36 min-[3500px]:h-36 rounded-full">
+                        class="queue-item-icon w-10 h-10 rounded-full">
                       <div class="flex flex-col gap-1 items-start">
                         <div
-                          class="queue-item-ticket text-xl font-semibold tracking-wider min-[3500px]:text-7xl min-[3500px]:font-semibold">
+                          class="queue-item-ticket leading-none lg:text-2xl font-semibold tracking-wider min-[3500px]:text-7xl min-[3500px]:font-semibold">
                           {{item.ticketNumber}}</div>
                         <div
                           class="queue-item-flex-1 text-xs opacity-75 font-medium flex justify-end min-[3500px]:text-3xl min-[3500px]:font-semibold">

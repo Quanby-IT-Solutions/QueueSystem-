@@ -18,13 +18,13 @@
   }
 
 }
-@container queue-main (min-width:400px) and (max-width:2000px){
+/* @container queue-main (min-width:400px) and (max-width:2000px){
   .queue-item-icon,
   .weather-icon{
     width: 0.8rem;
     height: 0.8rem;
   }
-}
+} */
 
 @container queue-main (max-width: 600px){
   .main-container * {
@@ -204,7 +204,7 @@
   }
 
 }
-@container queue-main (min-width:800px) and (max-width:2000px){
+/* @container queue-main (min-width:800px) and (max-width:2000px){
   .banner-title{
     font-size: 1.6rem;
   }
@@ -260,9 +260,9 @@
   .queue-title {
     font-size: 1.2rem;
   }
-}
+} */
 
-@container queue-main (min-width: 600px) and (max-width: 2000px) {
+/* @container queue-main (min-width: 600px) and (max-width: 2000px) {
 
   .main-content *{
     line-height: 1;
@@ -289,7 +289,7 @@
 
 
 
-}
+} */
 @container queue-main (min-width: 2000px) and (max-width:3000px){
   .banner-title{
     font-size: 3.5rem;
