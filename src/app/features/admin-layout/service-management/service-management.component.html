@@ -54,10 +54,11 @@
               <div class="flex w-full mt-2">
                 <div class="flex justify-end w-full">
                   <div class="flex gap-2">
-                    <button  (click)="selectService($event,service);" class="flex items-center justify-center px-2 py-1 text-white bg-red-500 rounded-lg hover:bg-red-600 ">
+                    <button  (click)="selectService($event,service);openDialog('create')" class="flex items-center justify-center px-2 py-1 text-white bg-red-500 rounded-lg hover:bg-red-600 ">
                       <span  class="material-icons"> delete </span>
                     </button>
-                    <button  (click)="updateService($event,service)" class="flex items-center justify-center px-2 py-1 text-white bg-green-500 rounded-lg hover:bg-green-600 ">
+           
+                    <button  (click)="updateService($event,service);openDialog('create')" class="flex items-center justify-center px-2 py-1 text-white bg-green-500 rounded-lg hover:bg-green-600 ">
                       <span  class="material-icons"> edit </span>
                     </button>
                   </div>
@@ -107,6 +108,10 @@
                 <span class="font-medium">Service Name: </span>
                 <span class="opacity-75">{{service.name}}</span>
               </div>
+              <div class="flex-1">
+                <span class="font-medium">Forwards to: </span>
+                <span class="opacity-75">{{getSubServiceName(service.description)}}</span>
+              </div>
 
               <div class="flex w-full mt-2">
                 <div class="flex justify-end w-full">
@@ -114,7 +119,14 @@
                     <button  (click)="selectSubService(service);openDialog('delete')" class="flex items-center justify-center px-2 py-1 text-white bg-red-500 rounded-lg hover:bg-red-600 ">
                       <span  class="material-icons"> delete </span>
                     </button>
-                    <button  (click)="updateSubService(service)" class="flex items-center justify-center px-2 py-1 text-white bg-green-500 rounded-lg hover:bg-green-600 ">
+                    <button
+                    (click)="selectSubService(service);openDialog('step')" class="rounded-lg px-6 py-1 text-white flex gap-2 bg-blue-500">
+                    <span  class="material-icons"> fast_forward </span>
+                      <span>
+                        {{ 'Set'}}
+                      </span>
+                    </button>
+                    <button  (click)="updateSubService(service);openDialog('create-sub')" class="flex items-center justify-center px-2 py-1 text-white bg-green-500 rounded-lg hover:bg-green-600 ">
                       <span  class="material-icons"> edit </span>
                     </button>
                   </div>
@@ -148,13 +160,19 @@
   ></app-confirmation>
 
   <app-create-service
-    *ngIf="selectedService && modalType !='delete'"
+    *ngIf="modalType =='create'"
     [exisitingservice]="selectedService"
     (onClose)="closeDialog($event)"
   />
 
   <app-create-sub-service
-  *ngIf="selectedSubService && modalType !='delete'"
+  *ngIf="modalType =='create-sub'"
   [exisitingservice]="selectedSubService"
   (onClose)="closeDialog($event)"
   />
+
+  <app-set-next-step
+*ngIf="modalType == 'step'"
+[subservice]="selectedSubService"
+(onClose)="closeNextStep()"
+/>

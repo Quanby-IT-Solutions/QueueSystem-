@@ -2,7 +2,7 @@
 
 <div class="h-full w-screen flex overflow-hidden relative">
   <!-- Sidebar -->
-  <app-sidebar [role]="role"></app-sidebar>
+  <app-sidebar class="p-1" [role]="role"></app-sidebar>
 
   <div *ngIf="isLoading" class="absolute z-50 flex flex-col items-center justify-center w-full h-full overflow-hidden bg-white cursor-wait">
     <app-lottie-animation class="w-72 h-72 2xl:w-96 2xl:h-96 animate-pop" animation="loader"></app-lottie-animation>

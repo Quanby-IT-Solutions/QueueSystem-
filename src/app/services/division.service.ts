@@ -29,7 +29,7 @@ export class DivisionService {
     this.selectedDivision = division;
   }
 
-  async getDivisions():Promise<Division[]>{
+  async getDivisions(load:boolean = true):Promise<Division[]>{
     try{
       const response = await this.API.read({
         selectors: ['contents.*, divisions.*'],
@@ -41,8 +41,10 @@ export class DivisionService {
   
       if(response.success){
         this.divisions = response.output as Division[];
-        if(this.divisions.length>0){
-          this.selectedDivision = this.divisions[0];
+        if(load){
+          if(this.divisions.length>0){
+            this.selectedDivision = this.divisions[0];
+          }
         }
         return this.divisions;
       }else{
@@ -52,6 +54,8 @@ export class DivisionService {
       throw new Error('Something went wrong.');
     }
   }
+
+  
 
   async getDivision(id?:string):Promise<Division|undefined>{
     if(this.isSuperAdmin){

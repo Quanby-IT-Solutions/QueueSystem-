@@ -38,6 +38,8 @@ async addSubService(service_id:string,name:string){
   if(!response.success){
     throw new Error('Something went wrong');
   }
+  this.API.socketSend({event:'queue-events'})
+  this.API.socketSend({event:'kiosk-events'})
 }
 
  async addService(name:string){
@@ -56,6 +58,8 @@ async addSubService(service_id:string,name:string){
    if(!response.success){
      throw new Error('Something went wrong');
    }
+   this.API.socketSend({event:'queue-events'})
+  this.API.socketSend({event:'kiosk-events'})
  }
 
  async updateSubService(id:string, name:string){
@@ -70,6 +74,24 @@ async addSubService(service_id:string,name:string){
   if(!response.success){
     throw new Error('Something went wrong.');
   }  
+  this.API.socketSend({event:'queue-events'})
+  this.API.socketSend({event:'kiosk-events'})
+}
+
+async updateForwardToService(id:string, service_id:string){
+  const response = await this.API.update({
+    tables: 'sub_services',
+    values:{
+      description:service_id
+    }  ,
+    conditions: `WHERE id = '${id}'`
+  });
+
+  if(!response.success){
+    throw new Error('Something went wrong.');
+  }  
+  this.API.socketSend({event:'queue-events'})
+  this.API.socketSend({event:'kiosk-events'})
 }
 
  async updateService(id:string, name:string){
@@ -85,6 +107,8 @@ async addSubService(service_id:string,name:string){
   if(!response.success){
     throw new Error('Something went wrong.');
   }
+  this.API.socketSend({event:'queue-events'})
+  this.API.socketSend({event:'kiosk-events'})
 }
 
 async deleteSubService(id:string){
@@ -96,6 +120,8 @@ async deleteSubService(id:string){
   if(!response.success){
     throw new Error('Unable to delete service');
   }
+  this.API.socketSend({event:'queue-events'})
+  this.API.socketSend({event:'kiosk-events'})
 }
  async deleteService(id:string){
    const response = await this.API.delete({
@@ -106,6 +132,8 @@ async deleteSubService(id:string){
    if(!response.success){
      throw new Error('Unable to delete service');
    }
+   this.API.socketSend({event:'queue-events'})
+  this.API.socketSend({event:'kiosk-events'})
  }
 
  async getSubServices(service_id:string){
@@ -125,9 +153,10 @@ async deleteSubService(id:string){
 
  async getAllSubServices(){
   const response = await this.API.read({
-      selectors: ['*'],
-      tables: 'sub_services',
+      selectors: ['sub_services.*','services.name as service_name','divisions.name as division_name'],
+      tables: 'sub_services, services,divisions',
       conditions: `
+        WHERE sub_services.service_id = services.id AND divisions.id = services.division_id
          ORDER BY sub_services.name`
     });
 

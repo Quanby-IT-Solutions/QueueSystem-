@@ -10,11 +10,12 @@ import { UswagonAuthService } from 'uswagon-auth';
 import { UswagonCoreService } from 'uswagon-core';
 import { ServiceService } from '../../../services/service.service';
 import { CreateSubServiceComponent } from './modals/create-sub-service/create-sub-service.component';
+import { SetNextStepComponent } from "./modals/set-next-step/set-next-step.component";
 
 @Component({
   selector: 'app-service-management',
   standalone: true,
-  imports: [CommonModule, FormsModule, LottieAnimationComponent, ConfirmationComponent,CreateServiceComponent,CreateSubServiceComponent],
+  imports: [CommonModule, FormsModule, LottieAnimationComponent, ConfirmationComponent, CreateServiceComponent, CreateSubServiceComponent, SetNextStepComponent],
   templateUrl: './service-management.component.html',
   styleUrl: './service-management.component.css'
 })
@@ -26,6 +27,7 @@ export class ServiceManagementComponent {
 
   services: Service[]=[];
   subServices: SubService[]=[];
+  allSubServices: SubService[]=[];
 
   isSuperAdmin:boolean = this.auth.accountLoggedIn() == 'superadmin';
 
@@ -35,7 +37,7 @@ export class ServiceManagementComponent {
 
   
 
-  modalType?:'maintenance'|'delete';
+  modalType?:'maintenance'|'delete'|'step'|'create'|'create-sub';
 
   openServiceModal:boolean = false;
   openSubServiceModal:boolean = false;
@@ -49,11 +51,32 @@ export class ServiceManagementComponent {
     this.loadContent();
   }
 
+
+  getSubServiceName(id?:string){
+    if(id){
+      const sub = this.allSubServices.find(s=>s.id == id);
+      return sub?.name;
+      
+    }else{
+      return null;
+    }
+  }
+
+
+  async closeNextStep(){
+    this.modalType = undefined;
+    this.API.setLoading(true);
+    this.services = (await this.serviceService.getAllServices(this.selectedDivision!));
+    this.subServices = (await this.serviceService.getSubServices(this.serviceOpen?.id!));
+    this.API.sendFeedback('success', 'Service forward to has updated!',5000);
+    this.API.setLoading(false);
+  }
+
   async loadContent(){
     this.API.setLoading(true);
     this.selectedDivision =(await this.divisionService.getDivision())?.id;
     this.divisions =(this.divisionService.divisions) as Division[];
-
+    this.allSubServices = await this.serviceService.getAllSubServices();
     this.services = (await this.serviceService.getAllServices(this.selectedDivision!));
     this.API.setLoading(false);    
   }
@@ -92,6 +115,7 @@ export class ServiceManagementComponent {
       name:'',
       service_id: this.serviceOpen?.id
     };
+    this.openDialog('create-sub')
   
   }
 
@@ -145,7 +169,7 @@ export class ServiceManagementComponent {
 
   
 
-  openDialog(type:'maintenance'|'delete'){
+  openDialog(type:'maintenance'|'delete'|'step'|'create'|'create-sub'){
     this.modalType = type;
   }
   async closeDialog(shouldRefresh:boolean){

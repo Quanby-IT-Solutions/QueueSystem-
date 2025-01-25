@@ -1,6 +1,6 @@
-<div class="relative flex w-screen h-full overflow-hidden">
+<div class="relative bg-gray-50 flex w-screen h-full overflow-hidden">
   <!-- Sidebar -->
-  <app-sidebar [role]="role"></app-sidebar>
+  <app-sidebar class="p-1"  [role]="role"></app-sidebar>
 
   <!-- Loading Overlay -->
   <div *ngIf="isLoading" class="absolute z-50 flex flex-col items-center justify-center w-full h-full overflow-hidden bg-white cursor-wait">
