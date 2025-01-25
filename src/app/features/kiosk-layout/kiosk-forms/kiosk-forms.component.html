@@ -178,19 +178,31 @@
 
             <div class="flex flex-wrap justify-center gap-8 p-10 mt-10">
               <button  
-              [ngStyle]="{
-                backgroundColor: selectedType == format.id && !anonymous ? '#facc15': getFormatDetails(format.description).color ?? 'var(--primary-dark)'
-              }"
+                [ngStyle]="{
+                  backgroundColor: selectedType == format.id && !anonymous ? '#facc15': getFormatDetails(format.description).color ?? 'var(--primary-dark)'
+                }"
                 *ngFor='let format of formats'
-                type="button" (click)="handleButtonClick(format.id!)" 
-                class="border-dashed border-2 border-[var(--primary-light)] flex flex-col p-4 items-center justify-center text-white font-semibold text-lg transition 
-                 rounded-lg hover:bg-yellow-300 
+                type="button" 
+                (click)="handleButtonClick(format.id!)" 
+                class="relative border-dashed border-2 border-[var(--primary-light)] flex flex-col p-4 items-center justify-center text-white font-semibold text-lg transition 
+                rounded-lg hover:bg-yellow-300 
                 w-52 h-52 lg:w-64 lg:h-64"> <!-- Adjust width and height -->
-                <img src="{{format.id == 'priority' ? './assets/kiosk/Priority.png':'./assets/kiosk/Regular.png'}}" 
-                     alt="{{format.id}}-icon" class="object-contain w-40 h-40">
+            
+                <!-- Logo at top left -->
+                <img src="./assets/specifics/pcso/pcso-logo.svg" 
+                     alt="Top Left Logo" 
+                     class="absolute top-2 left-2 w-8 h-8">
+                
+                <!-- Logo at top right -->
+                <img src="./assets/specifics/pcso/bagong-pilipinas.png" 
+                     alt="Top Right Logo" 
+                     class="absolute top-2 right-2 w-8 h-8">
+                     
+                <!-- Existing button text -->
                 <span class="text-shadow">{{format.name.toUpperCase().replaceAll('.','')}}</span>
               </button>
             </div>
+            
           </form>
         </section>
 
