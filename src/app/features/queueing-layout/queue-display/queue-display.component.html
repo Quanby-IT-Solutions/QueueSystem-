@@ -30,7 +30,7 @@
 </div>
 
 <div *ngIf="loading" class="main-container flex flex-col justify-center items-center relative aspect-[3840/2180]">
-  <app-lottie-animation class="animate-pop loader" animation="loader"></app-lottie-animation>
+  <app-lottie-animation class="animate-pop loader w-72 h-72" animation="pcso"></app-lottie-animation>
   <div class="animate-pop loader-text">Loading...</div>
 </div>
 
@@ -70,9 +70,9 @@
             <!-- Counter -->
             <ng-container *ngFor="let item of getOnlineCounters()| slice:offset:offset+slice;let i = index">
               <div *ngIf="item.status == 'online'" [ngStyle]="{
-                'border-color': item.pulsing? colors.tertiary_bg +'20' : colors.primary_text + '80',
+                'border-color': (item.ticketNumber && item.pulsing)? colors.tertiary_bg +'20' : colors.primary_text + '80',
               }"
-                class="{{item.pulsing ? 'animate-pop-pulse':'animate-pop'}}  serving-item-outer h-full rounded-lg shadow-lg flex overflow-hidden border-dashed border-2  min-[3500px]:rounded-3xl min-[3500px]:border-8">
+                class="{{(item.ticketNumber && item.pulsing) ? 'animate-pop-pulse':'animate-pop'}}  serving-item-outer h-full rounded-lg shadow-lg flex overflow-hidden border-dashed border-2  min-[3500px]:rounded-3xl min-[3500px]:border-8">
                 <div [ngStyle]="{
                   'backgroundColor': colors.tertiary_bg,
                   'color':   colors.primary_text
@@ -83,11 +83,11 @@
                 </div> 
                 <div [ngStyle]="{
                   'backgroundColor': colors.secondary_bg,
-                  'color': item.ticketNumber ? item.pulsing? colors.tertiary_bg : colors.secondary_text : colors.tertiary_bg + '80',
+                  'color': item.ticketNumber ? (item.ticketNumber && item.pulsing)? colors.tertiary_bg : colors.secondary_text : colors.tertiary_bg + '80',
                 }"
                   class="serving-item-content   w-full flex-1 flex justify-center px-3 items-center min-[3500px]:px-10 ">
                   <span
-                    class="serving-item-content-text text-sm tracking-wide lg:text-3xl 2xl:text-xl font-medium text-shadow min-[3500px]:font-semibold">{{item.ticketNumber
+                    class="serving-item-content-text text-sm tracking-wide lg:text-4xl 2xl:text-xl font-medium text-shadow min-[3500px]:font-semibold">{{item.ticketNumber
                     ?? 'VACANT'}}</span>
                   <!-- <span class="tracking-wide text-xs 2xl:text-sm text-shadow min-[3500px]:text-5xl min-[3500px]:font-medium">{{item.personName}}</span> -->
                 </div>
