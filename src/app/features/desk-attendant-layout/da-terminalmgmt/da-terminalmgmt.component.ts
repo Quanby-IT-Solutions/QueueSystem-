@@ -364,7 +364,7 @@ timerProgress: any;
       this.currentTicket = queue ? {...queue!} : undefined;
 
       this.currentClientDetails = {
-        name: this.currentTicket?.fullname || 'N/A',
+        name: this.currentTicket?.fullname || 'Anonymous',
         date: this.currentTicket?.timestamp || this.currentDate,
         services: this.services.filter(service=> this.currentTicket?.services.split(', ').includes(service.id)).map(service=>service.name),
         student_id: this.currentTicket?.student_id || 'N/A',

@@ -71,6 +71,7 @@
           <div class="relative">
             <!-- Filter Services Button -->
             <button 
+              *ngIf="divisionServices.length"
               (click)="toggleServiceFilter()" 
               class="bg-gray-900 text-white px-4 py-2 rounded-md hover:bg-gray-800 transition-colors duration-200 flex items-center space-x-2">
               <span class="material-icons text-sm">filter_list</span>
@@ -288,7 +289,7 @@
                     <div class="flex-1 min-w-0">
                       <div class="flex items-center gap-2">
                         <p class="text-sm font-medium text-gray-900 truncate">
-                          {{ ticket.fullname || 'N/A' }}
+                          {{ ticket.fullname || 'Anonymous' }}
                         </p>
                         <span *ngIf="ticket.status === 'bottom'" 
                               class="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium text-yellow-800 bg-yellow-100 rounded-full">
@@ -309,7 +310,9 @@
                       {{ service.name }}
                     </div>
                   </ng-container>
-                  <span *ngIf="!ticket.services?.split(', ')?.length">N/A</span>
+                  <span *ngIf="!ticket.services">
+                    {{getFormatDetails(ticket.type) || 'N/A'}}
+                  </span>
                 </td>
                 <!-- <td class="p-3 text-sm w-1/6">
                   {{ ticket.student_id || 'N/A' }}
