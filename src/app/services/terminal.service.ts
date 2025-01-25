@@ -300,6 +300,21 @@ async deleteTerminal(id:string){
   statusInterval:any;
 
   async refreshTerminalStatus(terminal_session:string){
+    const now =  await this.getServerTime()
+      const response = await this.API.update({
+        tables: 'terminal_sessions',
+        values:{
+          last_active:new DatePipe('en-US').transform(now, 'yyyy-MM-dd HH:mm:ss.SSSSSS'), 
+        }  ,
+        conditions: `WHERE id = '${terminal_session}'`
+      });
+    
+      if(!response.success){
+        alert(response.output);
+        throw new Error('Unable to update terminal session');
+      }
+      this.API.socketSend({event:'queue-events'})
+      this.API.socketSend({event:'terminal-events'})
     
     this.statusInterval = setInterval(async()=>{
       const now =  await this.getServerTime()

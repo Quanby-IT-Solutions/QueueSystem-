@@ -1,6 +1,6 @@
-/* .main-container{
+.main-container{
   container: queue-main / size;
-} */
+}
 
 .banner-text{
   line-height: 1.2;
@@ -9,9 +9,14 @@
 @container queue-main (max-width:400px){
   .queue-item-icon,
   .weather-icon{
-    width: 0.5rem;
-    height: 0.5rem;
+    width: 0.5rem !important;
+    height: 0.5rem !important;
   }
+  .weather-left-container,   .currency-label,
+  .announcement-text,.banner-label{
+     font-size: 0.5rem !important;
+   }
+ 
 
   .right-side{
     padding:0.5rem;
@@ -49,7 +54,12 @@
   }
 
 
-
+  .queue-item-icon,
+  .weather-icon{
+    width: 0.8rem !important;
+    height: 0.8rem !important;
+  }
+  
   .main-content,.queue-item-container,.time-container-inner,.currency-header,.division-banner{
     padding:0.2rem;
   }
@@ -78,7 +88,7 @@
   }
   .weather-left-container,   .currency-label,
  .announcement-text,.banner-label{
-    font-size: 0.5rem;
+    font-size: 0.5rem!important;
   }
 
   .serving-container{

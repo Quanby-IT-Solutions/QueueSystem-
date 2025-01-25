@@ -34,6 +34,7 @@ interface Queue{
   timestamp:string;
   type:string;
   tag?:string;
+  color?:string;
   metaType?:string;
   fullname:string;
   services:string;
@@ -59,6 +60,7 @@ interface UpNextItem {
   avatar: string;
   ticketNumber: string;
   personName: string;
+  ticket?:AttendedQueue;
   type:string;
 }
 
@@ -625,11 +627,12 @@ export class QueueDisplayComponent implements OnInit, OnChanges, OnDestroy, Afte
     this.formats = await this.formatService.getFrom(this.divisionService.selectedDivision!.id);
     
     this.subscription = this.queueService.queue$.subscribe((queueItems: any[]) => {
-      this.upNextItems = queueItems.reduce((prev: UpNextItem[], item: any) => {
+      this.upNextItems = queueItems.reduce((prev: UpNextItem[], item: Queue) => {
         return [...prev, {
           avatar: item.gender === 'male' ? '/assets/queue-display/Male_2.png' : item.gender =='female' ? '/assets/queue-display/Female_2.png' :'/assets/default.jpg',
           ticketNumber: `${item.tag}-${item.number.toString().padStart(3, '0')}`,
           personName: item.fullname,
+          ticket:{queue:item},
           type : item.type,
         }];
 

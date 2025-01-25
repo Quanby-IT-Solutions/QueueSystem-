@@ -64,7 +64,7 @@
         <!-- SERVING -->
         <div class="serving-container flex-1 w-full flex flex-col gap-2  px-4 min-[3500px]:px-8 min-[3500px]:gap-14">
           <h2 [ngStyle]="{'color': colors.primary_text}"
-            class="serving-title font-medium text-lg 2xl:text-2xl tracking-widest px-2 min-[3500px]:font-semibold min-[3500px]:px-4 min-[3500px]:text-8xl">
+            class="serving-title font-medium text-xl 2xl:text-2xl tracking-widest px-2 min-[3500px]:font-semibold min-[3500px]:px-4 min-[3500px]:text-8xl">
             Serving Now:</h2>
           <div class="serving-items flex-1 grid grid-cols-2 grid-rows-5 grid-flow-col   gap-2 min-[3500px]:gap-5">
             <!-- Counter -->
@@ -246,14 +246,21 @@
                     <div class="queue-item-container h-full shadow-lg gap-4 flex items-center px-4 py-1
                     min-[3500px]:border-8 min-[3500px]:rounded-3xl min-[3500px]:gap-12
                     min-[3500px]:px-14 min-[3500px]:py-10">
-                      <img [src]="item.avatar"
-                        class="queue-item-icon w-10 h-10 rounded-full">
+                      <!-- <img [src]="item.avatar"
+                        class="queue-item-icon w-10 h-10 rounded-full"> -->
+                      <div class="queue-item-icon w-5 h-5 rounded-full"
+                        [ngStyle]="{
+                          backgroundColor: item.ticket?.queue?.color ?? 'var(--primary-dark)'
+                        }"
+                      >
+
+                      </div>
                       <div class="flex flex-col gap-1 items-start">
                         <div
-                          class="queue-item-ticket leading-none lg:text-2xl font-semibold tracking-wider min-[3500px]:text-7xl min-[3500px]:font-semibold">
+                          class="queue-item-ticket !leading-none lg:text-2xl font-semibold tracking-wider min-[3500px]:text-7xl min-[3500px]:font-semibold">
                           {{item.ticketNumber}}</div>
                         <div
-                          class="queue-item-flex-1 text-xs opacity-75 font-medium flex justify-end min-[3500px]:text-3xl min-[3500px]:font-semibold">
+                          class="queue-item-ticket flex-1 !leading-none text-xs opacity-75 font-medium flex justify-end min-[3500px]:text-3xl min-[3500px]:font-semibold">
                           {{getFormatName(item.type)?.replaceAll('.','')}}</div>
                       </div>
                     </div>

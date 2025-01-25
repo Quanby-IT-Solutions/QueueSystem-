@@ -20,6 +20,7 @@ interface Queue{
   timestamp:string;
   type:string;
   tag?:string;
+  color?:string;
   metaType?:string;
   fullname:string;
   services:string;
@@ -560,6 +561,14 @@ export class QueueService  {
       
       for(let i = 0; i < filteredQueue.length;i++){
         filteredQueue[i].tag = formatMap[filteredQueue[i].type].prefix
+        const format = formatMap[filteredQueue[i].type];
+        let formatDesc:any = {};
+        if(format?.description){
+          try{
+            formatDesc = JSON.parse(format.description);
+          }catch(e){}
+        }
+        filteredQueue[i].color = formatDesc.color ?? undefined;
         if(filteredQueue[i].type != 'priority' && filteredQueue[i].type != 'regular'){
           filteredQueue[i].metaType = formatMap[filteredQueue[i].type].name;
         }
@@ -619,6 +628,14 @@ export class QueueService  {
       const filteredQueue = filterQueue.filter(queue=>!this.takenQueue.includes(queue.id));
       for(let i = 0; i < filteredQueue.length;i++){
         filteredQueue[i].tag = formatMap[filteredQueue[i].type].prefix
+        const format = formatMap[filteredQueue[i].type];
+        let formatDesc:any = {};
+        if(format?.description){
+          try{
+            formatDesc = JSON.parse(format.description);
+          }catch(e){}
+        }
+        filteredQueue[i].color = formatDesc.color ?? undefined;
         if(filteredQueue[i].type != 'priority' && filteredQueue[i].type != 'regular'){
           filteredQueue[i].metaType = formatMap[filteredQueue[i].type].name;
         }
@@ -681,7 +698,13 @@ export class QueueService  {
         for(let attended of response.output){
           const format  = formats.find((_format:any)=> _format.id == attended.type)!;
           if(!format) continue;
-          this.attendedQueues.push({...attended, queue: {...attended, id: attended.queue_id, type:format.id, tag:format.prefix, metaType: format.name}})
+          let formatDesc:any = {};
+          if(format.description){
+            try{
+              formatDesc = JSON.parse(format.description);
+            }catch(e){}
+          }
+          this.attendedQueues.push({...attended, queue: {...attended, id: attended.queue_id,color: formatDesc?.color ?? undefined , type:format.id, tag:format.prefix, metaType: format.name}})
         }
         return this.attendedQueues;
       }else{
