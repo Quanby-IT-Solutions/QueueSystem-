@@ -63,6 +63,10 @@
                 <span class="font-medium">Prefix: </span>
                 <span class="opacity-75">{{format.prefix}}</span>
               </div>
+              <div class="flex-1">
+                <span class="font-medium">Details: </span>
+                <span class="opacity-75">{{getFormatDetails(format.description).details ?? 'None'}}</span>
+              </div>
 
               <div class="flex w-full mt-2">
                 <div class="flex justify-end w-full">

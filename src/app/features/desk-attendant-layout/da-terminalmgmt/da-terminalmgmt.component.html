@@ -136,7 +136,7 @@
                 class="w-12 h-12 rounded-full object-cover">
             </div>
             <div class="ml-3">
-              <p class="text-base font-medium text-gray-800">{{ currentClientDetails?.name || 'N/A' }}</p>
+              <p class="text-base font-medium text-gray-800">{{ currentClientDetails?.name || 'Anonymous' }}</p>
               <p class="text-sm text-gray-500">{{ currentTicket ? (currentTicket.tag) +'-' + currentTicket.number.toString().padStart(3, '0') : 'N/A' }}</p>
             </div>
           </div>
@@ -246,7 +246,7 @@
                     <div class="flex-1 min-w-0">
                       <div class="flex items-center gap-2">
                         <p class="text-sm font-medium text-gray-900 truncate">
-                          {{ ticket.fullname || 'N/A' }}
+                          {{ ticket.fullname || 'Anonymous' }}
                         </p>
                         <span *ngIf="ticket.status === 'bottom'" 
                               class="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium text-yellow-800 bg-yellow-100 rounded-full">
@@ -262,10 +262,17 @@
                   </span>
                 </td>
                 <td class="p-3 text-sm w-1/6 truncate">
-                  <ng-container  *ngFor="let service of services">
-                    <div *ngIf="ticket?.services?.split(', ')?.includes(service.id)">
-                      {{ service.name }}
-                    </div>
+                  <div
+                    *ngIf="!ticket.services"
+                  >
+                    {{getFormatDetails(ticket.type) ?? 'N/A'}}
+                  </div>
+                  <ng-container *ngIf="ticket.services" >
+                    <ng-container  *ngFor="let service of services">
+                      <div *ngIf="ticket?.services?.split(', ')?.includes(service.id)">
+                        {{ service.name }}
+                      </div>
+                    </ng-container>
                   </ng-container>
                   <span *ngIf="!ticket.services?.split(', ')?.length">N/A</span>
                 </td>

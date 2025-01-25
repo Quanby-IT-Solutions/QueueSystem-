@@ -117,8 +117,11 @@ export class FormatService extends CrudService<Format>{
       throw new Error('Unable to set color');
     }
     this.API.socketSend({event:'kiosk-events'});
+    this.API.socketSend({event:'queue-events'});
     this.logService.pushLog('set-kiosk-format', 'set ckiosk to a format');
   }
+
+
 
 }
 

@@ -282,6 +282,16 @@ timerProgress: any;
     return this.formats.find(format=>format.id == id)?.name;
   }
 
+  getFormatDetails(id?:string){
+    const desc = this.formats.find(format=>format.id == id)?.description;
+    if(!desc) return null;
+    try{
+      const detailsObj = JSON.parse(desc);
+      return detailsObj.details;
+    }catch(e){
+      return null;
+    }
+  }
 
   async loadContent(){
     this.API.setLoading(true);

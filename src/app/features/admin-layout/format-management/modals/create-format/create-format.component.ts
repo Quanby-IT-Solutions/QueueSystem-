@@ -20,6 +20,7 @@ export class CreateFormatComponent {
   errorMessage:{
     name?:string,
     prefix?:string,
+    details?:string,
   }={};
   submittingForm:boolean = false;
 
@@ -29,12 +30,22 @@ export class CreateFormatComponent {
 
   item:Format =  {
     name:'',
-    prefix:''
+    prefix:'',
   } 
 
+  getFormatDetails(details?:string){
+    if(!details) return {};
+    try{
+      const detailsObj = JSON.parse(details);
+      return detailsObj;
+    }catch(e){
+      return {};
+    }
+  }
   ngOnInit(): void {
     if(this.existingitem){
       this.item = {...this.existingitem}
+      this.item.details = this.getFormatDetails(this.existingitem.description).details
     }
   }
 
@@ -75,7 +86,21 @@ export class CreateFormatComponent {
     }
     try{
       if(this.item.id){
-        await this.formatService.update(this.item.id,this.item);
+        let descObj:any = {};
+
+        try{
+          descObj = this.getFormatDetails(this.item.description);
+        }catch(e){}
+
+        descObj.details = this.item.details;
+        const updateItem:Format={
+          id: this.item.id,
+          name: this.item.name,
+          prefix: this.item.prefix,
+          description: JSON.stringify(descObj)
+        }
+
+        await this.formatService.update(this.item.id,updateItem);
         
       }else{
         await this.formatService.add(

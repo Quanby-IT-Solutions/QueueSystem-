@@ -4,6 +4,7 @@ export interface Format {
     division_id?:string;
     prefix:string;
     description?:string;
+    details?:string;
 }
 
 export interface Division{
