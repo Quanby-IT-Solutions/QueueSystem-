@@ -165,8 +165,10 @@ timerProgress: any;
             (queue) => queue.type === this.selectedCounter?.specific
           );
           this.tickets = [...this.queueService.queue];
+          this.filterQueueByTypeAndService(); 
         } else {
           this.tickets = [...queueItems];
+          this.filterQueueByTypeAndService(); 
         }
     
         // Apply type and service filters
@@ -396,6 +398,7 @@ this.subscription = this.queueService.queue$.subscribe((queueItems: Ticket[]) =>
   if(this.selectedCounter?.specific){
     this.queueService.queue = queueItems.filter((queue)=>queue.type == this.selectedCounter?.specific);
     let filtered = [...this.queueService.queue];
+    this.filterQueueByTypeAndService(); 
     if (this.filteredServices.length > 0) {
       filtered = filtered.filter(ticket => {
         const ticketServices = ticket.services.split(', ');
@@ -677,6 +680,7 @@ this.subscription = this.queueService.queue$.subscribe((queueItems: Ticket[]) =>
       if (this.currentTicket) {
         await this.queueService.resolveAttendedQueue('finished');
         this.resetInterface();
+        this.filterQueueByTypeAndService();
         this.API.sendFeedback('success','Transaction successful!',5000);
         this.actionLoading = false;
         return;
@@ -738,7 +742,7 @@ this.subscription = this.queueService.queue$.subscribe((queueItems: Ticket[]) =>
       } else {
         this.API.sendFeedback('warning', 'Could not get next client.', 5000);
       }
-
+      this.filterQueueByTypeAndService();
     } catch (error) {
       console.error('Next client error:', error);
       this.API.sendFeedback('error', 'Failed to process client. Please try again.', 5000);
@@ -756,6 +760,7 @@ this.subscription = this.queueService.queue$.subscribe((queueItems: Ticket[]) =>
     this.isManualSelectActive = true;  // Keep manual selection mode active
     this.isReturnTopActive = false;
     this.isReturnBottomActive = false;
+    this.filterQueueByTypeAndService();
     if (this.currentTicket) {
       this.lastCalledNumber = (this.currentTicket.tag ?? this.currentTicket.type ) + '-' + 
         this.currentTicket.number.toString().padStart(3, '0');
@@ -820,19 +825,21 @@ this.subscription = this.queueService.queue$.subscribe((queueItems: Ticket[]) =>
     this.actionLoading = true;
     const selectedTicket = this.selectedTicket;
     this.selectedTicket = undefined;
-   try{
-      const nextTicket = await this.queueService.manualSelect({...selectedTicket!})
+  
+    try {
+      const nextTicket = await this.queueService.manualSelect({...selectedTicket!});
       if (nextTicket) {
         this.currentTicket = nextTicket;
         this.currentClientDetails = {
           name: nextTicket.fullname || 'Anonymous',
           date: nextTicket.timestamp || this.currentDate,
-          services:this.services.filter(service=> nextTicket.services.split(', ').includes(service.id)).map(service=>service.name),
-          
+          services: this.services
+            .filter(service => nextTicket.services.split(', ').includes(service.id))
+            .map(service => service.name),
           student_id: nextTicket.student_id || 'N/A',
           department: nextTicket.department_id || 'N/A',
         };
-
+  
         // Update states
         this.isNextClientActive = false;
         this.isClientDoneActive = true;
@@ -840,30 +847,34 @@ this.subscription = this.queueService.queue$.subscribe((queueItems: Ticket[]) =>
         this.isManualSelectActive = true;
         this.isReturnTopActive = true;
         this.isReturnBottomActive = true;
-
-        // Clear selection
+  
+        // Clear selection and start timer
         this.selectedTicket = undefined;
-
-        // Start timer and update display
         this.startTimer();
-        // this.updateUpcomingTicket();
-        
+  
         this.API.sendFeedback('success', `Transaction started with client.`, 5000);
-        this.logService.pushLog('transaction-manual',`started a manual select transaction.`);
-        this.actionLoading = false;
+        this.logService.pushLog('transaction-manual', `started a manual select transaction.`);
+  
         this.API.socketSend({
           event: 'number-calling',
           division: this.division?.id,
           counter: this.selectedCounter?.number,
-          message: `${this.currentTicket?.metaType  ?? (this.currentTicket?.type == 'priority'? 'Priority':'') } number ${this.currentTicket?.number} on ${this.dvisionService.selectedDivision?.name}. Proceed to counter ${this.selectedCounter?.number}`
-        })
+          message: `${this.currentTicket?.metaType ?? (this.currentTicket?.type === 'priority' ? 'Priority' : '')} number ${this.currentTicket?.number} on ${this.dvisionService.selectedDivision?.name}. Proceed to counter ${this.selectedCounter?.number}`
+        });
       } else {
         this.API.sendFeedback('warning', 'Could not get next client.', 5000);
       }
-   }catch(e){
-    this.API.sendFeedback('error', 'Unable to get next client.',5000);
-   }
+  
+      // Reapply filters to ensure the list is updated accordingly
+      this.filterQueueByTypeAndService();
+  
+    } catch (e) {
+      this.API.sendFeedback('error', 'Unable to get next client.', 5000);
+    } finally {
+      this.actionLoading = false;
+    }
   }
+  
 
 
   /**
@@ -1037,16 +1048,18 @@ this.subscription = this.queueService.queue$.subscribe((queueItems: Ticket[]) =>
   filterQueueByTypeAndService(): void {
     const serviceSet = new Set(this.filteredServices);
     const typeSet = new Set(this.filteredTypes);
-
+  
+    // Dynamically filter the tickets
     this.tickets = this.queueService.queue.filter(ticket => {
-      const matchesServices = this.filteredServices.length === 0 
+      const matchesServices = this.filteredServices.length === 0
         || ticket.services.split(', ').some(service => serviceSet.has(service));
-      const matchesType = this.filteredTypes.length === 0 
+      const matchesType = this.filteredTypes.length === 0
         || typeSet.has(ticket.type);
-
+  
       return matchesServices && matchesType;
     });
   }
+  
 
   // Clear Type Filters
   clearTypeFilters(): void {
