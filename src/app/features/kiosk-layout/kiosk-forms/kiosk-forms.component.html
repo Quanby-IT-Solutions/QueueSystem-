@@ -185,21 +185,24 @@
                 type="button" 
                 (click)="handleButtonClick(format.id!)" 
                 class="relative border-dashed border-2 border-[var(--primary-light)] flex flex-col p-2 items-center justify-center text-white font-semibold text-lg transition 
-                rounded-lg hover:bg-yellow-300 
-                w-[calc(50%-8px)] sm:w-[calc(25%-8px)] h-52 lg:w-64 lg:h-64"> <!-- Adjust width and height -->
+                rounded-2xl hover:bg-yellow-300 
+                 w-[calc(50%-8px)] sm:w-[calc(50%-8px)] h-52 lg:w-72 lg:h-72 xl:w-64 xl:h-64"> <!-- Adjust width and height -->
               
                 <!-- Logo at top left -->
                 <img src="./assets/specifics/pcso/pcso-logo.svg" 
                      alt="Top Left Logo" 
-                     class="absolute top-2 left-2 w-8 h-8">
+                     class="absolute top-4 left-4 w-12 h-12">
                 
                 <!-- Logo at top right -->
                 <img src="./assets/specifics/pcso/bagong-pilipinas.png" 
                      alt="Top Right Logo" 
-                     class="absolute top-2 right-2 w-8 h-8">
+                     class="absolute top-4 right-4 w-12 h-12">
                      
                 <!-- Existing button text -->
-                <span class="text-shadow">{{format.name.toUpperCase().replaceAll('.','')}}</span>
+                <div class="flex flex-col w-full h-full justify-center gap-2 mt-2">
+                  <span class="text-shadow text-8xl ">{{format.prefix.toUpperCase().replaceAll('.','')}}</span>
+                  <span class="text-shadow text-sm">{{format.name.toUpperCase().replaceAll('.','')}}</span>
+                </div>
               </button>
             </div>
             
