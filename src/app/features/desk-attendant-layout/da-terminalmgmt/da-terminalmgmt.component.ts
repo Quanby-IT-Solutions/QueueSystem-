@@ -395,6 +395,19 @@ timerProgress: any;
     }
     
 this.subscription = this.queueService.queue$.subscribe((queueItems: Ticket[]) => {
+  const uniqueServiceIds = new Set<string>();
+    this.queueService.queue.forEach(ticket => {
+      if (ticket.division_id === this.division?.id && ticket.services) {
+        ticket.services.split(', ').forEach(serviceId => uniqueServiceIds.add(serviceId));
+      }
+    });
+
+  
+
+    this.divisionServices = this.services.filter(service => 
+      uniqueServiceIds.has(service.id) && 
+      (!service.division_id || service.division_id === this.division?.id)
+    );
   if(this.selectedCounter?.specific){
     this.queueService.queue = queueItems.filter((queue)=>queue.type == this.selectedCounter?.specific);
     let filtered = [...this.queueService.queue];
@@ -695,14 +708,25 @@ this.subscription = this.queueService.queue$.subscribe((queueItems: Ticket[]) =>
 
       // Use the selected ticket type if available
       let nextTicket: Ticket | undefined;
-      if (this.selectedTicket && this.isManualSelectActive) {
-        // Use the existing queue type-based method
-
-        nextTicket = await this.queueService.nextQueue(this.selectedTicket.type);
-      } else {
-        // Get next ticket without type specification
-
-        nextTicket = await this.queueService.nextQueue();
+      let success:boolean = false;
+      let index = 0;
+      while(!success || index >= this.tickets.length){
+        try{
+          nextTicket = this.tickets[index];
+          const queue = this.queueService.queue.find(queue=>queue.id ==nextTicket?.id);
+          if(!queue){
+            success = true;
+            break;
+          }
+          await this.queueService.nextQueueWithFilter(nextTicket)
+          success=true;
+        }catch(e:any){
+          if(e.message.includes('Server Error')){ 
+            nextTicket = undefined;
+            success=true;
+          }
+          index++;
+        }
       }
 
       if (nextTicket) {

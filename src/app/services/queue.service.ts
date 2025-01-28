@@ -491,6 +491,14 @@ export class QueueService  {
     }
   }
 
+
+  async nextQueueWithFilter(nextQueue:Queue){
+      await this.addQueueToAttended(nextQueue);
+      this.resolveTakenQueue(nextQueue.id);
+      await this.getTodayQueues();
+      return nextQueue;
+  }
+
   // Fetching of QUEUES
   async getAllQueues(division?:string){
     const divisionCondition = division? `WHERE division_id = '${division}'` :'';
