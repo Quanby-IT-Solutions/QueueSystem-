@@ -159,8 +159,8 @@
               <div
               *ngIf="!anonymous"
               >
-                <label for="name" class="block mb-1 text-sm font-medium text-gray-600">Name </label>
-                <input  [(ngModel)]="customerName" id="name" type="text" placeholder="Type your name (eg. Juan Cruz)" name="name" class="w-full px-3 py-2 text-sm bg-white border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-green-500">
+                <label for="name" class="block mb-1 text-sm font-medium text-gray-600">Name or Outpatient No. </label>
+                <input  [(ngModel)]="customerName" id="name" type="text" placeholder="Type your name or Outpatient No." name="name" class="w-full px-3 py-2 text-sm bg-white border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-green-500">
               </div>
               <!-- <div>
                 <label for="department" class="block mb-1 text-sm font-medium text-gray-600">Branch (Optional)</label>
@@ -228,7 +228,7 @@
               <div
               *ngIf="!anonymous"
               >
-                <label class="block mb-1 text-sm font-medium text-gray-600">Name </label>
+                <label class="block mb-1 text-sm font-medium text-gray-600">Name or Outpatient No. </label>
                 <div class="w-full px-3 py-2 text-sm bg-white border border-gray-300 rounded-md">{{ customerName || 'Not Specified' }}</div>
               </div>
               <!-- <div>
@@ -242,14 +242,34 @@
             <!-- </div> -->
              <div  class="flex justify-center gap-8 p-10 mt-10">
               <ng-container  *ngFor='let format of formats'>
-                <button 
-                 [ngStyle]="{
-                backgroundColor: selectedType == format.id && !anonymous ? '#facc15': getFormatDetails(format.description).color ?? 'var(--primary-dark)'
-              }"
+                <button  
                 *ngIf="selectedType == format.id"
-                type="button" (click)="handleButtonClick(format.id!)" class="border-dashed border-2 border-[var(--primary-light)] flex flex-col p-4 items-center justify-center text-white font-semibold text-lg  transition rounded-lg  hover:bg-yellow-300">
-                  <span class="text-shadow">{{format.name.toUpperCase().replaceAll('.','')}}</span>
-                </button>
+                [ngStyle]="{
+                  backgroundColor: selectedType == format.id && !anonymous ? '#facc15': getFormatDetails(format.description).color ?? 'var(--primary-dark)'
+                }"
+                type="button" 
+                (click)="handleButtonClick(format.id!)" 
+                class="relative border-dashed border-2 border-[var(--primary-light)] flex flex-col p-2 items-center justify-center text-white font-semibold text-lg transition 
+                rounded-2xl hover:bg-yellow-300 
+                 w-[calc(50%-8px)] sm:w-[calc(50%-8px)] h-52 lg:w-72 lg:h-72 xl:w-64 xl:h-64"> <!-- Adjust width and height -->
+              
+                <!-- Logo at top left -->
+                <img src="./assets/specifics/pcso/pcso-logo.svg" 
+                     alt="Top Left Logo" 
+                     class="absolute top-4 left-4 w-12 h-12">
+                
+                <!-- Logo at top right -->
+                <img src="./assets/specifics/pcso/bagong-pilipinas.png" 
+                     alt="Top Right Logo" 
+                     class="absolute top-4 right-4 w-12 h-12">
+                     
+                <!-- Existing button text -->
+                <div class="flex flex-col w-full h-full justify-center gap-2 mt-2">
+                  <span class="text-shadow text-8xl ">{{format.prefix.toUpperCase().replaceAll('.','')}}</span>
+                  <span class="text-shadow text-sm">{{format.name.toUpperCase().replaceAll('.','')}}</span>
+                </div>
+              </button>
+         
               </ng-container>
             </div>
           </div>

@@ -7,16 +7,16 @@ export const environment = {
     // server: 'https://quanbylab.com/public/',
     
     // PCSO 
-    // api: 'https://quanby-staging.com/apiSQL.php',
-    // socket: 'wss://quanby-staging.com/websocket',
-    // nodeserver: 'https://quanby-staging.com',
-    // server: 'https://quanby-staging.com/public/',
+    api: 'https://quanby-staging.com/apiSQL.php',
+    socket: 'wss://quanby-staging.com/websocket',
+    nodeserver: 'https://quanby-staging.com',
+    server: 'https://quanby-staging.com/public/',
     
     // PRODUCTION
-    api: 'https://queue.pcso.gov.ph/apiSQL.php',
-    socket: 'wss://queue.pcso.gov.ph/websocket',
-    nodeserver: 'https://queue.pcso.gov.ph',
-    server: 'https://queue.pcso.gov.ph/public/',
+    // api: 'https://queue.pcso.gov.ph/apiSQL.php',
+    // socket: 'wss://queue.pcso.gov.ph/websocket',
+    // nodeserver: 'https://queue.pcso.gov.ph',
+    // server: 'https://queue.pcso.gov.ph/public/',
 
     printserver: 'https://192.168.40.48:3000',
     // api: 'http://192.168.10.2:85/api.php',
