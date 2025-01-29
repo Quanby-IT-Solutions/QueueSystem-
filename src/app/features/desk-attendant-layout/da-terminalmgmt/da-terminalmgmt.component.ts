@@ -603,7 +603,7 @@ this.subscription = this.queueService.queue$.subscribe((queueItems: Ticket[]) =>
       let nextTicket: Ticket | undefined;
       let success:boolean = false;
       let index = 0;
-      while(!success || index >= this.tickets.length){
+      while(!success && index < this.tickets.length){
         try{
           nextTicket = this.tickets[index];
           const queue = this.queueService.queue.find(queue=>queue.id ==nextTicket?.id);
@@ -693,7 +693,7 @@ this.subscription = this.queueService.queue$.subscribe((queueItems: Ticket[]) =>
       let nextTicket: Ticket | undefined;
       let success:boolean = false;
       let index = 0;
-      while(!success || index >= this.tickets.length){
+      while(!success && index < this.tickets.length){
         try{
           nextTicket = this.tickets[index];
           const queue = this.queueService.queue.find(queue=>queue.id ==nextTicket?.id);
@@ -913,27 +913,29 @@ this.subscription = this.queueService.queue$.subscribe((queueItems: Ticket[]) =>
 
 
 async forwardClient(service?:string){
-  if(!service){
-    this.API.sendFeedback('error',`Select forward destination`,5000);
+  if(!service || !this.currentTicket){
     this.forwardModal = false;
     return ;
   }
+  if(this.actionLoading) return;
+    this.actionLoading = true;
+    this.forwardModal = false;
+  alert(this.currentTicket.id);
   // If there's a current transaction, finish it first
-  if (this.currentTicket) {
-    await this.queueService.resolveAttendedQueue('finished');
-    this.resetInterface();
-    this.API.socketSend({event:'queue-events'})
-    this.API.socketSend({event:'admin-dashboard-events'}) 
-    return;
-  }
   const queue = this.queueService.queue.find(queue=>queue.id ==this.currentTicket?.id);
+  await this.queueService.resolveAttendedQueue('finished');
   if(!queue) {
-    this.API.sendFeedback('error',`Something went wrong`,5000);
+    this.API.sendFeedback('error',`Something went wrong Q`,5000);
     return;
   }
   await this.queueService.forwardQueue(queue,service);
+
+  this.resetInterface();
+  this.actionLoading = false;
+  this.API.socketSend({event:'admin-dashboard-events'}) 
+  this.API.socketSend({event:'queue-events'})
   this.API.sendFeedback('success','Client forwarded!',5000);
-  this.forwardModal = false;
+
 }
   /**
    * Handles the "No Show" action by moving to the next client.
