@@ -506,6 +506,13 @@ export class QueueService  {
     }
   }
 
+  async nextQueueWithFilter(nextQueue:Queue){
+    await this.addQueueToAttended(nextQueue);
+    this.resolveTakenQueue(nextQueue.id);
+    await this.getTodayQueues();
+    return nextQueue;
+}
+
   async getTodayQueues(all:boolean =false){
     const filter = all ? '':`AND (status = 'waiting' OR status ='bottom')`
     const response = await this.API.read({
