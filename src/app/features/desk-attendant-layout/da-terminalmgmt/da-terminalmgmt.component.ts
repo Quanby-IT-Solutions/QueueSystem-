@@ -710,7 +710,7 @@ this.subscription = this.queueService.queue$.subscribe((queueItems: Ticket[]) =>
       let nextTicket: Ticket | undefined;
       let success:boolean = false;
       let index = 0;
-      while(!success || index >= this.tickets.length){
+      while(!success && index < this.tickets.length){
         try{
           nextTicket = this.tickets[index];
           const queue = this.queueService.queue.find(queue=>queue.id ==nextTicket?.id);
