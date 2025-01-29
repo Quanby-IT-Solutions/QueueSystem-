@@ -308,15 +308,16 @@ timerProgress: any;
 
 
     
-    [this.content,this.services,this.lastSession] = await Promise.all([
+    [this.content,this.services] = await Promise.all([
       this.contentService.getContentSetting(),
       this.serviceService.getAllSubServices(),
-      this.terminalService.getActiveSession(),
+      
       this.queueService.getTodayQueues(),
       this.loadFormats(),
       this.updateTerminalData()
     ])
  
+    this.lastSession = await this.terminalService.getActiveSession();
 
     const uniqueServiceIds = new Set<string>();
     this.queueService.queue.forEach(ticket => {
@@ -930,8 +931,8 @@ async forwardClient(service?:string){
 
   this.resetInterface();
   this.actionLoading = false;
-  this.API.socketSend({event:'admin-dashboard-events'}) 
   this.API.socketSend({event:'queue-events'})
+  this.API.socketSend({event:'admin-dashboard-events'}) 
   this.API.sendFeedback('success','Client forwarded!',5000);
 
 }

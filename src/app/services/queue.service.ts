@@ -86,7 +86,6 @@ export class QueueService  {
   // Socket Events
   listenToQueue(){
     this.API.addSocketListener('live-queue-events-listener', (message)=>{
-      if(message.division!= this.divisionService.selectedDivision!.id) return;
       if(message.event =='take-from-queue'){
         this.takenQueue.push(message.queue_id);
         this.getTodayQueues();
@@ -95,7 +94,7 @@ export class QueueService  {
         this.takenQueue  = this.takenQueue.filter(queue=>queue != message.queue_id);
         this.getTodayQueues();
       }
-      if(message.event =='update-queue'){
+      if(message.event =='update-queue' || message.event == 'queue-events'){
         this.getTodayQueues();
       }        
     });
@@ -178,7 +177,7 @@ export class QueueService  {
               status:'waiting',
               timestamp: new DatePipe('en-US').transform(now, 'yyyy-MM-dd HH:mm:ss.SSSSSS') + 'z',
               student_id: info.student_id,
-              collision:  `${formattedDate}:${this.kioskService.kiosk?.id}:${info.type}-${this.queueNumber[info.type]}` ,
+              collision:  `${formattedDate}:${info.type}-${this.queueNumber[info.type]}` ,
             }
           });
           if(!response.success){
@@ -545,6 +544,7 @@ async forwardQueue(nextQueue:Queue, service_id:string){
             // this.returnQueueNumber(info.type,this.kioskService.kiosk?.division_id!);
             throw new Error(response.output);
           }
+          this.API.socketSend({event:'queue-events'})
   await this.getTodayQueues();
 }
 
@@ -748,11 +748,11 @@ async forwardQueue(nextQueue:Queue, service_id:string){
       if(response.success){
         if(response.output.length> 0){
           let format;
-          if(response.output[0].type != 'priority' || response.output[0].type != 'regular'){
+          if(response.output[0].type != 'priority' && response.output[0].type != 'regular'){
             format = await this.formatService.get(response.output[0].type);
           }else{
             format = {
-              id: '0',
+              id:  response.output[0].type,
               name: response.output[0].type,
               prefix: response.output[0].type == 'priority'? 'P':'R'
             }
