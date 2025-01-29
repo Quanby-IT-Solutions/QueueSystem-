@@ -156,7 +156,7 @@ async deleteSubService(id:string){
       selectors: ['services.division_id'],
       tables: 'services,sub_services',
       conditions: `
-        WHERE sub_services.service_id = services.id sub_services.id = '${service_id}'`
+        WHERE sub_services.service_id = services.id AND sub_services.id = '${service_id}'`
     });
 
   if(response.success){

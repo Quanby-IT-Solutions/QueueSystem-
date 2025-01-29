@@ -920,9 +920,7 @@ async forwardClient(service?:string){
   if(this.actionLoading) return;
     this.actionLoading = true;
     this.forwardModal = false;
-  alert(this.currentTicket.id);
-  // If there's a current transaction, finish it first
-  const queue = this.queueService.queue.find(queue=>queue.id ==this.currentTicket?.id);
+  const queue = this.queueService.attendedQueue?.queue;
   await this.queueService.resolveAttendedQueue('finished');
   if(!queue) {
     this.API.sendFeedback('error',`Something went wrong Q`,5000);

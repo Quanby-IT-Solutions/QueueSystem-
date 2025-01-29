@@ -528,7 +528,7 @@ async forwardQueue(nextQueue:Queue, service_id:string){
             values:{
               id: id,
               division_id: division_id,
-              kiosk_id: nextQueue.id,
+              kiosk_id: nextQueue.kiosk_id,
               department_id: nextQueue.department_id,
               fullname: nextQueue.fullname,
               number: nextQueue.number,
