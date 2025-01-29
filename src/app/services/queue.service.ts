@@ -740,11 +740,11 @@ export class QueueService  {
       if(response.success){
         if(response.output.length> 0){
           let format;
-          if(response.output[0].type != 'priority' || response.output[0].type != 'regular'){
+          if(response.output[0].type != 'priority' && response.output[0].type != 'regular'){
             format = await this.formatService.get(response.output[0].type);
           }else{
             format = {
-              id: '0',
+              id: response.output[0].type,
               name: response.output[0].type,
               prefix: response.output[0].type == 'priority'? 'P':'R'
             }
