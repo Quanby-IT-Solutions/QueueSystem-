@@ -68,7 +68,7 @@
       <div class="flex-1"></div>
       <button 
       [disabled]="!currentTicket"
-        (click)="forwardClient()" 
+        (click)="openForwardModal()" 
         class=" text-white px-4 py-2 rounded-md {{currentTicket?'bg-green-800 hover:bg-green-900':'bg-gray-600'}}  transition-colors duration-200 flex items-center space-x-2">
         <span class="material-icons text-sm">arrow_forward</span>
         <span>Forward Client</span>
@@ -396,3 +396,9 @@
     <p class="mt-4 text-gray-600 text-lg">Please Wait</p>
   </div>
 </div>
+
+
+<app-forward
+*ngIf="forwardModal"
+(onClose)="forwardClient($event)"
+/>

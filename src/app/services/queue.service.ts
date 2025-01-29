@@ -9,6 +9,7 @@ import { DatePipe } from '@angular/common';
 import { LogsService } from './logs.service';
 import { FormatService } from './format.service';
 import { Format } from '../features/admin-layout/format-management/types/format.types';
+import { ServiceService } from './service.service';
 
 
 
@@ -49,6 +50,7 @@ export class QueueService  {
   constructor(
     private formatService:FormatService,
     private API:UswagonCoreService,private auth:UswagonAuthService, private logService:LogsService ,
+    private serviceService:ServiceService,
     private divisionService:DivisionService,
     private kioskService:KioskService) {}
 
@@ -511,6 +513,39 @@ export class QueueService  {
     this.resolveTakenQueue(nextQueue.id);
     await this.getTodayQueues();
     return nextQueue;
+}
+
+
+async forwardQueue(nextQueue:Queue, service_id:string){
+  const  division_id = await this.serviceService.getSubServiceDivision(service_id);
+  const id = this.API.createUniqueID32();
+    const  now =  await this.getServerTime();
+    await this.getTodayQueues(true)
+    // this.takeQueueNumber(info.type,this.kioskService.kiosk?.division_id!);
+    const returnIndex = nextQueue.collision?.split('>')[1] ?? 0;
+          const response = await this.API.create({
+            tables: 'queue',
+            values:{
+              id: id,
+              division_id: division_id,
+              kiosk_id: nextQueue.id,
+              department_id: nextQueue.department_id,
+              fullname: nextQueue.fullname,
+              number: nextQueue.number,
+              type: nextQueue.type,
+              gender: nextQueue.gender,
+              services:  service_id,
+              status:'waiting',
+              timestamp: new DatePipe('en-US').transform(now, 'yyyy-MM-dd HH:mm:ss.SSSSSS') + 'z',
+              student_id: nextQueue.student_id,
+              collision:  nextQueue.collision?.split('>')[0] + ">"+ Number(returnIndex) + 1,
+            }
+          });
+          if(!response.success){
+            // this.returnQueueNumber(info.type,this.kioskService.kiosk?.division_id!);
+            throw new Error(response.output);
+          }
+  await this.getTodayQueues();
 }
 
   async getTodayQueues(all:boolean =false){

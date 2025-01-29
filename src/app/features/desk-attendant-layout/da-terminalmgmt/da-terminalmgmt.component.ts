@@ -18,6 +18,7 @@ import { ServiceService } from '../../../services/service.service';
 import { LogsService } from '../../../services/logs.service';
 import { Format } from '../../admin-layout/format-management/types/format.types';
 import { FormatService } from '../../../services/format.service';
+import { ForwardComponent } from './modals/forward/forward.component';
 
 
 interface Terminal{
@@ -83,7 +84,7 @@ interface Service {
     MatIconModule,
     MatTabsModule,
     LottieAnimationComponent,
-    ConfirmationComponent,
+    ConfirmationComponent, ForwardComponent,
   ]
 })
 export class DaTerminalmgmtComponent implements OnInit, OnDestroy {
@@ -105,6 +106,12 @@ export class DaTerminalmgmtComponent implements OnInit, OnDestroy {
   tickets: Ticket[] = [
     
   ];
+
+  forwardModal:boolean = false;
+  
+  openForwardModal(){
+    this.forwardModal = true;
+  }
 
   currentClientDetails: ClientDetails | null = null;
 
@@ -593,7 +600,27 @@ this.subscription = this.queueService.queue$.subscribe((queueItems: Ticket[]) =>
 
 
       // Use the type-based nextQueue method
-      const nextTicket = await this.queueService.nextQueue('priority');
+      let nextTicket: Ticket | undefined;
+      let success:boolean = false;
+      let index = 0;
+      while(!success || index >= this.tickets.length){
+        try{
+          nextTicket = this.tickets[index];
+          const queue = this.queueService.queue.find(queue=>queue.id ==nextTicket?.id);
+          if(!queue){
+            success = true;
+            break;
+          }
+          await this.queueService.nextQueueWithFilter(nextTicket)
+          success=true;
+        }catch(e:any){
+          if(e.message.includes('Server Error')){ 
+            nextTicket = undefined;
+            success=true;
+          }
+          index++;
+        }
+      }
       this.API.socketSend({event:'queue-events'})
       this.API.socketSend({event:'admin-dashboard-events'})
       if (nextTicket) {
@@ -664,15 +691,29 @@ this.subscription = this.queueService.queue$.subscribe((queueItems: Ticket[]) =>
 
       // Use the selected ticket type if available
       let nextTicket: Ticket | undefined;
-      if (this.selectedTicket && this.isManualSelectActive) {
-        // Use the existing queue type-based method
-
-        nextTicket = await this.queueService.nextQueue(this.selectedTicket.type);
-      } else {
-        // Get next ticket without type specification
-
-        nextTicket = await this.queueService.nextQueue();
+      let success:boolean = false;
+      let index = 0;
+      while(!success || index >= this.tickets.length){
+        try{
+          nextTicket = this.tickets[index];
+          const queue = this.queueService.queue.find(queue=>queue.id ==nextTicket?.id);
+          if(!queue){
+            success = true;
+            break;
+          }
+          await this.queueService.nextQueueWithFilter(nextTicket)
+          success=true;
+        }catch(e:any){
+          if(e.message.includes('Server Error')){ 
+            nextTicket = undefined;
+            success=true;
+          }
+          index++;
+        }
       }
+      
+      this.API.socketSend({event:'queue-events'})
+      this.API.socketSend({event:'admin-dashboard-events'})
 
       if (nextTicket) {
         this.logService.pushLog('transaction-start',`started a transaction (regular).`);
@@ -870,17 +911,29 @@ this.subscription = this.queueService.queue$.subscribe((queueItems: Ticket[]) =>
     }
 }
 
-async forwardClient(){
+
+async forwardClient(service?:string){
+  if(!service){
+    this.API.sendFeedback('error',`Select forward destination`,5000);
+    this.forwardModal = false;
+    return ;
+  }
   // If there's a current transaction, finish it first
   if (this.currentTicket) {
     await this.queueService.resolveAttendedQueue('finished');
     this.resetInterface();
     this.API.socketSend({event:'queue-events'})
-    this.API.socketSend({event:'admin-dashboard-events'})
-    this.API.sendFeedback('success','Transaction successful!',5000);
-    
+    this.API.socketSend({event:'admin-dashboard-events'}) 
     return;
   }
+  const queue = this.queueService.queue.find(queue=>queue.id ==this.currentTicket?.id);
+  if(!queue) {
+    this.API.sendFeedback('error',`Something went wrong`,5000);
+    return;
+  }
+  await this.queueService.forwardQueue(queue,service);
+  this.API.sendFeedback('success','Client forwarded!',5000);
+  this.forwardModal = false;
 }
   /**
    * Handles the "No Show" action by moving to the next client.

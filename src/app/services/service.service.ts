@@ -151,6 +151,22 @@ async deleteSubService(id:string){
       }
  }
 
+ async getSubServiceDivision(service_id:string){
+  const response = await this.API.read({
+      selectors: ['services.division_id'],
+      tables: 'services,sub_services',
+      conditions: `
+        WHERE sub_services.service_id = services.id sub_services.id = '${service_id}'`
+    });
+
+  if(response.success){
+    return response.output[0]?.division_id;
+  }else{
+    throw new Error('Unable to fetch service division');
+  }
+}
+
+
  async getAllSubServices(){
   const response = await this.API.read({
       selectors: ['sub_services.*','services.name as service_name','divisions.name as division_name'],
