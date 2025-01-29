@@ -314,10 +314,10 @@
     </div>
   </div> -->
   <app-feedback
-    *ngIf="modal == 'success'"
-    title="You're in Line!"
+  *ngIf="modal == 'success'"
+  title="You're in Line!"
     [description]="successDescription"
-    details="Thank you for your patience!"
+    [details]="details"
     animation="check"
     sound="notif.mp3"
     (onClose)="closeFeedback()"
@@ -335,7 +335,7 @@
     *ngIf="modal =='priority'"
     title="You are in Line!"
     [description]="successDescription"
-    [details]="priorityDetails"
+    [details]="priorityDetails + details"
     animation="check"
     sound="notif.mp3"
     (onClose)="closeFeedback()"

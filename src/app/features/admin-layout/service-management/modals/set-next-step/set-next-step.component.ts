@@ -18,10 +18,10 @@ export class SetNextStepComponent implements OnInit {
    subservices?:SubService[];
    services?:Service[];
    divisions:Division[] = [];
-    
+   
     actionLoading:boolean = false;
 
-    ngOnInit(): void {
+    ngOnInit(): void {   
       this.fetchData();
     }
 

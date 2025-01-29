@@ -79,10 +79,28 @@ async addSubService(service_id:string,name:string){
 }
 
 async updateForwardToService(id:string, service_id:string){
+  const responseGet = await this.API.read({
+    selectors: ['*'],
+    tables: 'sub_services',
+    conditions: `WHERE id = '${id}'`
+  });
+
+  if(!responseGet.success){
+    throw new Error('Something went wrong.');
+  }  
+  let descObj:any = {};
+  if(responseGet.output[0].description){
+    try{
+        descObj = JSON.parse(responseGet.output[0].description);
+    }catch(e){}
+  }
+  
+  descObj.forwards = service_id;
+  
   const response = await this.API.update({
     tables: 'sub_services',
     values:{
-      description:service_id
+      description: JSON.stringify(descObj),
     }  ,
     conditions: `WHERE id = '${id}'`
   });

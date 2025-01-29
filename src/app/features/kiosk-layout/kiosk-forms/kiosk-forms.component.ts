@@ -1,7 +1,7 @@
 //kiosk-forms.component.ts
 import { AfterViewInit, Component, ElementRef, model, OnDestroy, OnInit, Renderer2 } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { CommonModule,  } from '@angular/common';
+import { CommonModule, } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import jsPDF from 'jspdf';
 import { UswagonCoreService } from 'uswagon-core';
@@ -25,7 +25,7 @@ import { VirtualKeyboardComponent } from './virtual-keyboard.component';
 @Component({
   selector: 'app-kiosk-forms',
   standalone: true,
-  imports: [CommonModule, FormsModule, FeedbackComponent,SnackbarComponent,ConfirmationComponent, LottieAnimationComponent,  VirtualKeyboardComponent],
+  imports: [CommonModule, FormsModule, FeedbackComponent, SnackbarComponent, ConfirmationComponent, LottieAnimationComponent, VirtualKeyboardComponent],
   templateUrl: './kiosk-forms.component.html',
   styleUrls: ['./kiosk-forms.component.css']
 })
@@ -42,58 +42,59 @@ export class KioskFormsComponent implements OnInit, OnDestroy, AfterViewInit {
   activeInput: 'name' | 'studentNumber' | null = null;
   queueNumber: string | null = null;
   selectedServices: Service[] = [];
-  selectedType: 'regular' | 'priority'|string = 'regular';
+  selectedType: 'regular' | 'priority' | string = 'regular';
   customerName: string = '';
   group: string = '';
   gender: string = '';
   department: string = '';
   studentNumber: string = '';
 
-  services:Service[]= [];
-  subServices:SubService[]= [];
-  allSubServices:SubService[]=[];
-  filteredServiceChecklist:SubService[] = [...this.subServices];
+  services: Service[] = [];
+  subServices: SubService[] = [];
+  allSubServices: SubService[] = [];
+  filteredServiceChecklist: SubService[] = [...this.subServices];
   searchTerm: string = '';
   isDropdownOpen: boolean = false;
-  division?:Division;
+  division?: Division;
 
-  formats:Format[]=[];
-  departments:Department[] = [];
-  divisions:Division[] = [];
-  serviceInterval:any;
-  timeInterval:any;
+  formats: Format[] = [];
+  departments: Department[] = [];
+  divisions: Division[] = [];
+  serviceInterval: any;
+  timeInterval: any;
   successDescription = '';
+  details = '';
   priorityDetails = `<div class='flex flex-col leading-none py-2 gap-2'>
     Please ensure that you have VALID ID to be considered as priority. <div class="text-sm px-6  text-red-900/85 ">* Without ID desk attendants are ALLOWED to put you at the bottom of queue.</div>
   </div> `;
 
-  isLoading:boolean = true;
+  isLoading: boolean = true;
 
-  refreshInterval:any;
+  refreshInterval: any;
 
   constructor(private route: ActivatedRoute,
     private queueService: QueueService,
     private kioskService: KioskService,
     private divisionService: DivisionService,
-    private serviceService:ServiceService,
-    private departmentService:DepartmentService,
-    private formatService:FormatService,
-    private contentService:ContentService, 
-    private router:Router,
+    private serviceService: ServiceService,
+    private departmentService: DepartmentService,
+    private formatService: FormatService,
+    private contentService: ContentService,
+    private router: Router,
     private renderer: Renderer2, private el: ElementRef,
-    private API: UswagonCoreService) {}
+    private API: UswagonCoreService) { }
 
- 
+
   config = config
-  modal?:'priority'|'success'|'error'|string;
-  content:any;
-  printer?:string;
+  modal?: 'priority' | 'success' | 'error' | string;
+  content: any;
+  printer?: string;
 
-  openFeedback(type:'priority'|'success'){
+  openFeedback(type: 'priority' | 'success') {
     this.modal = type;
   }
 
-  closeFeedback(){
+  closeFeedback() {
     this.modal = undefined;
     this.goBackSelection();
   }
@@ -105,23 +106,23 @@ export class KioskFormsComponent implements OnInit, OnDestroy, AfterViewInit {
     }
   }
 
-  async updateSubServices(){
-    this.subServices = this.allSubServices.filter((subservice)=>subservice.service_id == this.group);
+  async updateSubServices() {
+    this.subServices = this.allSubServices.filter((subservice) => subservice.service_id == this.group);
     this.isDropdownOpen = false;
     this.selectedServices = [];
 
   }
 
 
-  showServiceNames(){
-    return this.selectedServices.map(item=>item.name).join(', ')
+  showServiceNames() {
+    return this.selectedServices.map(item => item.name).join(', ')
   }
 
   ngOnDestroy(): void {
-    if(this.serviceInterval){
+    if (this.serviceInterval) {
       clearInterval(this.serviceInterval)
     }
-    if(this.timeInterval){
+    if (this.timeInterval) {
       clearInterval(this.timeInterval);
     }
     clearInterval(this.refreshInterval);
@@ -138,30 +139,30 @@ export class KioskFormsComponent implements OnInit, OnDestroy, AfterViewInit {
     });
   }
 
-  private serverTimeDifference?:number;
+  private serverTimeDifference?: number;
 
-  private  getServerTime(){
-      return new Date(new Date().getTime() + this.serverTimeDifference!);
-    }
+  private getServerTime() {
+    return new Date(new Date().getTime() + this.serverTimeDifference!);
+  }
 
 
   async ngOnInit() {
     this.printer = this.route.snapshot.params['printer'];
 
-    if(!this.printer){
+    if (!this.printer) {
       alert('No printer found')
     }
-    
-    this.isLoading =true;
-    if(this.serverTimeDifference == undefined) {
+
+    this.isLoading = true;
+    if (this.serverTimeDifference == undefined) {
       const serverTimeString = await this.API.serverTime();
       const serverTime = new Date(serverTimeString);
       const localTime = new Date();
-      this.serverTimeDifference =  serverTime.getTime() - localTime.getTime();
+      this.serverTimeDifference = serverTime.getTime() - localTime.getTime();
     }
-    this.timeInterval = setInterval(()=>{
+    this.timeInterval = setInterval(() => {
       this.currentDate = this.getServerTime();
-    },1000)
+    }, 1000)
     this.route.queryParams.subscribe(params => {
       this.departmentName = params['department'] || 'Department Name';
     });
@@ -169,10 +170,10 @@ export class KioskFormsComponent implements OnInit, OnDestroy, AfterViewInit {
     if (this.kioskService.kiosk != undefined) {
       this.kioskService.kiosk = await this.kioskService.getKiosk(this.kioskService.kiosk.id!);
 
-      this.division =await  this.divisionService.getDivision(this.kioskService.kiosk.division_id)
+      this.division = await this.divisionService.getDivision(this.kioskService.kiosk.division_id)
       this.divisionService.setDivision(this.division!);
       this.queueService.getTodayQueues(true);
-      
+
       this.content = await this.contentService.getContentSetting(this.division!.id);
       this.API.setLoading(false);
     } else {
@@ -183,55 +184,55 @@ export class KioskFormsComponent implements OnInit, OnDestroy, AfterViewInit {
     this.services = await this.serviceService.getAllServices(this.divisionService.selectedDivision?.id!);
     this.allSubServices = await this.serviceService.getAllSubServices();
     this.formats = await this.formatService.getFrom(this.divisionService.selectedDivision!.id);
-    if(this.formats.length <= 0){
+    if (this.formats.length <= 0) {
       this.formats = [
         {
           id: 'priority',
-          name:'priority',
-          prefix:'P'
+          name: 'priority',
+          prefix: 'P'
         },
         {
           id: 'regular',
-          name:'regular',
-          prefix:'R'
+          name: 'regular',
+          prefix: 'R'
         }
       ]
     }
     this.departments = await this.departmentService.getAllDepartments();
     this.divisions = await this.divisionService.getDivisions();
-    if(this.serviceInterval){
+    if (this.serviceInterval) {
       clearInterval(this.serviceInterval)
     }
 
-    this.API.addSocketListener('listen-kiosk-content', async (message)=>{
-      if(message.event == 'kiosk-events' ){
+    this.API.addSocketListener('listen-kiosk-content', async (message) => {
+      if (message.event == 'kiosk-events') {
         this.kioskService.kiosk = await this.kioskService.getKiosk(this.kioskService.kiosk!.id!);
-        this.division =await  this.divisionService.getDivision(this.kioskService.kiosk.division_id)
+        this.division = await this.divisionService.getDivision(this.kioskService.kiosk.division_id)
         this.divisionService.setDivision(this.division!);
         this.services = await this.serviceService.getAllServices(this.divisionService.selectedDivision?.id!);
-        if(this.formats.length <= 0){
+        if (this.formats.length <= 0) {
           this.formats = [
             {
               id: 'priority',
-              name:'priority',
-              prefix:'P'
+              name: 'priority',
+              prefix: 'P'
             },
             {
               id: 'regular',
-              name:'regular',
-              prefix:'R'
+              name: 'regular',
+              prefix: 'R'
             }
           ]
         }
       }
-   })
+    })
     this.queueService.listenToQueue();
     this.isLoading = false;
-    this.refreshInterval = setInterval(()=>{
-      this.API.socketSend({'refresh':true});
-    },1000);
+    this.refreshInterval = setInterval(() => {
+      this.API.socketSend({ 'refresh': true });
+    }, 1000);
   }
-  
+
 
   handleButtonClick(type: string): void {
     this.isChecklistVisible = true;
@@ -242,7 +243,7 @@ export class KioskFormsComponent implements OnInit, OnDestroy, AfterViewInit {
     const service = this.subServices.find(item => item.id === service_id);
     if (service) {
 
-      if (!this.selectedServices.find(item=>item.id == service_id)) {
+      if (!this.selectedServices.find(item => item.id == service_id)) {
         this.selectedServices.push(service);
       } else {
         this.selectedServices = this.selectedServices.filter(service => service.id !== service_id);
@@ -255,13 +256,13 @@ export class KioskFormsComponent implements OnInit, OnDestroy, AfterViewInit {
       item.name.toLowerCase().includes(this.searchTerm.toLowerCase())
     );
   }
-  
+
 
   async confirmChecklist() {
-    try{
+    try {
       await this.submitForm();
-    }catch(e){
-      this.API.sendFeedback('error','Something went wrong.', 5000);
+    } catch (e) {
+      this.API.sendFeedback('error', 'Something went wrong.', 5000);
     }
   }
 
@@ -275,101 +276,127 @@ export class KioskFormsComponent implements OnInit, OnDestroy, AfterViewInit {
     this.showModal = false;
   }
   goBackSelection(): void {
-   localStorage.removeItem('kiosk');
-   this.router.navigate(['/kiosk/selection', {printer:this.printer}]);
+    localStorage.removeItem('kiosk');
+    this.router.navigate(['/kiosk/selection', { printer: this.printer }]);
   }
 
   closeModal(): void {
     this.showModal = false;
   }
 
-  confirmPriority(){
+  confirmPriority() {
     this.modal = 'priority';
   }
 
   async submitForm() {
     this.isDropdownOpen = false;
-    if(this.isLoading){
+    if (this.isLoading) {
       return;
     }
     if (!this.kioskService.kiosk) {
       throw new Error('Invalid method!');
     }
-  this.isLoading = true;
+    this.isLoading = true;
 
-  if(this.selectedServices.length <=0){
-    this.API.sendFeedback('error','Please select a service!', 5000);
-    this.isLoading =false;
-    return
-  }
-
-  if(this.customerName.trim() == ''){
-    this.API.sendFeedback('error','Fullname is required!',5000);
-       this.isLoading =false;
-    return
-  }
-  if(this.gender.trim() == ''){
-    this.API.sendFeedback('error','Gender is required!',5000);
-    this.isLoading =false;
-    return
-  }
-   try{
-    const currentQueueCountToday = (await this.queueService.getTodayQueues(true)).length;
-    if(currentQueueCountToday > 3){
-
+    if (this.selectedServices.length <= 0) {
+      this.API.sendFeedback('error', 'Please select a service!', 5000);
+      this.isLoading = false;
+      return
     }
-    const number = await this.queueService.addToQueue({
-      fullname: this.customerName.trim(),
-      type: this.selectedType,
-      tag: this.selectedType[0].toUpperCase(),
-      gender: this.gender.toLowerCase() as 'male' | 'female' | 'other',
-      services: this.selectedServices.map(item=>item.id!),
-      student_id: this.studentNumber.trim() == '' ? undefined : this.studentNumber.trim(),
-      department_id: this.department.trim() == '' ? undefined : this.department.trim(),
-    });
-    this.API.socketSend({event:'queue-events'})
-    this.API.socketSend({event:'admin-dashboard-events'})
-    this.successDescription = `Your current position is <span class='font-medium'>${this.formats.find((format)=>format.id == this.selectedType)?.prefix}-${number.toString().padStart(3,'0')}</span>`
-    const code = `${this.formats.find((format)=>format.id == this.selectedType)?.prefix}-${number.toString().padStart(3,'0')}`;
-    this.kioskService.thermalPrintUSB(
-      this.printer!,
-      {
-      number:code,
-      name: this.customerName,
-      gender:this.gender,
-      id:this.studentNumber.trim() == '' ? undefined : this.studentNumber.trim(),
-      location: this.department.trim() == '' ? undefined : this.department.trim(),
-      date: this.currentDate.toLocaleDateString(),
-      time:this.currentDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-      services: this.selectedServices.map(service=> service.name)
-    })
-    // Reset
-    this.selectedServices = this.subServices
-    .filter(item => item.selected)
-    this.isChecklistVisible = true;
-    this.isFormVisible = false;
-    this.gender = '';
-    this.department = '';
-    this.customerName = '';
-    this.studentNumber = '';
-    // Loading to false
-    this.isLoading =false;
-    // Send feedback
-    this.openFeedback( this.selectedType != 'priority' ? 'success':'priority');
-   }catch(e:any){
-    this.isLoading =false;
-    this.API.sendFeedback('error','Something went wrong.',5000);
-   }
 
+    if (this.customerName.trim() == '') {
+      this.API.sendFeedback('error', 'Fullname is required!', 5000);
+      this.isLoading = false;
+      return
+    }
+    if (this.gender.trim() == '') {
+      this.API.sendFeedback('error', 'Gender is required!', 5000);
+      this.isLoading = false;
+      return
+    }
+    try {
+      const currentQueueCountToday = (await this.queueService.getTodayQueues(true)).length;
+      if (currentQueueCountToday > 3) {
+
+      }
+      const number = await this.queueService.addToQueue({
+        fullname: this.customerName.trim(),
+        type: this.selectedType,
+        tag: this.selectedType[0].toUpperCase(),
+        gender: this.gender.toLowerCase() as 'male' | 'female' | 'other',
+        services: this.selectedServices.map(item => item.id!),
+        student_id: this.studentNumber.trim() == '' ? undefined : this.studentNumber.trim(),
+        department_id: this.department.trim() == '' ? undefined : this.department.trim(),
+      });
+      this.API.socketSend({ event: 'queue-events' })
+      this.API.socketSend({ event: 'admin-dashboard-events' })
+      this.successDescription = `
+      <div>
+        Your current position is <span class='font-medium'>${this.formats.find((format) => format.id == this.selectedType)?.prefix}-${number.toString().padStart(3, '0')}</span>
+      </div>
+    `
+
+      this.details = `
+        
+    <div class="w-full flex gap-2 justify-center ">
+       --- - - - - ${this.currentDate.toLocaleDateString()} ${this.currentDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} - - - - ---
+      </div>
+
+        
+      <div class="w-full flex gap-2 justify-center ">
+         <span class="text-md font-medium">Selected Services: </span><span class="text-md">${this.selectedServices.map(item => item.name!).join(', ')}</span>
+      </div>
 
    
+    <div class="w-full flex gap-2 justify-center ">
+        <span class="">--- - - - - ${this.division?.name} - - - - ---</span>
+      </div>
+      
+   
+      <div class="w-full flex gap-2 justify-center  ">
+          Thank you for your Patience!
+      </div>
+    `
+      const code = `${this.formats.find((format) => format.id == this.selectedType)?.prefix}-${number.toString().padStart(3, '0')}`;
+      this.kioskService.thermalPrintUSB(
+        this.printer!,
+        {
+          number: code,
+          name: this.customerName,
+          gender: this.gender,
+          id: this.studentNumber.trim() == '' ? undefined : this.studentNumber.trim(),
+          location: this.department.trim() == '' ? undefined : this.department.trim(),
+          date: this.currentDate.toLocaleDateString(),
+          time: this.currentDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+          services: this.selectedServices.map(service => service.name)
+        })
+      // Reset
+      this.selectedServices = this.subServices
+        .filter(item => item.selected)
+      this.isChecklistVisible = true;
+      this.isFormVisible = false;
+      this.gender = '';
+      this.department = '';
+      this.customerName = '';
+      this.studentNumber = '';
+      // Loading to false
+      this.isLoading = false;
+      // Send feedback
+      this.openFeedback(this.selectedType != 'priority' ? 'success' : 'priority');
+    } catch (e: any) {
+      this.isLoading = false;
+      this.API.sendFeedback('error', 'Something went wrong.', 5000);
+    }
+
+
+
   }
 
   showVirtualKeyboard(inputField: 'name' | 'studentNumber') {
     this.activeInput = inputField;
     this.showKeyboard = true;
   }
-  
+
   handleKeyboardInput(value: string) {
     if (this.activeInput === 'name') {
       this.customerName = value;
@@ -377,46 +404,46 @@ export class KioskFormsComponent implements OnInit, OnDestroy, AfterViewInit {
       this.studentNumber = value;
     }
   }
-  
+
   closeKeyboard() {
     this.showKeyboard = false;
     this.activeInput = null;
   }
 
 
-//   async printImage(code: string) {
-//     const ticketWidth = 500;  // 483 pixels wide
-//     const ticketHeight = 690; // 371 pixels tall
-//     const margin = 20; // Add margin in pixels
+  //   async printImage(code: string) {
+  //     const ticketWidth = 500;  // 483 pixels wide
+  //     const ticketHeight = 690; // 371 pixels tall
+  //     const margin = 20; // Add margin in pixels
 
-//     // Create a temporary container for the content
-//     const container = document.createElement('div');
-//     container.style.width = `${ticketWidth}px`;
-//     container.style.height = `${ticketHeight}px`;
-//     container.style.position = 'absolute';
-//     container.style.visibility = 'hidden';
+  //     // Create a temporary container for the content
+  //     const container = document.createElement('div');
+  //     container.style.width = `${ticketWidth}px`;
+  //     container.style.height = `${ticketHeight}px`;
+  //     container.style.position = 'absolute';
+  //     container.style.visibility = 'hidden';
 
-//     document.body.appendChild(container);
+  //     document.body.appendChild(container);
 
-//     try {
-//         this.kioskService.thermalPrint({
-//           number:code,
-//           name: this.customerName,
-//           gender:this.gender,
-//           id:this.studentNumber.trim() == '' ? undefined : this.studentNumber.trim(),
-//           location: this.department.trim() == '' ? undefined : this.department.trim(),
-//           date: this.currentDate.toLocaleDateString(),
-//           time:this.currentTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-//           services: this.selectedServices.map(service=> service.name)
-//         })
-//     } catch (error) {
-//         // alert();
-//     } finally {
-//         // Clean up the temporary container
-//         document.body.removeChild(container);
-//     }
-// }
-// Helper function to convert image to base64
+  //     try {
+  //         this.kioskService.thermalPrint({
+  //           number:code,
+  //           name: this.customerName,
+  //           gender:this.gender,
+  //           id:this.studentNumber.trim() == '' ? undefined : this.studentNumber.trim(),
+  //           location: this.department.trim() == '' ? undefined : this.department.trim(),
+  //           date: this.currentDate.toLocaleDateString(),
+  //           time:this.currentTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+  //           services: this.selectedServices.map(service=> service.name)
+  //         })
+  //     } catch (error) {
+  //         // alert();
+  //     } finally {
+  //         // Clean up the temporary container
+  //         document.body.removeChild(container);
+  //     }
+  // }
+  // Helper function to convert image to base64
 
   private getBase64Image(url: string): Promise<string> {
     return new Promise((resolve, reject) => {

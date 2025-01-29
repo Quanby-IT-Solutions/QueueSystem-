@@ -21,7 +21,7 @@
                 <ng-container *ngIf="!services" >
                     <button 
                     (click)="setDivision(item)"
-                    *ngFor="let item of divisions" class="w-full flex justify-between px-3 py-2 rounded-lg bg-blue-500 hover:bg-blue-600 transition-all text-white font-medium text-xl tracking-wide">
+                    *ngFor="let item of divisions" class="w-full flex justify-between px-3 py-2 rounded-lg bg-[var(--primary)] hover:bg-[var(--primary-dark)] transition-all text-white font-medium text-xl tracking-wide">
                         <span>{{item.name}}</span>
                         <span class="material-icons text-white group-hover:text-white">navigate_next</span>
                     </button>
@@ -30,7 +30,7 @@
                 <ng-container *ngIf="services && !subservices" >
                     <button 
                     (click)="setService(item)"
-                    *ngFor="let item of services" class="w-full flex justify-between px-3 py-2 rounded-lg bg-blue-500 hover:bg-blue-600 transition-all text-white font-medium text-xl tracking-wide">
+                    *ngFor="let item of services" class="w-full flex justify-between px-3 py-2 rounded-lg bg-[var(--primary)] hover:bg-[var(--primary-dark)] transition-all text-white font-medium text-xl tracking-wide">
                         <span>{{item.name}}</span>
                         <span class="material-icons text-white group-hover:text-white">navigate_next</span>
                     </button>
@@ -39,7 +39,7 @@
                 <ng-container *ngIf="subservices" >
                     <button 
                     (click)="set(item)"
-                    *ngFor="let item of subservices" class="w-full flex justify-between px-3 py-2 rounded-lg bg-blue-500 hover:bg-blue-600 transition-all text-white font-medium text-xl tracking-wide">
+                    *ngFor="let item of subservices" class="w-full flex justify-between px-3 py-2 rounded-lg bg-[var(--primary)] hover:bg-[var(--primary-dark)] transition-all text-white font-medium text-xl tracking-wide">
                         <span>{{item.name}}</span>
                     </button>
                     <div *ngIf="!subservices.length" class="w-full py-10 flex justify-center"> No items found. </div>

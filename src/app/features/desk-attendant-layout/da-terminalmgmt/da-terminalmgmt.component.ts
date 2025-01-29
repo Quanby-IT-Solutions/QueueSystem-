@@ -19,6 +19,7 @@ import { LogsService } from '../../../services/logs.service';
 import { Format } from '../../admin-layout/format-management/types/format.types';
 import { FormatService } from '../../../services/format.service';
 import { ForwardComponent } from './modals/forward/forward.component';
+import { SubService } from '../../kiosk-layout/types/kiosk-layout.types';
 
 
 interface Terminal{
@@ -662,9 +663,27 @@ this.subscription = this.queueService.queue$.subscribe((queueItems: Ticket[]) =>
     }
 }
 
+ getSubServiceDetails(service?:SubService){
+    if(!service)return{};
+    if(service.description){
+      try{
+        return JSON.parse(service.description);
+      }catch(e){
+        return {}
+      }
+    }else{
+      return {};
+    }
+  }
 
+  forwardingClient:boolean = false;
 
-  async nextClient() {
+  getLastQueue(){
+    const service = this.services.find(s=> s.id == this.queueService.attendedQueue?.queue?.services.trim());
+    return service as SubService|undefined;
+  }
+
+  async nextClient(pass:boolean = false) {
     if (this.actionLoading) return;
     try {
       this.actionLoading = true;
@@ -676,6 +695,17 @@ this.subscription = this.queueService.queue$.subscribe((queueItems: Ticket[]) =>
 
       // If there's a current transaction, finish it first
       if (this.currentTicket) {
+        if(!pass){
+          const service = this.services.find(s=> s.id == this.queueService.attendedQueue?.queue?.services.trim());
+        if(service){
+          const forward = this.getSubServiceDetails(service).forwards;
+          if(forward){
+            this.actionLoading = false;
+            this.forwardingClient = true;
+            return;
+          }
+        }
+        }
         await this.queueService.resolveAttendedQueue('finished');
         this.resetInterface();
         this.API.sendFeedback('success','Transaction successful!',5000);
@@ -924,7 +954,7 @@ async forwardClient(service?:string){
   const queue = this.queueService.attendedQueue?.queue;
   await this.queueService.resolveAttendedQueue('finished');
   if(!queue) {
-    this.API.sendFeedback('error',`Something went wrong Q`,5000);
+    this.API.sendFeedback('error',`Something went wrong`,5000);
     return;
   }
   await this.queueService.forwardQueue(queue,service);
@@ -933,7 +963,7 @@ async forwardClient(service?:string){
   this.actionLoading = false;
   this.API.socketSend({event:'queue-events'})
   this.API.socketSend({event:'admin-dashboard-events'}) 
-  this.API.sendFeedback('success','Client forwarded!',5000);
+  this.API.sendFeedback('success','Client forwarded to next step!',5000);
 
 }
   /**

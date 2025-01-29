@@ -110,7 +110,7 @@
               </div>
               <div class="flex-1">
                 <span class="font-medium">Forwards to: </span>
-                <span class="opacity-75">{{getSubServiceName(service.description)}}</span>
+                <span class="opacity-75">{{(getSubServiceName(getSubServiceDetails(service)?.forwards)) ?? 'None'}}</span>
               </div>
 
               <div class="flex w-full mt-2">
@@ -174,5 +174,5 @@
   <app-set-next-step
 *ngIf="modalType == 'step'"
 [subservice]="selectedSubService"
-(onClose)="closeNextStep()"
+(onClose)="closeNextStep($event)"
 />

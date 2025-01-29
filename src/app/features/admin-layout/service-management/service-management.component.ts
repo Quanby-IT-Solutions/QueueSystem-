@@ -56,15 +56,30 @@ export class ServiceManagementComponent {
     if(id){
       const sub = this.allSubServices.find(s=>s.id == id);
       return sub?.name;
-      
     }else{
       return null;
     }
   }
 
+  
+  
+  getSubServiceDetails(service?:SubService){
+    if(!service)return{};
+    if(service.description){
+      try{
+        return JSON.parse(service.description);
+      }catch(e){
+        return {}
+      }
+    }else{
+      return {};
+    }
+  }
 
-  async closeNextStep(){
+
+  async closeNextStep(reload:boolean){
     this.modalType = undefined;
+    if(!reload) return;
     this.API.setLoading(true);
     this.services = (await this.serviceService.getAllServices(this.selectedDivision!));
     this.subServices = (await this.serviceService.getSubServices(this.serviceOpen?.id!));

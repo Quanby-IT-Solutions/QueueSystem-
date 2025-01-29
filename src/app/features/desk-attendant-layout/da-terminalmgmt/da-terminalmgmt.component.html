@@ -389,6 +389,16 @@
   animation="yellowWarning">
 </app-confirmation>
 
+<app-confirmation
+  *ngIf="forwardingClient"
+  type="custom"
+  (onCancel)="forwardingClient = false;nextClient(true)"
+  (onConfirm)="forwardingClient = false; forwardClient(getLastQueue()?.id)"
+  title="Forward Client to [{{getLastQueue()?.name}}]?"
+  description="Forward this client to Next Step?"
+  animation="yellowWarning">
+</app-confirmation>
+
 <!-- Global Loading Overlay -->
 <div *ngIf="actionLoading" class="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
   <div class="bg-white p-8 rounded-lg shadow-xl flex flex-col items-center">
