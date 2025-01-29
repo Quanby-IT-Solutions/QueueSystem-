@@ -869,6 +869,19 @@ this.subscription = this.queueService.queue$.subscribe((queueItems: Ticket[]) =>
         return terminal._status; 
     }
 }
+
+async forwardClient(){
+  // If there's a current transaction, finish it first
+  if (this.currentTicket) {
+    await this.queueService.resolveAttendedQueue('finished');
+    this.resetInterface();
+    this.API.socketSend({event:'queue-events'})
+    this.API.socketSend({event:'admin-dashboard-events'})
+    this.API.sendFeedback('success','Transaction successful!',5000);
+    
+    return;
+  }
+}
   /**
    * Handles the "No Show" action by moving to the next client.
    */
