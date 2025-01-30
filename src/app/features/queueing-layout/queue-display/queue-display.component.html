@@ -246,12 +246,7 @@
                     <div class="queue-item-container h-full shadow-lg gap-4 flex justify-start items-center px-4 py-1
                     min-[3500px]:border-8 min-[3500px]:rounded-3xl min-[3500px]:gap-12
                     min-[3500px]:px-14 min-[3500px]:py-10">
-                      <img 
-                      *ngIf="item.avatar != '/assets/default.jpg' "
-                      [src]="item.avatar !"
-                        class="queue-item-icon w-10 h-10 rounded-full">
                       <div 
-                      *ngIf="item.avatar == '/assets/default.jpg'"
                       class="queue-item-icon w-10 h-10 rounded-full"
                         [ngStyle]="{
                           backgroundColor: item.ticket?.queue?.color ?? 'var(--primary-dark)'
