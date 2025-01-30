@@ -8,6 +8,7 @@ import { FormsModule } from '@angular/forms';
 import { config } from '../../../../environment/config';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { LogsService } from '../../../services/logs.service';
+import { UserService } from '../../../services/user.service';
 
 @Component({
   selector: 'app-login-layout',
@@ -71,6 +72,7 @@ export class LoginLayoutComponent implements OnInit, AfterViewInit {
 
   constructor(
     private route:ActivatedRoute,
+    private user:UserService,
     private router: Router, private auth:UswagonAuthService,
     public sanitizer: DomSanitizer) {
   // Set up video URL with high quality parameters
@@ -134,7 +136,6 @@ export class LoginLayoutComponent implements OnInit, AfterViewInit {
     const userole = this.auth.accountLoggedIn();
 
     if(userole == 'desk_attendants'){
-      
       this.router.navigate(['/desk-attendant/dashboard']);
     }
     if(userole != null){
@@ -143,6 +144,14 @@ export class LoginLayoutComponent implements OnInit, AfterViewInit {
 
     this.returnUrl = this.route.snapshot.queryParams['returnUrl'] || '/';
     this.selectedRole = this.route.snapshot.queryParams['role'] || '';
+    const last_login = this.user.lastLogin;
+    if(last_login == 'desk_attendants'){
+      
+      this.router.navigate(['/login'], { queryParams: { role: 'desk_attendants' } });
+      this.selectedRole = 'desk_attendants';
+    }
+
+
     if(this.selectedRole ==  'desk_attendants'){
       this.auth.initialize({
         authType:'jwt',

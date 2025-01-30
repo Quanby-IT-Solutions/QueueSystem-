@@ -222,13 +222,18 @@ export class KioskFormsComponent implements OnInit, OnDestroy {
   }
 
   async toggleSelection(service_id: string) {
-    const service = this.subServices.find(item => item.id === service_id);
+    const service = this.filteredServiceChecklist.find(item => item.id === service_id);
     if (service) {
 
       if (!this.selectedServices.find(item=>item.id == service_id)) {
-        this.selectedServices.push(service);
+        this.selectedServices = [service];
+        for(let i = 0; i < this.filteredServiceChecklist.length; i++){
+          this.filteredServiceChecklist[i].selected = false;
+        }
+        service.selected = true;
       } else {
-        this.selectedServices = this.selectedServices.filter(service => service.id !== service_id);
+        this.selectedServices = []
+        service.selected = true;
       }
     }
   }
@@ -307,7 +312,7 @@ export class KioskFormsComponent implements OnInit, OnDestroy {
     });
     this.API.socketSend({event:'queue-events'})
     this.API.socketSend({event:'admin-dashboard-events'})
-    this.successDescription = `Your current position is <span class='font-medium'>${this.formats.find((format)=>format.id == this.selectedType)?.prefix}-${number.toString().padStart(3,'0')}</span>`
+    this.successDescription = `Your current number is <span class='font-medium'>${this.formats.find((format)=>format.id == this.selectedType)?.prefix}-${number.toString().padStart(3,'0')}</span>`
     const code = `${this.formats.find((format)=>format.id == this.selectedType)?.prefix}-${number.toString().padStart(3,'0')}`;
 
     this.kioskService.thermalPrint({

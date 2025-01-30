@@ -24,6 +24,7 @@ export interface KioskUser {
 export class UserService {
 
   private currentUser: User | null = null;
+  public lastLogin?: string;
 
   constructor() {
     const storedUser = localStorage.getItem('currentUser');

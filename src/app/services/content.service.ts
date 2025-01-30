@@ -2,13 +2,16 @@ import { Injectable } from '@angular/core';
 import { UswagonAuthService } from 'uswagon-auth';
 import { UswagonCoreService } from 'uswagon-core';
 import { environment } from '../../environment/environment';
+import { LogsService } from './logs.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class ContentService {
 
-  constructor(private API:UswagonCoreService, private auth:UswagonAuthService) {}
+  constructor(private API:UswagonCoreService, 
+    private logService:LogsService,
+    private auth:UswagonAuthService) {}
 
 
   async getContentSetting(division?:string){
@@ -190,6 +193,7 @@ export class ContentService {
     }else{
       throw new Error(response.output);
     }
+    this.logService.pushLog('content-change', `changed queue display content.`)
   }
 
 }

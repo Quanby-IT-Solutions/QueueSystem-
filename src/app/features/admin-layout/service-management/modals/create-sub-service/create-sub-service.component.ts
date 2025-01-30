@@ -58,11 +58,12 @@ export class CreateSubServiceComponent {
     }
     try{
       if(this.service.id){
-        await this.serviceService.updateSubService(this.service.id,this.service.name);
+        await this.serviceService.updateSubService(this.service.id,this.service.name,this.service.description ?? '');
       }else{
         await this.serviceService.addSubService(
           this.service.service_id!,
-          this.service.name
+          this.service.name,
+          this.service.description ?? ''
         )
       }
       this.submittingForm =false

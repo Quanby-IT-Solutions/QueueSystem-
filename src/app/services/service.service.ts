@@ -23,7 +23,7 @@ export class ServiceService extends CrudService<Service> {
 
 
 
-async addSubService(service_id:string,name:string){
+async addSubService(service_id:string,name:string, counter_call:string){
 
   const id = this.API.createUniqueID32();
   const response = await this.API.create({
@@ -32,6 +32,7 @@ async addSubService(service_id:string,name:string){
       id:id,
       service_id: service_id,
       name:name,
+      description:counter_call
     }  
   });
 
@@ -60,11 +61,12 @@ async addSubService(service_id:string,name:string){
    this.API.socketSend({event:'kiosk-events'});
  }
 
- async updateSubService(id:string, name:string){
+ async updateSubService(id:string, name:string, counter_call:string){
   const response = await this.API.update({
     tables: 'sub_services',
     values:{
-      name:name
+      name:name,
+      description: counter_call
     }  ,
     conditions: `WHERE id = '${id}'`
   });

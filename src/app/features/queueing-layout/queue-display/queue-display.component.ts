@@ -637,6 +637,7 @@ export class QueueDisplayComponent implements OnInit, OnChanges, OnDestroy, Afte
         }];
 
       }, []);
+    
       
     });
      this.queueService.listenToQueue();
@@ -657,7 +658,7 @@ export class QueueDisplayComponent implements OnInit, OnChanges, OnDestroy, Afte
         const lastActive = new Date(terminal.last_active!);
         const diffInMinutes = (this.getServerTime().getTime() - lastActive.getTime()) / 60000; 
     
-        if (diffInMinutes < 1.5 && terminal._status !== 'maintenance' && terminal.session_status !== 'closed') {
+        if (diffInMinutes < 5 && terminal._status !== 'maintenance' && terminal.session_status !== 'closed') {
             return 'online';
         } else {
             return terminal._status; 

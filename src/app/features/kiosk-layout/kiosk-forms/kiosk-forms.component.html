@@ -333,7 +333,7 @@
   </div> -->
   <app-feedback
     *ngIf="modal == 'success'"
-    title="You're in Line!"
+    title="You're in Queue!"
     [description]="successDescription"
     details="Thank you for your patience!"
     animation="check"
@@ -342,7 +342,7 @@
   ></app-feedback>
   <app-feedback
     *ngIf="modal =='priority'"
-    title="You are in Line!"
+    title="You are in Queue!"
     [description]="successDescription"
     [details]="priorityDetails"
     animation="check"

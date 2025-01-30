@@ -28,6 +28,17 @@
           <input type="text" id="service" [(ngModel)]="service.name" name="service" required
                  class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 transition"/>
         </div>
+
+        <div>
+          <label for="counter_call" class="block mb-1 text-sm font-semibold text-gray-700">
+            <span>Set Counter Call </span>
+             <!-- Error -->
+            <span  class="animate-pop font-medium text-red-500">* </span>
+            <span *ngIf="errorMessage" class="animate-pop font-medium text-red-500">{{errorMessage}} </span>
+          </label>
+          <input type="text" id="counter_call" [(ngModel)]="service.description" name="counter_call" required
+                 class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 transition"/>
+        </div>
        
       
         <!-- Submit & Cancel Buttons -->

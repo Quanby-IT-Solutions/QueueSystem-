@@ -125,15 +125,7 @@
 
 }
 
-@container queue-main (min-width: 500px) and (max-width:600px){
-  .currency-value,.serving-item-content-text,.current-time-container, .currency-value, .weather-left-container, .queue-item-ticket{
-    font-size: 0.9em;
-  }
-  .timezone-container,   .timezone-text{
-    font-size: 0.6rem;
-  }
 
-}
 
 @container queue-main (min-width:600px) and (max-width:800px){
   .banner-title{
@@ -216,6 +208,16 @@
 
 }
 
+@container queue-main (min-width: 500px) and (max-width:800px){
+  .currency-value,.serving-item-content-text,.current-time-container, .currency-value, .weather-left-container, .queue-item-ticket{
+    font-size: 0.5em;
+  }
+  .timezone-container,   .timezone-text{
+    font-size: 0.6rem;
+  }
+
+}
+
 @container queue-main (min-width:800px) and (max-width:1200px){
   .serving-item-header,.serving-item-content-text{
     font-size: 1.3rem;
@@ -225,7 +227,7 @@
     font-size: 1rem;
    }
 }
-/* @container queue-main (min-width:800px) and (max-width:2000px){
+@container queue-main (min-width:800px) and (max-width:1200px){
   .banner-title{
     font-size: 1.6rem;
   }
@@ -281,9 +283,9 @@
   .queue-title {
     font-size: 1.2rem;
   }
-} */
+}
 
-/* @container queue-main (min-width: 600px) and (max-width: 2000px) {
+@container queue-main (min-width: 600px) and (max-width: 1200px) {
 
   .main-content *{
     line-height: 1;
@@ -310,7 +312,7 @@
 
 
 
-} */
+}
 @container queue-main (min-width: 2000px) and (max-width:3000px){
   .banner-title{
     font-size: 3.5rem;

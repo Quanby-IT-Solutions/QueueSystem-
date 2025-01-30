@@ -7,6 +7,7 @@ import { ConfirmationComponent } from '../modals/confirmation/confirmation.compo
 import { TerminalService } from '../../services/terminal.service';
 import { config } from '../../../environment/config';
 import { LogsService } from '../../services/logs.service';
+import { UserService } from '../../services/user.service';
 
 interface MenuItem {
   title: string;
@@ -37,6 +38,8 @@ export class SidebarComponent implements OnInit {
   private router = inject(Router);
 
   private auth = inject(UswagonAuthService);
+
+  private user = inject(UserService);
 
   private terminalService = inject(TerminalService);
 
@@ -96,6 +99,7 @@ export class SidebarComponent implements OnInit {
   logout(){
     this.logService.pushLog('user-logout', 'logged out.');
     this.terminalService.terminateTerminalSession();
+    this.user.lastLogin = this.auth.getUser().role;
     this.auth.logout();
   }
 
