@@ -238,10 +238,10 @@ timerProgress: any;
   handleServiceClick(serviceId: string) {
     // If it's already selected, remove it (clear filter)
     if (this.filteredServices.includes(serviceId)) {
-      this.filterQueueByServices([]);
+      this.filterQueueByServices(this.filteredServices.filter(service=>service != serviceId));
     } else {
       // Otherwise, apply the filter for this service
-      this.filterQueueByServices([serviceId]);
+      this.filterQueueByServices([...this.filteredServices,serviceId]);
     }
   }
 
