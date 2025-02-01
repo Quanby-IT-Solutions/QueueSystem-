@@ -59,7 +59,7 @@ export class FormatManagementComponent {
     return `Kiosk ${index+1}`;
   }
 
-  getFormatDetails(details?:string){
+  getFormatDetails(details?:string):Partial<Format>{
     if(!details) return {};
     try{
       const detailsObj = JSON.parse(details);

@@ -311,7 +311,7 @@
                     </div>
                   </ng-container>
                   <span *ngIf="!ticket.services">
-                    {{getFormatDetails(ticket.type) || 'N/A'}}
+                    {{getFormatDetails(getFormat(ticket.type)?.description).details || 'N/A'}}
                   </span>
                 </td>
                 <!-- <td class="p-3 text-sm w-1/6">

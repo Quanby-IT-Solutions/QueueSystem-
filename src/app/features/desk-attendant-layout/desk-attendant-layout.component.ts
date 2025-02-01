@@ -9,6 +9,7 @@ import { Subscription } from 'rxjs';
 import { SnackbarComponent } from '../../shared/snackbar/snackbar.component';
 import { UswagonAuthService } from 'uswagon-auth';
 import { LogsService } from '../../services/logs.service';
+import { TerminalService } from '../../services/terminal.service';
 
 @Component({
   selector: 'app-desk-attendant-layout',
@@ -21,6 +22,7 @@ export class DeskAttendantLayoutComponent {
   constructor(private route: ActivatedRoute, 
     private auth:UswagonAuthService,
     private logService:LogsService,
+    private terminalService:TerminalService,
     private API:UswagonCoreService,private cdr: ChangeDetectorRef){}
   role = this.route.snapshot.data['requiredRole'];
   isLoading:boolean= false;
@@ -35,6 +37,7 @@ export class DeskAttendantLayoutComponent {
     this.API.addSocketListener('get-out', (message)=>{
       if(message.event =='get-out' && message.id == this.auth.getUser().id){
         this.API.sendFeedback('error','You have been logged out by another user of this account.');
+        this.terminalService.terminateTerminalSession();
         this.auth.logout();
       }      
     });

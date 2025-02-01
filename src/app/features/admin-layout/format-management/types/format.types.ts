@@ -5,6 +5,9 @@ export interface Format {
     prefix:string;
     description?:string;
     details?:string;
+    counter_call?:string;
+    color?:string;
+    kiosk?:string;
 }
 
 export interface Division{

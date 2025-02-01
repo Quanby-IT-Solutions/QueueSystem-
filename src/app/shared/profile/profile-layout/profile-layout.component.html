@@ -53,7 +53,7 @@
     <div class="p-6 bg-white rounded-lg shadow-lg">
       <div class="flex items-center justify-between mb-4">
         <h2 class="text-lg font-bold text-[--primary]">Security Settings</h2>
-        <span class="px-3 py-1 text-xs text-[--primary] bg-[--primary-bg-light] rounded-full">Last updated: 2 days ago</span>
+        <!-- <span class="px-3 py-1 text-xs text-[--primary] bg-[--primary-bg-light] rounded-full">Last updated: 2 days ago</span> -->
       </div>
 
       <!-- Security Options -->
@@ -84,9 +84,15 @@
     <div class="p-6 bg-white rounded-lg shadow-lg flex-1">
       <div class="flex items-center justify-between mb-4">
         <h2 class="text-lg font-bold text-[--primary]">Activity Logs</h2>
-        <!-- <div class="text-sm text-gray-500">
-          Last 7 days
-        </div> -->
+        <button
+        *ngIf="currentUser.role == 'desk_attendants'"
+        (click)="downloadReport()"
+        class="relative p-3 text-gray-600 transition-all rounded-xl hover:bg-gray-50 hover:text-blue-600 group">
+        <i class="fas fa-download"></i>
+        <div class="absolute hidden px-2 py-1 mb-2 text-xs text-white transform -translate-x-1/2 bg-gray-900 rounded group-hover:block bottom-full left-1/2 whitespace-nowrap">
+          Download report
+        </div>
+      </button>
       </div>
 
       <div class="divide-y divide-gray-200 h-96 overflow-scroll ">

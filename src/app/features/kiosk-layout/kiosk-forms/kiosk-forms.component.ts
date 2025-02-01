@@ -315,7 +315,7 @@ export class KioskFormsComponent implements OnInit, OnDestroy {
     this.successDescription = `Your current number is <span class='font-medium'>${this.formats.find((format)=>format.id == this.selectedType)?.prefix}-${number.toString().padStart(3,'0')}</span>`
     const code = `${this.formats.find((format)=>format.id == this.selectedType)?.prefix}-${number.toString().padStart(3,'0')}`;
 
-    this.kioskService.thermalPrint({
+   await this.kioskService.thermalPrint({
       number:code,
       name: this.customerName,
       gender:this.gender,
@@ -430,6 +430,7 @@ export class KioskFormsComponent implements OnInit, OnDestroy {
 
    private startClock() {
     this.timeInterval = setInterval(() => {
+      this.API.socketSend({'refresh':true});
       this.currentDate = new Date();
     }, 1000);
   }

@@ -7,6 +7,7 @@ import { gsap } from 'gsap';
 import { EditProfileModalComponent } from './edit-profile-modal/edit-profile-modal.component';
 import { ChangePasswordModalComponent } from './change-password-modal/change-password-modal.component';
 import { LogsService } from '../../../services/logs.service';
+import { QueueService } from '../../../services/queue.service';
 
 interface User {
   id: string;
@@ -56,6 +57,7 @@ export class ProfileLayoutComponent {
 
   constructor(
     private logService:LogsService,
+    private queueService:QueueService,
     private auth: UswagonAuthService, public API: UswagonCoreService) {
     this.user = this.auth.getUser();
   }
@@ -86,9 +88,22 @@ export class ProfileLayoutComponent {
   }
 
   ngOnInit() {
+    this.currentUser = this.auth.getUser();
     this.loadUserData(); 
   }
 
+  
+async downloadReport(){
+  this.API.setLoading(true);
+  try{
+    await this.queueService.exportAttendantQueues();
+    this.API.sendFeedback('success','Export successful',5000);
+  }catch(e){
+    this.API.sendFeedback('error','Export failed. Something went wrong.',5000);
+
+  }
+  this.API.setLoading(false);
+}
 
 async loadUserData() {
   const userId = this.auth.getUser().id;
@@ -166,6 +181,8 @@ async loadUserData() {
       this.API.sendFeedback('error', 'An error occurred while updating the profile.', 5000);
     });
   }
+
+  currentUser:any;
 
 
   refreshUserData() {

@@ -33,7 +33,7 @@ export class CreateFormatComponent {
     prefix:'',
   } 
 
-  getFormatDetails(details?:string){
+  getFormatDetails(details?:string):Partial<Format>{
     if(!details) return {};
     try{
       const detailsObj = JSON.parse(details);
@@ -46,6 +46,7 @@ export class CreateFormatComponent {
     if(this.existingitem){
       this.item = {...this.existingitem}
       this.item.details = this.getFormatDetails(this.existingitem.description).details
+      this.item.counter_call = this.getFormatDetails(this.existingitem.description).counter_call
     }
   }
 
@@ -86,13 +87,14 @@ export class CreateFormatComponent {
     }
     try{
       if(this.item.id){
-        let descObj:any = {};
+        let descObj:Partial<Format> = {};
 
         try{
           descObj = this.getFormatDetails(this.item.description);
         }catch(e){}
 
         descObj.details = this.item.details;
+        descObj.counter_call = this.item.counter_call;
         const updateItem:Format={
           id: this.item.id,
           name: this.item.name,

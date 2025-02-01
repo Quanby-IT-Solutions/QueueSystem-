@@ -38,7 +38,7 @@ export class LogsService {
       const response = await this.API.read({
         selectors: ['*'],
         tables:'logs',
-        conditions: `ORDER BY timestamp DESC`
+        conditions: `WHERE CAST(timestamp as DATE) >= DATEADD(day, -30, GETDATE()) ORDER BY CAST(timestamp as DATE) ASC`
       })
 
       if(!response.success){
@@ -49,7 +49,7 @@ export class LogsService {
       const response = await this.API.read({
         selectors: ['*'],
         tables:'logs',
-        conditions: `WHERE division_id = '${division}' ORDER BY timestamp DESC`
+        conditions: `WHERE division_id = '${division}'  AND CAST(timestamp as DATE) >= DATEADD(day, -30, GETDATE()) ORDER BY CAST(timestamp as DATE) DESC `
       })
 
       if(!response.success){

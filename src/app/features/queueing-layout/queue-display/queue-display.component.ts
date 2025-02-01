@@ -305,7 +305,7 @@ export class QueueDisplayComponent implements OnInit, OnChanges, OnDestroy, Afte
         await this.terminalStatusInterval()
         // await this.loadTerminalData();
         // await this.queueService.getTodayQueues();
-      },1000);
+      },1000*40);
     } else{
       this.serverTimeDifference = 0;
     }

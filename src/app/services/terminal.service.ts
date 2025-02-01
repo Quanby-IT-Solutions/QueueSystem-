@@ -258,7 +258,7 @@ async deleteTerminal(id:string){
       const now = await this.getServerTime();
       const lastActive = new Date(lastSession.last_active);
       const diffInMinutes = (now.getTime() - lastActive.getTime()) / 60000; 
-      if (diffInMinutes <= 5) {
+      if (diffInMinutes < 5) {
         return lastSession; 
       }else{
         return null;
@@ -290,7 +290,7 @@ async deleteTerminal(id:string){
         const lastActive = new Date(lastSession.last_active);
   
         const diffInMinutes = (now.getTime() - lastActive.getTime()) / 60000; 
-        if (diffInMinutes <= 5) {
+        if (diffInMinutes < 5) {
           activeUsers.push(response.output[i].attendant_id); 
         }
       }

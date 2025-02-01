@@ -9,6 +9,7 @@ import { DatePipe } from '@angular/common';
 import { LogsService } from './logs.service';
 import { FormatService } from './format.service';
 import { Format } from '../features/admin-layout/format-management/types/format.types';
+import { ServiceService } from './service.service';
 
 
 
@@ -49,6 +50,7 @@ export class QueueService  {
 
   constructor(
     private formatService:FormatService,
+    private serviceService:ServiceService,
     private API:UswagonCoreService,private auth:UswagonAuthService, private logService:LogsService ,
     private divisionService:DivisionService,
     private kioskService:KioskService) {}
@@ -281,7 +283,7 @@ export class QueueService  {
           });
           if(!createResponse.success){
             throw new Error(createResponse.output);
-          }this.logService.pushLog('transaction-bottom',`put a transaction to bottom of queue.`);
+          }this.logService.pushLog('transaction-bottom',`put a transaction to bottom of queue [${this.attendedQueue.queue?.tag} - ${this.attendedQueue.queue?.number}].`);
         } 
         if(remark=='return'){
           const returnIndex = this.attendedQueue.queue?.collision?.split('>')[1] ?? 0;
@@ -842,6 +844,58 @@ export class QueueService  {
     }
   }
 
+
+  async exportAttendantQueues(){
+
+    const attendant_id = this.auth.getUser().id;
+    // Import xlsx dynamically to reduce initial bundle size
+    const XLSX = await import('xlsx');
+      
+    // Create workbook
+    const wb = XLSX.utils.book_new();
+
+    const services = await this.serviceService.getAllSubServices();
+
+    // Todays Queue
+    const response = await this.API.read({
+      selectors: ['queue.*','queue.fullname','queue.timestamp' ,'queue.type','formats.prefix', 'formats.name as format_name','queue.gender','queue.services','attended_queue.attended_on as start_time','attended_queue.finished_on as end_time'],
+      tables: 'queue',
+      conditions: `
+      LEFT JOIN formats ON formats.id = queue.type
+      LEFT JOIN attended_queue ON attended_queue.queue_id = queue.id
+      LEFT JOIN terminal_sessions ON terminal_sessions.id = attended_queue.desk_id
+      WHERE attended_queue.finished_on IS NOT NULL 
+        AND terminal_sessions.attendant_id = '${attendant_id}'
+        AND MONTH(queue.timestamp) = MONTH(GETDATE())
+        AND YEAR(queue.timestamp) = YEAR(GETDATE())
+        ORDER BY CAST(attended_queue.attended_on AS DATE) DESC
+    `
+  })
+    if(!response.success){
+      alert(JSON.stringify(response.output))
+      throw new Error(response.output);
+    }
+    let queueRows = response.output;
+
+    const queueList = [
+     [ 'Client Name' ,'Ticket Number', 'Client Gender','Services','Client Type', 'Date','Start','End'],
+     ...queueRows.map((row:any)=>[
+         row.fullname || 'None',
+       `${row.prefix? row.prefix: row.type == 'priority' ? 'P':'R'}-${row.number}`,
+       row.gender ,
+       row.services.split(', ').map((id:any)=> services.find((service:any)=>service.id == id)?.name).join(',') || 'N/A',
+       row.format_name ? row.format_name : row.type == 'priority' ? 'priority' : 'regular',
+       new DatePipe('en-US').transform(new Date(row.start_time), 'MM-dd-yyy')  ,
+       new DatePipe('en-US').transform(new Date(row.start_time), 'HH:mm:ss')  ,
+       new DatePipe('en-US').transform(new Date(row.end_time), 'HH:mm:ss')  ,
+     ])
+    ];
+    const now = await this.getServerTime();
+    const queueDataSheet = XLSX.utils.aoa_to_sheet(queueList);
+    XLSX.utils.book_append_sheet(wb, queueDataSheet, 'Queue');
+    const fileName = `${now.toLocaleString('default', { month: 'long' })}-${now.getFullYear()}-QMS-Report.xlsx`;
+    XLSX.writeFile(wb, fileName);
+  }
   
 
 }

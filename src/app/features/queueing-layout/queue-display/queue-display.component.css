@@ -218,7 +218,7 @@
 
 }
 
-@container queue-main (min-width:800px) and (max-width:1200px){
+@container queue-main (min-width:800px) and (max-width:1000px){
   .serving-item-header,.serving-item-content-text{
     font-size: 1.3rem;
    }
@@ -227,7 +227,7 @@
     font-size: 1rem;
    }
 }
-@container queue-main (min-width:800px) and (max-width:1200px){
+@container queue-main (min-width:800px) and (max-width:1000px){
   .banner-title{
     font-size: 1.6rem;
   }
@@ -285,7 +285,7 @@
   }
 }
 
-@container queue-main (min-width: 600px) and (max-width: 1200px) {
+@container queue-main (min-width: 600px) and (max-width: 1000px) {
 
   .main-content *{
     line-height: 1;

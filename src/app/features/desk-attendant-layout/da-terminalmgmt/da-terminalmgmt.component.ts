@@ -151,44 +151,21 @@ export class DaTerminalmgmtComponent implements OnInit, OnDestroy {
     private terminalService: TerminalService) { }
 
   refreshInterval: any;
+  initialized:boolean = false;
 
+  areNewTicketsAdded (oldTickets: Ticket[], newTickets: Ticket[]) {
+    // Assuming each ticket has a unique ID or property that can be used for comparison
+    const oldTicketIds = oldTickets.map(ticket => ticket.id);
+    const newTicketIds = newTickets.map(ticket => ticket.id);
+  
+    // Check if any ticket in the new list doesn't exist in the old list
+    return newTicketIds.some(id => !oldTicketIds.includes(id));
+  };
   ngOnInit(): void {
     this.updateCurrentDate();
     this.dateInterval = setInterval(() => this.updateCurrentDate(), 60000);
     this.loadContent();
     this.loadFormats();
-
-    this.subscription = this.queueService.queue$.subscribe((queueItems: Ticket[]) => {
-      if (this.selectedCounter?.specific) {
-        // Filter queue based on the selected counter's specificity
-        this.queueService.queue = queueItems.filter(
-          (queue) => queue.type === this.selectedCounter?.specific
-        );
-        this.tickets = [...this.queueService.queue];
-        this.filterQueueByTypeAndService();
-      } else {
-        this.tickets = [...queueItems];
-        this.filterQueueByTypeAndService();
-      }
-
-      // Apply type and service filters
-      this.filterQueueByTypeAndService();
-
-      // Update bottom tickets to only include tickets still in queue
-      this.bottomTickets = new Set(
-        Array.from(this.bottomTickets).filter((id) =>
-          queueItems.some((ticket) => ticket.id === id)
-        )
-      );
-
-      // Clear selection if the selected ticket no longer exists in the queue
-      if (
-        this.selectedTicket &&
-        !queueItems.find((t) => t.id === this.selectedTicket!.id)
-      ) {
-        this.selectedTicket = undefined;
-      }
-    });
 
     // Uncomment if needed for status updates
     // this.statusInterval = setInterval(() => {
@@ -229,7 +206,6 @@ export class DaTerminalmgmtComponent implements OnInit, OnDestroy {
       ]
     }
   }
-
 
   // filter toggle
   toggleServiceFilter() {
@@ -300,14 +276,19 @@ export class DaTerminalmgmtComponent implements OnInit, OnDestroy {
     return this.formats.find(format => format.id == id)?.name;
   }
 
-  getFormatDetails(id?: string) {
-    const desc = this.formats.find(format => format.id == id)?.description;
-    if (!desc) return null;
-    try {
-      const detailsObj = JSON.parse(desc);
-      return detailsObj.details;
-    } catch (e) {
-      return null;
+  getFormat(id?: string) {
+    if (!id) return null;
+    return this.formats.find(format => format.id == id);
+  }
+
+
+  getFormatDetails(details?:string):Partial<Format>{
+    if(!details) return {};
+    try{
+      const detailsObj = JSON.parse(details);
+      return detailsObj;
+    }catch(e){
+      return {};
     }
   }
 
@@ -397,6 +378,7 @@ export class DaTerminalmgmtComponent implements OnInit, OnDestroy {
 
 
     this.subscription = this.queueService.queue$.subscribe((queueItems: Ticket[]) => {
+      const oldTickets = this.filterQueueByTypeAndServiceSeparate(this.tickets);
       this.divisionServices = this.services.filter(service =>
         uniqueServiceIds.has(service.id) &&
         (!service.division_id || service.division_id === this.division?.id)
@@ -421,7 +403,44 @@ export class DaTerminalmgmtComponent implements OnInit, OnDestroy {
           this.tickets = [...queueItems];
         }
       }
-      this.filterQueueByTypeAndService();
+
+
+      if (this.selectedCounter?.specific) {
+        // Filter queue based on the selected counter's specificity
+        this.queueService.queue = queueItems.filter(
+          (queue) => queue.type === this.selectedCounter?.specific
+        );
+        this.tickets = [...this.queueService.queue];
+        this.filterQueueByTypeAndService();
+        //check if there are new tickets added;
+        const newTicketAdded =  this.areNewTicketsAdded(oldTickets,this.tickets);
+        if(newTicketAdded && !this.actionLoading){
+          this.API.sendFeedback('success','You have a new client in queue.',5000);
+        }
+        
+      } else {
+        this.tickets = [...queueItems];
+        this.filterQueueByTypeAndService();
+        //check if there are new tickets added;
+        const newTicketAdded =  this.areNewTicketsAdded(oldTickets,this.tickets);
+        if(newTicketAdded && !this.actionLoading){
+          this.API.sendFeedback('success','You have a new client in queue.',5000);
+        }
+      }
+      // Update bottom tickets to only include tickets still in queue
+      this.bottomTickets = new Set(
+        Array.from(this.bottomTickets).filter((id) =>
+          queueItems.some((ticket) => ticket.id === id)
+        )
+      );
+
+      // Clear selection if the selected ticket no longer exists in the queue
+      if (
+        this.selectedTicket &&
+        !queueItems.find((t) => t.id === this.selectedTicket!.id)
+      ) {
+        this.selectedTicket = undefined;
+      }
     });
 
     this.queueService.listenToQueue();
@@ -485,8 +504,11 @@ export class DaTerminalmgmtComponent implements OnInit, OnDestroy {
         this.updatingTerminalData = false;
       }
     })
-
+    this.API.socketSend({ event: 'terminal-events' })
+    this.API.socketSend({ event: 'queue-events' })
+    this.API.socketSend({ event: 'admin-dashboard-events' })
     this.API.setLoading(false);
+    this.initialized = true;
   }
 
   private updatingTerminalData = false;
@@ -661,20 +683,21 @@ export class DaTerminalmgmtComponent implements OnInit, OnDestroy {
         this.startTimer();
         // this.updateUpcomingTicket();
 
-        const service = this.services.find((s=>s.id == this.currentTicket?.services));
-        if(service.description){
+        const format = this.formats.find((s=>s.id == this.currentTicket?.type));
+        const counter_call = this.getFormatDetails(format?.description).counter_call;
+        if(counter_call){
           this.API.socketSend({
             event: 'number-calling',
             division: this.division?.id,
             counter: this.selectedCounter?.number,
-            message: `${this.currentTicket?.type == 'priority' ? 'Priority' : ''} number ${this.currentTicket?.number} on ${this.dvisionService.selectedDivision?.name}. ${service.description}`
+            message: `${this.currentTicket?.metaType ?? (this.currentTicket?.type == 'priority'? 'Priority':'') } number ${this.currentTicket?.number} on ${this.dvisionService.selectedDivision?.name}. ${counter_call}`
           })
         }else{
           this.API.socketSend({
             event: 'number-calling',
             division: this.division?.id,
             counter: this.selectedCounter?.number,
-            message: `${this.currentTicket?.type == 'priority' ? 'Priority' : ''} number ${this.currentTicket?.number} on ${this.dvisionService.selectedDivision?.name}. Proceed to counter ${this.selectedCounter?.number}`
+            message: `${this.currentTicket?.metaType ?? (this.currentTicket?.type == 'priority'? 'Priority':'') } number ${this.currentTicket?.number} on ${this.dvisionService.selectedDivision?.name}. Proceed to counter ${this.selectedCounter?.number}`
           })
         }
         
@@ -698,6 +721,7 @@ export class DaTerminalmgmtComponent implements OnInit, OnDestroy {
       // If there's a current transaction, finish it first
       if (this.currentTicket) {
         await this.queueService.resolveAttendedQueue('finished');
+        this.logService.pushLog('transaction-end', `completed a transaction [${this.currentTicket?.tag} - ${this.currentTicket?.number}].`);
         this.resetInterface();
         this.filterQueueByTypeAndService();
         this.API.sendFeedback('success', 'Transaction successful!', 5000);
@@ -736,7 +760,7 @@ export class DaTerminalmgmtComponent implements OnInit, OnDestroy {
       }
 
       if (nextTicket) {
-        this.logService.pushLog('transaction-start', `started a transaction (regular).`);
+        this.logService.pushLog('transaction-start', `started a transaction [${nextTicket.tag}-${nextTicket.number}].`);
         this.currentTicket = nextTicket;
         this.currentClientDetails = {
           name: nextTicket.fullname || 'Anonymous',
@@ -763,22 +787,24 @@ export class DaTerminalmgmtComponent implements OnInit, OnDestroy {
         // this.updateUpcomingTicket();
 
         this.API.sendFeedback('success', `Transaction started with client.`, 5000);
-        const service = this.services.find((s=>s.id == this.currentTicket?.services));
-        if(service.description){
+        const format = this.formats.find((s=>s.id == this.currentTicket?.type));
+        const counter_call = this.getFormatDetails(format?.description).counter_call;
+        if(counter_call){
           this.API.socketSend({
             event: 'number-calling',
             division: this.division?.id,
             counter: this.selectedCounter?.number,
-            message: `${this.currentTicket?.type == 'priority' ? 'Priority' : ''} number ${this.currentTicket?.number} on ${this.dvisionService.selectedDivision?.name}. ${service.description}`
+            message: `${this.currentTicket?.metaType ?? (this.currentTicket?.type == 'priority'? 'Priority':'') } number ${this.currentTicket?.number} on ${this.dvisionService.selectedDivision?.name}. ${counter_call}`
           })
         }else{
           this.API.socketSend({
             event: 'number-calling',
             division: this.division?.id,
             counter: this.selectedCounter?.number,
-            message: `${this.currentTicket?.type == 'priority' ? 'Priority' : ''} number ${this.currentTicket?.number} on ${this.dvisionService.selectedDivision?.name}. Proceed to counter ${this.selectedCounter?.number}`
+            message: `${this.currentTicket?.metaType ?? (this.currentTicket?.type == 'priority'? 'Priority':'') } number ${this.currentTicket?.number} on ${this.dvisionService.selectedDivision?.name}. Proceed to counter ${this.selectedCounter?.number}`
           })
         }
+        
       } else {
         this.API.sendFeedback('warning', 'Could not get next client.', 5000);
       }
@@ -831,7 +857,7 @@ export class DaTerminalmgmtComponent implements OnInit, OnDestroy {
       }
 
       this.API.sendFeedback('success', `Transaction successful!`, 5000);
-      this.logService.pushLog('transaction-end', `completed a transaction.`);
+      this.logService.pushLog('transaction-end', `completed a transaction [${this.currentTicket?.tag} - ${this.currentTicket?.number}].`);
     } catch (error) {
       this.API.sendFeedback('error', 'Failed to complete transaction', 5000);
     } finally {
@@ -848,22 +874,24 @@ export class DaTerminalmgmtComponent implements OnInit, OnDestroy {
     console.log(`Calling number ${this.currentTicket?.number}`);
     this.API.sendFeedback('neutral', `Calling number ${this.currentTicket?.tag ?? this.currentTicket?.type[0].toUpperCase()}-${this.currentTicket?.number.toString().padStart(3, '0')}`, 5000)
 
-    const service = this.services.find((s=>s.id == this.currentTicket?.services));
-        if(service.description){
-          this.API.socketSend({
-            event: 'number-calling',
-            division: this.division?.id,
-            counter: this.selectedCounter?.number,
-            message: `${this.currentTicket?.type == 'priority' ? 'Priority' : ''} number ${this.currentTicket?.number} on ${this.dvisionService.selectedDivision?.name}. ${service.description}`
-          })
-        }else{
-          this.API.socketSend({
-            event: 'number-calling',
-            division: this.division?.id,
-            counter: this.selectedCounter?.number,
-            message: `${this.currentTicket?.type == 'priority' ? 'Priority' : ''} number ${this.currentTicket?.number} on ${this.dvisionService.selectedDivision?.name}. Proceed to counter ${this.selectedCounter?.number}`
-          })
-        }
+    const format = this.formats.find((s=>s.id == this.currentTicket?.type));
+      const counter_call = this.getFormatDetails(format?.description).counter_call;
+      if(counter_call){
+        this.API.socketSend({
+          event: 'number-calling',
+          division: this.division?.id,
+          counter: this.selectedCounter?.number,
+          message: `${this.currentTicket?.metaType ?? (this.currentTicket?.type == 'priority'? 'Priority':'') } number ${this.currentTicket?.number} on ${this.dvisionService.selectedDivision?.name}. ${counter_call}`
+        })
+      }else{
+        this.API.socketSend({
+          event: 'number-calling',
+          division: this.division?.id,
+          counter: this.selectedCounter?.number,
+          message: `${this.currentTicket?.metaType ?? (this.currentTicket?.type == 'priority'? 'Priority':'') } number ${this.currentTicket?.number} on ${this.dvisionService.selectedDivision?.name}. Proceed to counter ${this.selectedCounter?.number}`
+        })
+      }
+    
     // this.isCallNumberActive = false;
   }
 
@@ -903,24 +931,26 @@ export class DaTerminalmgmtComponent implements OnInit, OnDestroy {
         this.startTimer();
 
         this.API.sendFeedback('success', `Transaction started with client.`, 5000);
-        this.logService.pushLog('transaction-manual', `started a manual select transaction.`);
+        this.logService.pushLog('transaction-manual', `started a manual select transaction [${this.currentTicket?.tag} - ${this.currentTicket?.number}].`);
 
-        const service = this.services.find((s=>s.id == this.currentTicket?.services));
-        if(service.description){
+        const format = this.formats.find((s=>s.id == this.currentTicket?.type));
+        const counter_call = this.getFormatDetails(format?.description).counter_call;
+        if(counter_call){
           this.API.socketSend({
             event: 'number-calling',
             division: this.division?.id,
             counter: this.selectedCounter?.number,
-            message: `${this.currentTicket?.type == 'priority' ? 'Priority' : ''} number ${this.currentTicket?.number} on ${this.dvisionService.selectedDivision?.name}. ${service.description}`
+            message: `${this.currentTicket?.metaType ?? (this.currentTicket?.type == 'priority'? 'Priority':'') } number ${this.currentTicket?.number} on ${this.dvisionService.selectedDivision?.name}. ${counter_call}`
           })
         }else{
           this.API.socketSend({
             event: 'number-calling',
             division: this.division?.id,
             counter: this.selectedCounter?.number,
-            message: `${this.currentTicket?.type == 'priority' ? 'Priority' : ''} number ${this.currentTicket?.number} on ${this.dvisionService.selectedDivision?.name}. Proceed to counter ${this.selectedCounter?.number}`
+            message: `${this.currentTicket?.metaType ?? (this.currentTicket?.type == 'priority'? 'Priority':'') } number ${this.currentTicket?.number} on ${this.dvisionService.selectedDivision?.name}. Proceed to counter ${this.selectedCounter?.number}`
           })
         }
+        
       } else {
         this.API.sendFeedback('warning', 'Could not get next client.', 5000);
       }
@@ -929,7 +959,7 @@ export class DaTerminalmgmtComponent implements OnInit, OnDestroy {
       this.filterQueueByTypeAndService();
 
     } catch (e) {
-      this.API.sendFeedback('error', 'Unable to get next client.', 5000);
+      this.API.sendFeedback('error', `Unable to get next client.`, 5000);
     } finally {
       this.actionLoading = false;
     }
@@ -986,7 +1016,7 @@ export class DaTerminalmgmtComponent implements OnInit, OnDestroy {
 
     // Mark the current ticket as skipped
     await this.queueService.resolveAttendedQueue('skipped');
-
+    this.logService.pushLog('transaction-end', `marked a transaction as no show [${this.currentTicket?.tag} - ${this.currentTicket?.number}].`);
     // Reset the current client details
     this.currentClientDetails = null;
     this.resetInterface();
@@ -997,7 +1027,7 @@ export class DaTerminalmgmtComponent implements OnInit, OnDestroy {
     this.actionLoading = false;
     this.API.socketSend({ event: 'queue-events' })
     this.API.socketSend({ event: 'admin-dashboard-events' })
-    this.API.sendFeedback('error', `Client has been removed from queue.`, 5000);
+    this.API.sendFeedback('error', `Client has been removed from queue`, 5000);
   }
 
 
@@ -1119,6 +1149,24 @@ export class DaTerminalmgmtComponent implements OnInit, OnDestroy {
       return matchesServices && matchesType;
     });
   }
+
+  
+  filterQueueByTypeAndServiceSeparate(tickets:Ticket[]): Ticket[] {
+    const serviceSet = new Set(this.filteredServices);
+    const typeSet = new Set(this.filteredTypes);
+
+    // Dynamically filter the tickets
+    return  tickets.filter(ticket => {
+      const matchesServices = this.filteredServices.length === 0
+        || ticket.services.split(', ').some(service => serviceSet.has(service));
+      const matchesType = this.filteredTypes.length === 0
+        || typeSet.has(ticket.type);
+
+      return matchesServices && matchesType;
+    });
+  }
+
+
 
 
   // Clear Type Filters

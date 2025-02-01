@@ -56,6 +56,22 @@ export class KioskService extends CrudService<Kiosk>{
       time:data.time,
       services: data.services
     })
+
+    // const response =  await firstValueFrom(this.http.post(environment.nodeserver + '/print', {
+    //   key: environment.apiKey,
+    //   app: environment.app,
+    //   event: 'printing',
+    //   printer_ip: data.printer_ip ?? this.kiosk?.printer_ip,
+    //   number: data.number,
+    //   name: data.name ?? '',
+    //   gender:data.gender ?? 'other',
+    //   id:data.id,
+    //   location:data.location,
+    //   date:data.date,
+    //   type:data.type,
+    //   time:data.time,
+    //   services: data.services
+    // }));
   }
 
 
