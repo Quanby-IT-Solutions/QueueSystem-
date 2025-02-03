@@ -457,13 +457,13 @@ export class DaTerminalmgmtComponent implements OnInit, OnDestroy {
         this.updatingTerminalData = true;
         await this.updateTerminalData();
         this.lastSession = await this.terminalService.getActiveSession();
-        if (!this.lastSession && this.selectedCounter) {
-          this.terminalService.terminateTerminalSession();
-          this.selectedCounter = undefined;
-          this.lastSession = undefined;
-          this.selectedTicket = undefined;
-          this.currentTicket = undefined;
-        }
+        // if (!this.lastSession && this.selectedCounter) {
+        //   this.terminalService.terminateTerminalSession();
+        //   this.selectedCounter = undefined;
+        //   this.lastSession = undefined;
+        //   this.selectedTicket = undefined;
+        //   this.currentTicket = undefined;
+        // }
         if (this.lastSession && this.selectedCounter == undefined) {
           this.selectedCounter = this.terminals.find(terminal => terminal.id == this.lastSession.terminal_id);
           this.terminalService.refreshTerminalStatus(this.lastSession.id);
@@ -578,11 +578,11 @@ export class DaTerminalmgmtComponent implements OnInit, OnDestroy {
    * @param counter The counter number selected by the user.
    */
   async selectCounter(counter: Terminal) {
-    if (counter.status == 'maintenance') {
+    if (this.checkIfOnline(counter) == 'maintenance') {
       this.API.sendFeedback('warning', 'This terminal is under maintenance', 5000);
       return;
     }
-    if (counter.status == 'online') {
+    if (this.checkIfOnline(counter) == 'online') {
       this.API.sendFeedback('warning', 'This terminal is used by another attendant', 5000);
       return;
     }
@@ -994,11 +994,11 @@ export class DaTerminalmgmtComponent implements OnInit, OnDestroy {
 
 
   checkIfOnline(terminal: Terminal) {
-    ;
+    
     const lastActive = new Date(terminal.last_active!);
     const diffInMinutes = (this.getServerTime().getTime() - lastActive.getTime()) / 60000;
 
-    if (diffInMinutes < 5 && terminal._status !== 'maintenance' && terminal.session_status !== 'closed') {
+    if (terminal._status !== 'maintenance' && terminal.session_status !== 'closed'&& terminal.last_active) {
       return 'online';
     } else {
       return terminal._status;

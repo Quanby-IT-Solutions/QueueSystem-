@@ -179,7 +179,7 @@ async deleteTerminal(id:string){
             const lastActive = new Date(this.last_active);
             const diffInMinutes = (now.getTime() - lastActive.getTime()) / 60000; 
     
-            if (diffInMinutes < 5 && this._status !== 'maintenance' && this.session_status !== 'closed') {
+            if (this._status !== 'maintenance' && this.session_status !== 'closed') {
                 return 'online';
             } else {
                 return this._status; // Return the default status if not online
@@ -241,7 +241,7 @@ async deleteTerminal(id:string){
     const response = await this.API.read({
       selectors: ['terminal_sessions.*'],
       tables: 'terminal_sessions',
-      conditions: `WHERE terminal_sessions.attendant_id = '${this.auth.getUser().id}' AND terminal_sessions.status != 'closed' 
+      conditions: `WHERE terminal_sessions.attendant_id = '${this.auth.getUser().id}' 
         ORDER BY last_active DESC
       `
     });
@@ -254,11 +254,12 @@ async deleteTerminal(id:string){
     if(response.output.length <= 0){
       return null;
     }else{
+      // alert(JSON.stringify(response.output[0]))
       const lastSession = response.output[0];
       const now = await this.getServerTime();
       const lastActive = new Date(lastSession.last_active);
       const diffInMinutes = (now.getTime() - lastActive.getTime()) / 60000; 
-      if (diffInMinutes < 5) {
+      if (lastSession.status != 'closed' && lastSession.last_active) {
         return lastSession; 
       }else{
         return null;
@@ -268,7 +269,7 @@ async deleteTerminal(id:string){
 
   async getActiveUsers():Promise<string[]>{ 
     const response = await this.API.read({
-      selectors: ['attendant_id,last_active'],
+      selectors: ['attendant_id,last_active, status'],
       tables: 'terminal_sessions',
       conditions: `WHERE terminal_sessions.status != 'closed' 
         ORDER BY last_active DESC
@@ -290,7 +291,7 @@ async deleteTerminal(id:string){
         const lastActive = new Date(lastSession.last_active);
   
         const diffInMinutes = (now.getTime() - lastActive.getTime()) / 60000; 
-        if (diffInMinutes < 5) {
+        if (lastSession.status != 'closed' && lastSession.last_active) {
           activeUsers.push(response.output[i].attendant_id); 
         }
       }
