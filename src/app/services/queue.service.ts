@@ -868,7 +868,7 @@ export class QueueService  {
         AND terminal_sessions.attendant_id = '${attendant_id}'
         AND MONTH(queue.timestamp) = MONTH(GETDATE())
         AND YEAR(queue.timestamp) = YEAR(GETDATE())
-        ORDER BY CAST(attended_queue.attended_on AS DATE) DESC
+        ORDER BY attended_queue.attended_on DESC
     `
   })
     if(!response.success){

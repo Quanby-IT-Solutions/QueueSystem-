@@ -166,9 +166,9 @@ export class QueueDisplayComponent implements OnInit, OnChanges, OnDestroy, Afte
   async terminalStatusInterval(){
     for(let i = 0;  i < this.counters.length; i++) {
       this.counters[i].status = this.checkIfOnline(this.counters[i].terminal!);
-      if(this.counters[i].status != 'online' && this.counters[i].ticket){
-        await this.queueService.returnUnattendedQueue(this.counters[i].ticket);
-      }
+      // if(this.counters[i].status != 'online' && this.counters[i].ticket){
+        // await this.queueService.returnUnattendedQueue(this.counters[i].ticket);
+      // }
     }
   }
 
@@ -656,9 +656,8 @@ export class QueueDisplayComponent implements OnInit, OnChanges, OnDestroy, Afte
   checkIfOnline(terminal:Terminal){
     if(!terminal) return 'available';
         const lastActive = new Date(terminal.last_active!);
-        const diffInMinutes = (this.getServerTime().getTime() - lastActive.getTime()) / 60000; 
-    
-        if (diffInMinutes < 5 && terminal._status !== 'maintenance' && terminal.session_status !== 'closed') {
+        const diffInMinutes = (this.getServerTime().getTime() - lastActive.getTime()) / 60000; 12
+        if ( terminal._status !== 'maintenance' && terminal.session_status !== 'closed') {
             return 'online';
         } else {
             return terminal._status; 
@@ -681,7 +680,7 @@ export class QueueDisplayComponent implements OnInit, OnChanges, OnDestroy, Afte
             // Update properties of the existing terminal
             Object.assign(existingTerminal, {
               id: updatedTerminal.id,
-              status: updatedTerminal.status,
+              status: this.checkIfOnline(updatedTerminal),
               ticket: ticket,
               terminal: updatedTerminal,
               ticketNumber: ticket ==undefined ? undefined : (ticket.queue!.tag) + '-'+ ticket.number!.toString().padStart(3, '0'),
@@ -692,7 +691,7 @@ export class QueueDisplayComponent implements OnInit, OnChanges, OnDestroy, Afte
             // Optionally handle new terminals
             this.counters.push({
               id: updatedTerminal.id,
-              status: updatedTerminal.status,
+              status: this.checkIfOnline(updatedTerminal),
               ticket: ticket,
               terminal: updatedTerminal,
               ticketNumber: ticket ==undefined ? undefined : (ticket.queue!.tag) + '-'+ ticket.number!.toString().padStart(3, '0'),

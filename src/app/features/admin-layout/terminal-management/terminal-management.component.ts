@@ -90,10 +90,13 @@ export class TerminalManagementComponent implements OnInit, OnDestroy {
     if(!id) return null;
     return this.formats.find(format=>format.id == id)?.name;
   }
-
+  private serverTimeDifference?:number;
+  private getServerTime(){
+    return new Date(new Date().getTime() + this.serverTimeDifference!);
+  }
   checkIfOnline(terminal:Terminal){
  
-    const now = new Date(); 
+    const now = this.getServerTime();
       const lastActive = new Date(terminal.last_active!);
       const diffInMinutes = (now.getTime() - lastActive.getTime()) / 60000; 
 
@@ -108,6 +111,10 @@ export class TerminalManagementComponent implements OnInit, OnDestroy {
 
   async loadContent(){
     this.API.setLoading(true);
+    const serverTimeString = await this.API.serverTime();
+    const serverTime = new Date(serverTimeString);
+    const localTime = new Date();
+    this.serverTimeDifference =  serverTime.getTime() - localTime.getTime();
     this.selectedDivision = (await this.divisionService.getDivision())?.id;
     this.divisions = this.divisionService.divisions;
     await  this.loadFormats();

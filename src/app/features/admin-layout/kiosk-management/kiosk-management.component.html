@@ -12,11 +12,11 @@
   <!-- Flex Container -->
   <div class="flex flex-col w-full h-full gap-3 pb-4 2xl:flex-row">
     <!-- Divsion Selection -->
-    <div *ngIf="isSuperAdmin" class="flex  2xl:flex-col gap-3 2xl:flex-[1_1_0%]">
+    <div *ngIf="isSuperAdmin" class="flex  2xl:flex-col gap-3 2xl:flex-[1_1_0%] max-h-full max-w-full overflow-scroll">
       <!-- Item -->
       <button
       (click)="selectDivision(division)"
-      class=" {{selectedDivision == division.id ? 'bg-[var(--primary-dark)] text-white':'bg-white'}}  tracking-wide h-12 rounded-xl shadow-md hover:bg-[var(--primary)] hover:text-white cursor-pointer flex items-center justify-between px-4 font-medium"
+      class=" {{selectedDivision == division.id ? 'bg-[var(--primary-dark)] text-white':'bg-white'}}  tracking-wide h-12 rounded-xl shadow-md hover:bg-[var(--primary)] hover:text-white cursor-pointer flex items-center justify-between px-4 font-medium text-nowrap 2xl:text-wrap"
       *ngFor="let division of divisions">
         {{division.name.toUpperCase()}} <span  class="hidden material-icons 2xl:block"> keyboard_arrow_right </span>
       </button>

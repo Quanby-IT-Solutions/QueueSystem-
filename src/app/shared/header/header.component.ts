@@ -173,16 +173,10 @@ export class HeaderComponent implements OnInit, AfterViewInit, OnDestroy {
       this.router.navigate(['/desk-attendant/profile'])
         .then(() => this.closeDropdown())
         .catch(err => console.error('Navigation Error:', err));
-    } else if (this.userData?.role === 'superadmin') {
+    } else  {
       this.router.navigate(['/admin/profile'])
-        .then(() => this.closeDropdown())
-        .catch(err => console.error('Navigation Error:', err));
-    } else if (['cashier', 'accountant', 'registrar'].includes(this.userData?.role || '')) {
-      this.router.navigate(['/admin/profile'])
-        .then(() => this.closeDropdown())
-        .catch(err => console.error('Navigation Error:', err));
-    } else {
-      console.warn('Unknown role, no specific route defined');
+      .then(() => this.closeDropdown())
+      .catch(err => console.error('Navigation Error:', err));
     }
   }
 }
