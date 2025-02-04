@@ -66,6 +66,7 @@ export class QueueingLayoutComponent implements OnInit, OnDestroy {
     // Listen for updates
     this.API.addSocketListener('content-changes', (data: any) => {
       if (data.event !== 'content-changes') return;
+      this.content = undefined;
       this.loadContents();
     });
   }

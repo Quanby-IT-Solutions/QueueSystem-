@@ -457,13 +457,14 @@ export class DaTerminalmgmtComponent implements OnInit, OnDestroy {
         this.updatingTerminalData = true;
         await this.updateTerminalData();
         this.lastSession = await this.terminalService.getActiveSession();
-        // if (!this.lastSession && this.selectedCounter) {
-        //   this.terminalService.terminateTerminalSession();
-        //   this.selectedCounter = undefined;
-        //   this.lastSession = undefined;
-        //   this.selectedTicket = undefined;
-        //   this.currentTicket = undefined;
-        // }
+        if (!this.lastSession && this.selectedCounter) {
+          this.terminalService.terminateTerminalSession();
+          this.selectedCounter = undefined;
+          this.lastSession = undefined;
+          this.selectedTicket = undefined;
+          this.currentTicket = undefined;
+          this.API.sendFeedback('warning', 'You have been logged out.', 5000);
+        }
         if (this.lastSession && this.selectedCounter == undefined) {
           this.selectedCounter = this.terminals.find(terminal => terminal.id == this.lastSession.terminal_id);
           this.terminalService.refreshTerminalStatus(this.lastSession.id);
@@ -540,7 +541,7 @@ export class DaTerminalmgmtComponent implements OnInit, OnDestroy {
     if (this.lastSession) {
       const terminal = this.terminals.find(terminal => terminal.id == this.lastSession.terminal_id);
       if (terminal?.status == 'maintenance') {
-        this.terminalService.terminateTerminalSession();
+        await this.terminalService.terminateTerminalSession();
         this.selectedCounter = undefined;
         this.lastSession = undefined;
         this.selectedTicket = undefined;

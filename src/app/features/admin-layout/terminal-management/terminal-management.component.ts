@@ -130,7 +130,6 @@ export class TerminalManagementComponent implements OnInit, OnDestroy {
   async updateTerminalData(){
     const exisitingTerminals:string[] = [];
     const updatedTerminals = await this.terminalService.getAllTerminals();
-
     // Update existing terminals
     updatedTerminals.forEach((updatedTerminal:Terminal) => {
       exisitingTerminals.push(updatedTerminal.id);
@@ -177,6 +176,14 @@ export class TerminalManagementComponent implements OnInit, OnDestroy {
         },
       ]
     }
+  }
+
+  async kickOut(terminal:Terminal){
+    this.API.setLoading(true);
+    await this.terminalService.kickOutTerminalSession(terminal.id);
+    this.terminals = (await this.terminalService.getAllTerminals());
+    this.API.setLoading(false);
+    this.API.sendFeedback('warning','You have kicked out attendants in terminal', 5000)
   }
 
   statusMap:any = {

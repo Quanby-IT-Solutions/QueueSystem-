@@ -250,7 +250,6 @@ async deleteTerminal(id:string){
       throw new Error('Unable to get terminal session');
     }
 
-
     if(response.output.length <= 0){
       return null;
     }else{
@@ -345,7 +344,7 @@ async deleteTerminal(id:string){
         values:{
           status: 'closed'
         }  ,
-        conditions: `WHERE id = '${lastSession.id}'`
+        conditions: `WHERE attendant_id = '${lastSession.attendant_id}' AND status != 'closed'`
       });
       // alert(lastSession.id);
       if(!closeResponse.success){
@@ -355,5 +354,24 @@ async deleteTerminal(id:string){
       this.queueService.resolveAttendedQueue('return');
     }
     clearInterval(this.statusInterval);
+  }
+
+  async kickOutTerminalSession(terminal_id:string){
+    // if(lastSession){
+      const closeResponse = await this.API.update({
+        tables: 'terminal_sessions',
+        values:{
+          status: 'closed'
+        }  ,
+        conditions: `WHERE terminal_id = '${terminal_id}'`
+      });
+      // alert(lastSession.id);
+      if(!closeResponse.success){
+        throw new Error('Unable to update terminal session');
+      }
+      this.API.socketSend({event:'terminal-events'})
+      this.logService.pushLog('kicked-terminal', `kicked out attendant from a terminal session.`)
+    // }
+    // clearInterval(this.statusInterval);
   }
 }

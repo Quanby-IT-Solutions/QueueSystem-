@@ -1,7 +1,7 @@
 //kiosk-forms.component.ts
 import { Component, model, OnDestroy, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { CommonModule } from '@angular/common';
+import { CommonModule, DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import jsPDF from 'jspdf';
 import { UswagonCoreService } from 'uswagon-core';
@@ -85,6 +85,19 @@ export class KioskFormsComponent implements OnInit, OnDestroy {
   modal?:'priority'|'success'|string;
   content:any;
 
+  private serverTimeDifference?:number;
+
+  private async getServerTime(){
+    if(this.serverTimeDifference == undefined) {
+      const serverTimeString = await this.API.serverTime();
+      const serverTime = new Date(serverTimeString);
+      const localTime = new Date();
+      this.serverTimeDifference =  serverTime.getTime() - localTime.getTime();
+    }
+
+    return new Date(new Date().getTime() + this.serverTimeDifference);
+  }
+
   openFeedback(type:'priority'|'success'){
     this.modal = type;
   }
@@ -143,7 +156,7 @@ export class KioskFormsComponent implements OnInit, OnDestroy {
 
   async ngOnInit() {
 
-    this.startClock();
+    await this.startClock();
     this.route.queryParams.subscribe(params => {
       this.departmentName = params['department'] || 'Department Name';
     });
@@ -321,8 +334,8 @@ export class KioskFormsComponent implements OnInit, OnDestroy {
       gender:this.gender,
       id:this.studentNumber.trim() == '' ? undefined : this.studentNumber.trim(),
       location: this.department.trim() == '' ? undefined : this.department.trim(),
-      date: this.currentDate.toLocaleDateString(),
-      time:this.currentTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      date:new DatePipe('en-US').transform(this.currentDate, 'MM/dd/yyy')  ,
+      time:    new DatePipe('en-US').transform(this.currentDate, 'hh:mm aa')  ,
       services: this.selectedServices.map(service=> service.name),
       type:this.getFormatName(this.selectedType),
     })
@@ -428,10 +441,11 @@ export class KioskFormsComponent implements OnInit, OnDestroy {
     });
   }
 
-   private startClock() {
-    this.timeInterval = setInterval(() => {
+   private async startClock() {
+    this.currentDate = await this.getServerTime();
+    this.timeInterval = setInterval(async () => {
       this.API.socketSend({'refresh':true});
-      this.currentDate = new Date();
+      this.currentDate =await this.getServerTime();
     }, 1000);
   }
 }
