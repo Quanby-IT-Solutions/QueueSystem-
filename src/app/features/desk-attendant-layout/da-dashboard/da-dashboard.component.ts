@@ -106,74 +106,113 @@ export class DaDashboardComponent implements OnInit, OnDestroy {
       console.error('Error fetching user data:', error);
     }
   }
-
   async fetchTerminalSessions() {
     const attendantId = this.auth.getUser()?.id || '';
     const dateFilter = this.getDateFilter();
-
+  
     try {
       const response = await this.API.read({
-        selectors: ['*'],
-        tables: 'terminal_sessions',
-        conditions: `WHERE attendant_id = '${attendantId}' ${dateFilter}`,
+        selectors: [
+          'terminal_sessions.*',
+          'attended_queue.finished_on',
+          'attended_queue.attended_on as start_time'
+        ],
+        tables: 'terminal_sessions LEFT JOIN attended_queue ON terminal_sessions.id = attended_queue.desk_id',
+        conditions: `WHERE terminal_sessions.attendant_id = '${attendantId}' ${dateFilter}`
       });
-
+  
       if (response.success && response.output.length) {
-        const sessions = response.output as {
-          start_time: string;
-          last_active: string;
-          status: string;
-        }[];
-
-        // Calculate Metrics and Graph Data from the same sessions
+        const sessions = response.output;
         this.calculateMetrics(sessions);
         this.serviceTimeDistribution = this.calculateServiceTimeDistribution(sessions);
-        this.dailyCustomerServed = this.calculateGraphData(sessions);
       }
     } catch (error) {
       console.error('Error fetching terminal sessions:', error);
     }
   }
 
-  calculateMetrics(sessions: { start_time: string; last_active: string; status: string }[]) {
-    // Total Customers Served
-    const totalCustomers = sessions.length;
-
-    // Average Service Time
-    const totalServiceTime = sessions.reduce((total: number, session) => {
+  calculateMetrics(sessions: { start_time: string; last_active: string; status: string; finished_on?: string }[]) {
+    // Only count completed sessions (those with finished_on timestamp)
+    const completedSessions = sessions.filter(session => session.finished_on);
+    const totalCustomers = completedSessions.length;
+  
+    if (totalCustomers === 0) {
+      this.metrics = [
+        { label: 'Total Customers Served', value: '0' },
+        { label: 'Average Service Time', value: '0 0' },
+        { label: 'Queue Efficiency', value: '0%' }
+      ];
+      return;
+    }
+  
+    // Calculate individual service times and total
+    let totalSeconds = 0;
+    const serviceTimes = completedSessions.map(session => {
       const start = new Date(session.start_time).getTime();
-      const end = new Date(session.last_active).getTime();
-      return total + (end - start);
-    }, 0);
-    const avgServiceTime = totalServiceTime / (totalCustomers * 60000); // Convert milliseconds to minutes
-
-    // Queue Efficiency
-    const closedCount = sessions.filter((s) => s.status === 'closed').length;
-    const queueEfficiency = Math.round((closedCount / totalCustomers) * 100);
-
-    this.metrics = [
-      { label: 'Total Customers Served', value: totalCustomers.toString() },
-      { label: 'Average Service Time (mins)', value: avgServiceTime.toFixed(1) },
-      { label: 'Queue Efficiency', value: queueEfficiency + '%' },
-    ];
-  }
-
-  calculateServiceTimeDistribution(sessions: { start_time: string; last_active: string }[]): ServiceTime[] {
-    const ranges = { '5-10 mins': 0, '10-15 mins': 0, '15-20 mins': 0, '20+ mins': 0 };
-    sessions.forEach((session) => {
-      const duration = (new Date(session.last_active).getTime() - new Date(session.start_time).getTime()) / 60000;
-      if (duration <= 10) ranges['5-10 mins']++;
-      else if (duration <= 15) ranges['10-15 mins']++;
-      else if (duration <= 20) ranges['15-20 mins']++;
-      else ranges['20+ mins']++;
+      const end = new Date(session.finished_on!).getTime();
+      const durationSeconds = Math.floor((end - start) / 1000);
+      totalSeconds += durationSeconds;
+      
+      return {
+        minutes: Math.floor(durationSeconds / 60),
+        seconds: durationSeconds % 60,
+        totalSeconds: durationSeconds
+      };
     });
-
-    const total = sessions.length;
-    return Object.entries(ranges).map(([range, count]) => ({
-      range,
-      percentage: (count / total) * 100,
-    }));
+  
+    // Calculate average in seconds
+    const averageSeconds = Math.round(totalSeconds / totalCustomers);
+    const minutes = Math.floor(averageSeconds / 60);
+    const seconds = averageSeconds % 60;
+  
+    // Queue Efficiency calculation
+    const queueEfficiency = Math.round((completedSessions.length / (sessions.length || 1)) * 100);
+  
+    this.metrics = [
+      { 
+        label: 'Total Customers Served',
+        value: totalCustomers.toString()
+      },
+      { 
+        label: 'Average Service Time', 
+        value: `${minutes} ${seconds}`  // Format matches the UI's expected format
+      },
+      { 
+        label: 'Queue Efficiency',
+        value: `${queueEfficiency}%`
+      }
+    ];
+  
+    // Debug logging
+    console.log('Individual service times:', serviceTimes);
+    console.log('Calculation details:', {
+      totalSeconds,
+      totalCustomers,
+      averageSeconds,
+      minutes,
+      seconds,
+      serviceTimes: serviceTimes.map(t => `${t.minutes}:${t.seconds} (${t.totalSeconds}s)`)
+    });
   }
+
+ calculateServiceTimeDistribution(sessions: { start_time: string; finished_on?: string }[]): ServiceTime[] {
+  const completedSessions = sessions.filter(session => session.finished_on);
+  const ranges = { '5-10m': 0, '10-15m': 0, '15-20m': 0, '20m+': 0 };
+  
+  completedSessions.forEach((session) => {
+    const duration = (new Date(session.finished_on!).getTime() - new Date(session.start_time).getTime()) / 60000;
+    if (duration <= 10) ranges['5-10m']++;
+    else if (duration <= 15) ranges['10-15m']++;
+    else if (duration <= 20) ranges['15-20m']++;
+    else ranges['20m+']++;
+  });
+
+  const total = completedSessions.length;
+  return Object.entries(ranges).map(([range, count]) => ({
+    range,
+    percentage: total > 0 ? (count / total) * 100 : 0,
+  }));
+}
 
   calculateGraphData(sessions: { start_time: string }[]): CustomerServedData[] {
     const groupBy: { [key: string]: number } = {};

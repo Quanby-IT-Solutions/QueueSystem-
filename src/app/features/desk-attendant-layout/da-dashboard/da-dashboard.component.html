@@ -32,7 +32,21 @@
   <div class="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-3 gap-4 mb-6">
     <article *ngFor="let metric of metrics" class="bg-white p-4 rounded-3xl shadow">
       <div class="flex flex-col items-center">
-        <h3 class="text-xl font-bold text-neutral-900">{{ metric.value }}</h3>
+        <h3 class="text-xl font-bold text-neutral-900">
+          <!-- Special formatting for Average Service Time -->
+          <ng-container *ngIf="metric.label === 'Average Service Time'">
+            <div class="flex items-baseline gap-1">
+              <span class="text-2xl">{{metric.value.split(' ')[0]}}</span>
+              <span class="text-sm text-gray-500">min</span>
+              <span class="text-2xl">{{metric.value.split(' ')[2]}}</span>
+              <!-- <span class="text-sm text-gray-500">sec</span> -->
+            </div>
+          </ng-container>
+          <!-- Regular display for other metrics -->
+          <ng-container *ngIf="metric.label !== 'Average Service Time'">
+            {{metric.value}}
+          </ng-container>
+        </h3>
         <p class="mt-2 text-sm text-slate-500">{{ metric.label }}</p>
       </div>
     </article>
@@ -49,6 +63,7 @@
           <div class="flex-grow bg-gray-200 rounded-full h-2.5">
             <div class="bg-blue-600 h-2.5 rounded-full" [style.width]="item.percentage + '%'"></div>
           </div>
+          <span class="w-16 text-sm text-slate-500 text-right">{{ item.percentage.toFixed(1) }}%</span>
         </div>
       </div>
       <ng-template #noData>
@@ -56,11 +71,9 @@
       </ng-template>
     </section>
 
-    <!-- Daily/Monthly/Yearly Customer Served -->
+    <!-- Daily Customer Served -->
     <section class="bg-white p-6 rounded-3xl shadow">
-      <h3 class="text-lg font-medium text-neutral-900 mb-4">
-        {{ selectedTimeRange === 'day' ? 'Daily' : selectedTimeRange === 'month' ? 'Monthly' : 'Yearly' }} Customer Served
-      </h3>
+      <h3 class="text-lg font-medium text-neutral-900 mb-4">Daily Customer Served</h3>
       <p class="text-sm text-gray-500 mb-2">Total Customers Served: {{ metrics[0]?.value }}</p>
       <div class="relative" style="height: 200px;">
         <svg [attr.viewBox]="'0 0 ' + graphWidth + ' ' + graphHeight" style="width: 100%; height: 100%;">
