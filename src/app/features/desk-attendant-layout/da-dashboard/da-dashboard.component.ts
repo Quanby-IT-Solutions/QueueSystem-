@@ -118,7 +118,7 @@ export class DaDashboardComponent implements OnInit, OnDestroy {
           'attended_queue.attended_on as start_time'
         ],
         tables: 'terminal_sessions LEFT JOIN attended_queue ON terminal_sessions.id = attended_queue.desk_id',
-        conditions: `WHERE terminal_sessions.attendant_id = '${attendantId}' ${dateFilter}`
+        conditions: `WHERE terminal_sessions.attendant_id = '${attendantId}' ${dateFilter} AND (attended_queue.status='finished' )`
       });
   
       if (response.success && response.output.length) {
@@ -139,26 +139,25 @@ export class DaDashboardComponent implements OnInit, OnDestroy {
     if (totalCustomers === 0) {
       this.metrics = [
         { label: 'Total Customers Served', value: '0' },
-        { label: 'Average Service Time', value: '0 0' },
+        { label: 'Average Service Time', value: '0 min 0 sec' },  // Updated format
         { label: 'Queue Efficiency', value: '0%' }
       ];
       return;
     }
   
-    // Calculate individual service times and total
     let totalSeconds = 0;
     const serviceTimes = completedSessions.map(session => {
       const start = new Date(session.start_time).getTime();
       const end = new Date(session.finished_on!).getTime();
       const durationSeconds = Math.floor((end - start) / 1000);
       totalSeconds += durationSeconds;
-      
       return {
         minutes: Math.floor(durationSeconds / 60),
         seconds: durationSeconds % 60,
         totalSeconds: durationSeconds
       };
     });
+  
   
     // Calculate average in seconds
     const averageSeconds = Math.round(totalSeconds / totalCustomers);
@@ -174,8 +173,8 @@ export class DaDashboardComponent implements OnInit, OnDestroy {
         value: totalCustomers.toString()
       },
       { 
-        label: 'Average Service Time', 
-        value: `${minutes} ${seconds}`  // Format matches the UI's expected format
+       label: 'Average Service Time', 
+      value: `${minutes} min ${seconds} sec`
       },
       { 
         label: 'Queue Efficiency',
@@ -191,7 +190,14 @@ export class DaDashboardComponent implements OnInit, OnDestroy {
       averageSeconds,
       minutes,
       seconds,
-      serviceTimes: serviceTimes.map(t => `${t.minutes}:${t.seconds} (${t.totalSeconds}s)`)
+      serviceTimes: serviceTimes.map((t, index) => {
+        const session = completedSessions[index];
+        return {
+          duration: `${t.minutes}:${t.seconds} (${t.totalSeconds}s)`,
+          start: new Date(session.start_time).toLocaleString(),
+          finish: new Date(session.finished_on!).toLocaleString()
+        };
+      })
     });
   }
 
