@@ -55,6 +55,11 @@ export class FormatService extends CrudService<Format>{
     return await super.getAll();
   }
 
+  override async getAll(){
+    super.setFilters(``);
+    return await super.getAll();
+  }
+
   async setKiosk(id:string, kiosk:string){
     const  responseGet = await this.API.read({
       selectors:['*'],

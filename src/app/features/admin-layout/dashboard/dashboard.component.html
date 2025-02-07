@@ -204,7 +204,7 @@
 
       <!-- Queue Status -->
       <div class="p-6 bg-white shadow-sm rounded-xl">
-        <h3 class="mb-6 text-xl font-bold text-neutral-800">Queue Status</h3>
+        <h3 class="mb-6 text-xl font-bold text-neutral-800">Today's Queue Status</h3>
         <div class="grid grid-cols-1 gap-4">
           <ng-container *ngFor="let queue of queueAnalytics$ | async">
             <div class="flex items-start p-5 transition-all duration-300 border shadow-sm rounded-2xl bg-white/80 backdrop-blur-sm border-white/50 hover:shadow-md">
@@ -400,7 +400,7 @@
           </tr>
         </thead>
         <tbody class="divide-y divide-gray-100">
-          <tr *ngFor="let metric of deskAttendantMetrics">
+          <tr *ngFor="let metric of deskAttendantMetrics | slice: (staffCurrentPage-1)*staffItemsPerPage: (staffCurrentPage)*staffItemsPerPage">
             <td class="px-6 py-4">{{ metric.fullname}}</td>
             <td class="px-6 py-4">{{ metric.division_name }}</td>
             <td class="px-6 py-4">{{ metric.averageTimeService }}</td>

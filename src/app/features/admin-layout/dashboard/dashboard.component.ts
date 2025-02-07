@@ -52,6 +52,7 @@ interface QueueAnalytics {
 interface StaffPerformance {
   name: string;
   office: string;
+  division_id:string;
   ticketsServed: number;
   avgServiceTime: string;
   customerRating: number;
@@ -128,7 +129,7 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
   totalServices: number = 0;
 
   staffCurrentPage: number = 1;
-  staffItemsPerPage: number = 5;
+  staffItemsPerPage: number = 7;
   staffTotalPages: number = 1;
 
   lastRefreshTime: number = Date.now();
@@ -271,13 +272,15 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
   
   
     private queueAnalytics(): Observable<QueueAnalytics[]> {
-    const allQueues = this.queueService.allQueue;
+    const allQueues = this.queueService.allTodayQueue;
     const divisions = this.divisions;
+    
+    
 
     const analytics = divisions.map((division) => {
       const divisionQueues = allQueues.filter(queue => queue.division_id === division.id);
       const currentTicket = divisionQueues.find(queue => queue.status === 'serving')?.number || 0;
-      const waitingCount = divisionQueues.filter(queue => queue.status === 'waiting').length;
+      const waitingCount = divisionQueues.filter(queue => queue.status != 'taken' ).length;
       const avgWaitTime = this.calculateWaitingTime(division.id);
       const status = waitingCount > 20 ? 'Busy' : waitingCount > 10 ? 'Moderate' : 'Normal';
 
@@ -304,7 +307,8 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
         'da.id as attendantId',  
         'da.username',           
         'da.fullname',           
-        'd.name as division_name' 
+        'd.name as division_name',
+        'da.division_id' 
       ],
       tables: 'desk_attendants da LEFT JOIN divisions d ON da.division_id = d.id',
       conditions: ''
@@ -317,7 +321,8 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
         deskAttendantData.output.map((item: any) => ({
           id: item.attendantId,
           name: item.fullname,          
-          office: item.division_name,     
+          office: item.division_name,
+          division_id:item.division_id,     
           ticketsServed: 0,               
           totalCheckins: 0,               
           avgServiceTime: 'N/A'           
@@ -326,13 +331,16 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
   
       console.log('Mapped desk attendants:', deskAttendantData.output);
   
-      this.staffTotalPages = Math.ceil(deskAttendantData.output.length / 5);
-      this.updateDeskAttendantPage();
+
   
       for (const attendant of deskAttendantData.output) {
         console.log(`Fetching terminal sessions for attendantId: ${attendant.attendantId}`);
-        await this.fetchTerminalSessions(attendant.attendantId, attendant.fullname, attendant.division_name);
+        await this.fetchTerminalSessions(attendant.attendantId, attendant.fullname, attendant.division_name,attendant.division_id);
       }
+      
+      this.staffTotalPages = Math.ceil(this.deskAttendantMetrics.length / this.staffItemsPerPage);
+      this.updateDeskAttendantPage();
+
   
       console.log('Final desk attendant metrics:', this.deskAttendantMetrics);
     } else {
@@ -343,25 +351,30 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
   
   
   
-  async fetchTerminalSessions(attendantId: string, fullName: string, division_name: string) {
+  async fetchTerminalSessions(attendantId: string, fullName: string, division_name: string,  division_id: string) {
     try {
       const response = await this.API.read({
-        selectors: ['*'],
-        tables: 'terminal_sessions',
-        conditions: `WHERE attendant_id = '${attendantId}'`,
+        selectors: ['terminal_sessions.attendant_id, terminal_sessions.terminal_id ,terminal_sessions.start_time' , 'SUM(DATEDIFF(SECOND, attended_queue.attended_on, attended_queue.finished_on)) AS avg_service_time', 'COUNT(attended_queue.id) AS transactions'],
+        tables: 'terminal_sessions,attended_queue,terminals',
+        conditions: `
+        WHERE terminal_sessions.attendant_id = '${attendantId}' AND attended_queue.desk_id = terminal_sessions.id AND (attended_queue.status = 'finished' OR attended_queue.status = 'bottom') AND terminals.id = terminal_sessions.terminal_id AND terminals.division_id = '${division_id}'
+        GROUP BY  terminal_sessions.attendant_id, terminal_sessions.start_time, terminal_sessions.terminal_id 
+        `,
       });
-  
-      console.log(`API response for terminal sessions (attendantId: ${attendantId}):`, response);
+      
+      // console.log(`API response for terminal sessions (attendantId: ${attendantId}):`, response);
   
       if (response.success && response.output.length > 0) {
         const sessions = response.output;
+        console.log(fullName.toUpperCase(), sessions)
         const metrics = this.calculateMetrics(sessions, fullName, division_name, attendantId);
         this.deskAttendantMetrics.push(metrics);
         console.log(`Calculated metrics for attendantId ${attendantId}:`, metrics);
       } else {
+
         console.warn(`No terminal sessions found for attendantId: ${attendantId}`);
       }
-    } catch (error) {
+    } catch (error:any) {
       console.error(`Error fetching terminal sessions for attendantId: ${attendantId}`, error);
     }
   }
@@ -370,35 +383,42 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
   calculateMetrics(sessions: any[], fullname: string, division_name: string, attendantId: string): DeskAttendantPerformanceMetrics {
     const totalCheckIns = sessions.length;
     const checkInTimesByDate: Record<string, number[]> = {};
-  
+    let totalTransactions:number = 0
+    let totalServiceTime:number = 0;
+    
     sessions.forEach((session) => {
-      const startTime = new Date(session.start_time);
-      const dateKey = startTime.toISOString().split('T')[0];
-      const checkInTimeInMinutes = startTime.getHours() * 60 + startTime.getMinutes();
-  
-      if (!checkInTimesByDate[dateKey]) {
-        checkInTimesByDate[dateKey] = [];
-      }
-      checkInTimesByDate[dateKey].push(checkInTimeInMinutes);
+     
+        const startTime = new Date(session.start_time);
+        const dateKey = startTime.toISOString().split('T')[0];
+        const checkInTimeInMinutes = startTime.getHours() * 60 + startTime.getMinutes();
+    
+        if (!checkInTimesByDate[dateKey]) {
+          checkInTimesByDate[dateKey] = [];
+        }
+
+        checkInTimesByDate[dateKey].push(checkInTimeInMinutes);
+
+        if(session.avg_service_time){
+          totalTransactions += session.transactions;
+          totalServiceTime+=session.avg_service_time
+        }
+      
     });
+
+
   
     const dailyAverages: number[] = Object.values(checkInTimesByDate).map((times) => {
       const totalMinutes = times.reduce((sum, time) => sum + time, 0);
       return totalMinutes / times.length;
     });
-  
+
+    
     const overallAverageCheckInTimeInMinutes =
-      dailyAverages.reduce((sum, avg) => sum + avg, 0) / dailyAverages.length;
-  
-    const totalDuration = sessions.reduce((acc, session) => {
-      const startTime = new Date(session.start_time).getTime();
-      const lastActive = new Date(session.last_active).getTime();
-      return acc + (lastActive - startTime);
-    }, 0);
-  
-    const averageDurationMs = totalDuration / totalCheckIns;
-    const averageServiceMinutes = Math.floor(averageDurationMs / 60000);
-    const averageServiceSeconds = Math.floor((averageDurationMs % 60000) / 1000);
+    dailyAverages.reduce((sum, avg) => sum + avg, 0) / dailyAverages.length;
+
+    const averageDurationMs = totalServiceTime  / totalTransactions;
+    const averageServiceMinutes = Math.floor(averageDurationMs / 60);
+    const averageServiceSeconds = Math.floor((averageDurationMs % 60) );
     const averageTimeService = `${averageServiceMinutes}:${averageServiceSeconds.toString().padStart(2, '0')} mins`;
   
     const totalCheckInsToday = sessions.filter(session =>
@@ -481,8 +501,9 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
       // Refresh all data sources
       await Promise.all([
         this.queueService.getAllQueues(),
-        this.queueService.getAllTodayQueues(),
+        this.queueService.getAllTodayQueues(true),
         this.queueService.geAllAttendedQueues(),
+        this.queueService.geAllTransactions()
         // Add other necessary data refreshes
       ]);
 
@@ -761,9 +782,6 @@ const datasets = filteredMetrics.map((metric) => {
   }
 
   
-
-
-
   async updateOverallMetrics() {
     const perDivision = this.divisions.map((division) => ({
       title: division.name,
@@ -840,16 +858,16 @@ const datasets = filteredMetrics.map((metric) => {
 
 
 
-  countItemsPerDay  (division_id?:string) {
-    let items = this.queueService.allQueue;
+ countItemsPerDay  (division_id?:string) {
+    let items = this.queueService.allTransactions;
     if(division_id){
-      items = items.filter(item=> item.division_id == division_id);
+      items = items.filter(item=> item.queue?.division_id == division_id);
     }
       const now = new Date();
       // Initialize an array with 24 zeros (for each hour)
       const countByHour = Array(24).fill(0);
       items.forEach(item => {
-          const date = new Date(item.timestamp);
+          const date = new Date(item.queue?.timestamp!);
           const hour = date.getHours(); // Get the hour (0-23)
           // alert(date.toDateString());
           if(date.toDateString() == now.toDateString()){
@@ -861,9 +879,9 @@ const datasets = filteredMetrics.map((metric) => {
   };
 
   countItemsPerWeek(division_id?:string) {
-    let items = this.queueService.allQueue;
+    let items = this.queueService.allTransactions;
     if(division_id){
-      items = items.filter(item=> item.division_id == division_id);
+      items = items.filter(item=> item.queue?.division_id == division_id);
     }
 
     const today = new Date();
@@ -873,7 +891,7 @@ const datasets = filteredMetrics.map((metric) => {
     const countByDay: any = {};
 
     items.forEach((item: any) => {
-      const date = new Date(item.timestamp);
+      const date = new Date(item.queue?.timestamp);
 
       // Check if the item is within the last 8 days
       if (date >= startOfPeriod && date <= today) {
@@ -897,10 +915,10 @@ const datasets = filteredMetrics.map((metric) => {
   }
 
   countItemsPerMonth(division_id?:string) {
-      let items = this.queueService.allQueue;
+    let items = this.queueService.allTransactions;
 
       if (division_id) {
-          items = items.filter(item => item.division_id === division_id);
+          items = items.filter(item => item.queue?.division_id === division_id);
       }
 
       const countByWeek = [0, 0, 0, 0, 0]; // Initialize an array for the 5 weeks of the month
@@ -909,7 +927,7 @@ const datasets = filteredMetrics.map((metric) => {
       const currentMonth = now.getMonth(); // getMonth() returns 0-11
 
       items.forEach((item) => {
-          const date = new Date(item.timestamp);
+          const date = new Date(item.queue?.timestamp!);
           const year = date.getFullYear();
           const month = date.getMonth(); // 0-11
 
@@ -923,16 +941,16 @@ const datasets = filteredMetrics.map((metric) => {
       return countByWeek;
   }
   countItemsPerYear(division_id?:string) {
-    let items = this.queueService.allQueue;
+    let items = this.queueService.allTransactions;
     if(division_id){
-      items = items.filter(item=> item.division_id == division_id);
+      items = items.filter(item=> item.queue?.division_id == division_id);
     }
 
     const countByMonth = new Array(12).fill(0); // Create an array with 12 months initialized to 0
     const now = new Date();
     // Iterate over each item to count occurrences by month
     items.forEach((item) => {
-      const date = new Date(item.timestamp);
+      const date = new Date(item.queue?.timestamp!);
       const month = date.getMonth(); // Get month (0-11)
       if(date.getFullYear() == now.getFullYear()){
         countByMonth[month] += 1; // Increment the count for that month
@@ -1133,8 +1151,9 @@ const datasets = filteredMetrics.map((metric) => {
        this.totalServices = services.length;
      }
     await this.queueService.getAllQueues();
-    await this.queueService.getAllTodayQueues();
+    await this.queueService.getAllTodayQueues(true);
     await this.queueService.geAllAttendedQueues();
+    await this.queueService.geAllTransactions();
     this.queueAnalytics$ = this.queueAnalytics();
     // this.staffPerformance$ = this.getMockStaffPerformance();
     // this.kioskStatus$ = this.getMockKioskStatus();

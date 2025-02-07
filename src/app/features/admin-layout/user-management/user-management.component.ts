@@ -216,7 +216,7 @@ export class UserManagementComponent implements OnInit, OnDestroy {
       this.metricsLoading = false;
     }, 300); // Adjust the timeout to match the animation duration
     if (user) {
-      this.fetchTerminalSessions(user.id);
+      this.fetchTerminalSessions(user.id, user.division_id);
     } else {
       this.resetMetrics();
     }
@@ -318,12 +318,15 @@ export class UserManagementComponent implements OnInit, OnDestroy {
     this.showModal = true;
   }
 
-  async fetchTerminalSessions(userId: string) {
+  async fetchTerminalSessions(userId: string, division_id:string) {
     try {
       const response = await this.API.read({
-        selectors: ['*'],
-        tables: 'terminal_sessions',
-        conditions: `WHERE attendant_id = '${userId}'`,
+        selectors: ['terminal_sessions.attendant_id, terminal_sessions.terminal_id ,terminal_sessions.start_time' , 'SUM(DATEDIFF(SECOND, attended_queue.attended_on, attended_queue.finished_on)) AS avg_service_time', 'COUNT(attended_queue.id) AS transactions'],
+        tables: 'terminal_sessions,attended_queue,terminals',
+        conditions: `
+        WHERE terminal_sessions.attendant_id = '${userId}' AND attended_queue.desk_id = terminal_sessions.id AND (attended_queue.status = 'finished' OR attended_queue.status = 'bottom') AND terminals.id = terminal_sessions.terminal_id AND terminals.division_id = '${division_id}'
+        GROUP BY  terminal_sessions.attendant_id, terminal_sessions.start_time, terminal_sessions.terminal_id 
+        `,
       });
   
       if (response.success && response.output.length > 0) {
@@ -355,7 +358,8 @@ export class UserManagementComponent implements OnInit, OnDestroy {
   calculateMetrics(sessions: any[]): PerformanceMetrics {
     const totalCheckIns = sessions.length;
     const checkInTimesByDate: Record<string, number[]> = {};
-
+    let totalTransactions:number = 0
+    let totalServiceTime:number = 0;
     sessions.forEach((session) => {
       const startTime = new Date(session.start_time);
       const dateKey = startTime.toISOString().split('T')[0]; 
@@ -365,6 +369,11 @@ export class UserManagementComponent implements OnInit, OnDestroy {
         checkInTimesByDate[dateKey] = [];
       }
       checkInTimesByDate[dateKey].push(checkInTimeInMinutes);
+      if(session.avg_service_time){
+        totalTransactions += session.transactions;
+        totalServiceTime+=session.avg_service_time
+      }
+    
     });
   
     const dailyAverages: number[] = Object.values(checkInTimesByDate).map((times) => {
@@ -375,16 +384,9 @@ export class UserManagementComponent implements OnInit, OnDestroy {
     const overallAverageCheckInTimeInMinutes =
       dailyAverages.reduce((sum, avg) => sum + avg, 0) / dailyAverages.length;
   
-    const totalDuration = sessions.reduce((acc, session) => {
-      const startTime = new Date(session.start_time).getTime();
-      const lastActive = new Date(session.last_active).getTime();
-      const sessionDuration = lastActive - startTime; 
-      return acc + sessionDuration;
-    }, 0);
-  
-    const averageDurationMs = totalDuration / totalCheckIns;
-    const averageServiceMinutes = Math.floor(averageDurationMs / 60000);
-    const averageServiceSeconds = Math.floor((averageDurationMs % 60000) / 1000);
+    const averageDurationMs = totalServiceTime  / totalTransactions;
+    const averageServiceMinutes = Math.floor(averageDurationMs / 60);
+    const averageServiceSeconds = Math.floor((averageDurationMs % 60));
     const averageTimeService = `${averageServiceMinutes}:${averageServiceSeconds.toString().padStart(2, '0')} mins`;
   
     const totalCheckInsToday = sessions.filter(session =>

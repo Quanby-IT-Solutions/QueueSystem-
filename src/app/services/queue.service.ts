@@ -602,7 +602,7 @@ export class QueueService  {
     });
     if(response.success){
       const queue = response.output as Queue[];
-      const formats:Format[] =  await this.formatService.getFrom(this.divisionService.selectedDivision!.id);
+      const formats:Format[] =  await this.formatService.getAll();
       const formatMap:{[key:string]:Format} = {
         'priority':{
           id:'0',
@@ -615,12 +615,12 @@ export class QueueService  {
           prefix:'R'
         },
       };
-      this.queueNumber['priority'] = queue.filter(queue=> queue.type == 'priority' && queue.status == 'waiting').length + 1;
-      this.queueNumber['regular'] = queue.filter(queue=> queue.type == 'regular' && queue.status == 'waiting').length + 1;
+      this.queueNumber['priority'] = queue.filter(queue=> queue.type == 'priority' && queue.status != 'taken').length + 1;
+      this.queueNumber['regular'] = queue.filter(queue=> queue.type == 'regular' && queue.status != 'taken').length + 1;
       if(formats.length > 0){
         for(let format of formats){
           formatMap[format.id!] = format;
-          this.queueNumber[format.id!] = queue.filter(queue=> queue.type == format.id && queue.status == 'waiting').length + 1;
+          this.queueNumber[format.id!] = queue.filter(queue=> queue.type == format.id && queue.status != 'taken').length + 1;
         }
       }
 
@@ -666,6 +666,7 @@ export class QueueService  {
         conditions: `
           WHERE attended_queue.queue_id = queue.id
           AND terminal_sessions.id = attended_queue.desk_id
+          AND CAST(REPLACE(queue.timestamp, 'Z', '') AS DATE) = CAST(GETDATE() AS DATE)
           ORDER BY timestamp DESC
         `
       });
@@ -676,6 +677,37 @@ export class QueueService  {
         }
         
         return this.attendedQueues;
+      }else{
+        throw new Error(response.output);
+      }
+    }catch(e:any){
+      throw new Error('Something went wrong.');
+    }
+  }
+
+  allTransactions:AttendedQueue[]=[];
+
+  async geAllTransactions(today:boolean = false){
+    const todayFilter = today?` AND CAST(REPLACE(queue.timestamp, 'Z', '') AS DATE) = CAST(GETDATE() AS DATE)`:''
+    try{
+      const response = await this.API.read({
+        selectors: ['terminal_sessions.*,queue.*,attended_queue.* '],
+        tables: 'attended_queue, queue,terminal_sessions',
+        conditions: `
+          WHERE attended_queue.queue_id = queue.id
+          AND terminal_sessions.id = attended_queue.desk_id
+          AND attended_queue.status = 'finished' 
+          ${todayFilter}
+          ORDER BY timestamp DESC
+        `
+      });
+      if(response.success){
+        this.allTransactions= [];
+        for(let attended of response.output){
+          this.allTransactions.push({...attended, queue: {...attended, id: attended.queue_id}})
+        }
+        
+        return this.allTransactions;
       }else{
         throw new Error(response.output);
       }
