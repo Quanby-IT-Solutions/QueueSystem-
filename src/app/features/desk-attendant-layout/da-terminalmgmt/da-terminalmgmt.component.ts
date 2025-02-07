@@ -33,6 +33,14 @@ interface Terminal {
   specific?: string;
 }
 
+interface QueueTiming {
+  queueId: string;
+  startTime: number;
+  endTime?: number;
+  duration?: number;
+}
+
+
 interface Division {
   id: string;
   name: string;
@@ -124,6 +132,7 @@ export class DaTerminalmgmtComponent implements OnInit, OnDestroy {
   private dateInterval: any;
   private statusInterval: any;
   private subscription?: Subscription;
+  private queueTimings: QueueTiming[] = [];
 
   lastSession?: any;
 
@@ -152,6 +161,8 @@ export class DaTerminalmgmtComponent implements OnInit, OnDestroy {
 
   refreshInterval: any;
   initialized:boolean = false;
+
+  
 
   areNewTicketsAdded (oldTickets: Ticket[], newTickets: Ticket[]) {
     // Assuming each ticket has a unique ID or property that can be used for comparison
@@ -511,6 +522,8 @@ export class DaTerminalmgmtComponent implements OnInit, OnDestroy {
     this.API.setLoading(false);
     this.initialized = true;
   }
+
+  
 
   private updatingTerminalData = false;
 
@@ -1060,6 +1073,13 @@ export class DaTerminalmgmtComponent implements OnInit, OnDestroy {
   // Update startTimer method to include progress calculation
   private startTimer(): void {
     this.timerStartTime = this.getServerTime().getTime();
+    if (this.currentTicket) {
+      this.queueTimings.push({
+        queueId: this.currentTicket.id,
+        startTime: this.timerStartTime
+      });
+    }
+    
     this.timerInterval = setInterval(() => {
       if (this.timerStartTime) {
         const elapsedTime = this.getServerTime().getTime() - this.timerStartTime;
@@ -1072,7 +1092,6 @@ export class DaTerminalmgmtComponent implements OnInit, OnDestroy {
     }, 1000);
   }
 
-
   /**
    * Stops the timer and resets the timer state.
    */
@@ -1081,10 +1100,23 @@ export class DaTerminalmgmtComponent implements OnInit, OnDestroy {
       clearInterval(this.timerInterval);
       this.timerInterval = null;
     }
+    
+    if (this.currentTicket) {
+      const currentQueueTiming = this.queueTimings.find(qt => qt.queueId === this.currentTicket?.id);
+      if (currentQueueTiming) {
+        currentQueueTiming.endTime = this.getServerTime().getTime();
+        currentQueueTiming.duration = (currentQueueTiming.endTime - currentQueueTiming.startTime) / 1000; // Duration in seconds
+        
+        // Store the timing data
+        this.storeQueueTiming(currentQueueTiming);
+      }
+    }
+    
     this.timer = '00:00:00';
     this.timerStartTime = null;
   }
 
+  
 
   /**
    * Pads a number with a leading zero if it's less than 10.
@@ -1106,7 +1138,23 @@ export class DaTerminalmgmtComponent implements OnInit, OnDestroy {
       day: 'numeric', // Day as a number
     });
   }
-
+  private async storeQueueTiming(timing: QueueTiming) {
+    try {
+      await this.API.create({
+        tables: 'queue_timings',
+        values: {
+          queue_id: timing.queueId,
+          start_time: new Date(timing.startTime).toISOString(),
+          end_time: new Date(timing.endTime!).toISOString(),
+          duration_seconds: timing.duration,
+          terminal_id: this.selectedCounter?.id,
+          division_id: this.division?.id
+        }
+      });
+    } catch (error) {
+      console.error('Error storing queue timing:', error);
+    }
+  }
   /**
    * Clears all active intervals to prevent memory leaks.
    */
