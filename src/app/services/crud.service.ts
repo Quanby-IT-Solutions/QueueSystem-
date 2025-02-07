@@ -37,7 +37,7 @@ getTable(){
   });
  
    if(!response.success){
-     throw new Error('Unable to add item');
+     throw new Error(response.output);
    }
     this.core.socketSend({event:'queue-events'})
     this.core.socketSend({event:'terminal-events'})
