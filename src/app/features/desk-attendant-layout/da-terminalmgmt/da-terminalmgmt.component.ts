@@ -713,22 +713,30 @@ export class DaTerminalmgmtComponent implements OnInit, OnDestroy {
   }
 
 
+  showNextConfirmation:boolean = false
 
+  async nextConfirmation(){
+    this.showNextConfirmation = false;
+    this.actionLoading = true;
+    await this.queueService.resolveAttendedQueue('finished');
+    this.logService.pushLog('transaction-end', `completed a transaction [${this.currentTicket?.tag} - ${this.currentTicket?.number}].`);
+    this.resetInterface();
+    this.filterQueueByTypeAndService();
+    this.API.sendFeedback('success', 'Transaction successful!', 5000);
+    this.actionLoading = false;
+  }
 
   async nextClient() {
     if (this.actionLoading) return;
     try {
-      this.actionLoading = true;
+      
       // If there's a current transaction, finish it first
       if (this.currentTicket) {
-        await this.queueService.resolveAttendedQueue('finished');
-        this.logService.pushLog('transaction-end', `completed a transaction [${this.currentTicket?.tag} - ${this.currentTicket?.number}].`);
-        this.resetInterface();
-        this.filterQueueByTypeAndService();
-        this.API.sendFeedback('success', 'Transaction successful!', 5000);
-        this.actionLoading = false;
+        this.showNextConfirmation = true;
+        
         return;
       }
+      this.actionLoading = true;
 
       if (this.tickets.length === 0) {
         this.API.sendFeedback('warning', 'No clients in queue.', 5000);
@@ -736,7 +744,7 @@ export class DaTerminalmgmtComponent implements OnInit, OnDestroy {
         return;
       }
 
-
+      
       // Use the selected ticket type if available
       let nextTicket: Ticket | undefined;
       let success: boolean = false;
@@ -1008,13 +1016,20 @@ export class DaTerminalmgmtComponent implements OnInit, OnDestroy {
   /**
    * Handles the "No Show" action by moving to the next client.
    */
+
+  showNoShowConfirmation:boolean = false;
   async noShow() {
     if (this.actionLoading) return;
     if (!this.currentTicket) {
       return;
     }
-    this.actionLoading = true;
+    this.showNoShowConfirmation = true;
+    
+  }
 
+  async confirmNoShow() {
+    this.showNoShowConfirmation = false
+    this.actionLoading = true;
     // Mark the current ticket as skipped
     await this.queueService.resolveAttendedQueue('skipped');
     this.logService.pushLog('transaction-end', `marked a transaction as no show [${this.currentTicket?.tag} - ${this.currentTicket?.number}].`);

@@ -193,12 +193,11 @@ export class LoginLayoutComponent implements OnInit, AfterViewInit {
   }
 
   openExternalLink(link:string) {
-    alert();
     window.open(link, '_blank');
   }
 
   openExternalMap(){
-    const address = 'Visayas State University Visca Baybay City, Leyte';
+    const address = 'PCSO - Main Office, Mandaluyong';
     const formattedAddress = encodeURIComponent(address);
     const url = `https://www.google.com/maps/search/?api=1&query=${formattedAddress}`;
     window.open(url, '_blank');

@@ -438,6 +438,25 @@
   animation="yellowWarning">
 </app-confirmation>
 
+
+<app-confirmation
+  *ngIf="showNextConfirmation"
+  type="custom"
+  (onCancel)="showNextConfirmation = false"
+  (onConfirm)="nextConfirmation()"
+  title="Finish transaction with this client?"
+  description="Are you sure you want to finish transaction with client?"
+  animation="yellowWarning">
+</app-confirmation>
+<app-confirmation
+  *ngIf="showNoShowConfirmation"
+  type="custom"
+  (onCancel)="showNoShowConfirmation = false"
+  (onConfirm)="confirmNoShow()"
+  title="Mark this client as no show?"
+  description="Are you sure you want to mark this client as no show?"
+  animation="yellowWarning">
+</app-confirmation>
 <!-- Global Loading Overlay -->
 <div *ngIf="actionLoading" class="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
   <div class="bg-white p-8 rounded-lg shadow-xl flex flex-col items-center">

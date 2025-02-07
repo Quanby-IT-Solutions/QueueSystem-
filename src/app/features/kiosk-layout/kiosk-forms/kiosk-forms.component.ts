@@ -314,6 +314,7 @@ export class KioskFormsComponent implements OnInit, OnDestroy {
     if(this.gender ==''){
       this.gender = 'other';
     }
+    this.currentDate = await this.getServerTime();
     const number = await this.queueService.addToQueue({
       fullname: this.customerName.trim(),
       type: this.selectedType,

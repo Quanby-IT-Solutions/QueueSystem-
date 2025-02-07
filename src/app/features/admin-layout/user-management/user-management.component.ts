@@ -262,6 +262,10 @@ export class UserManagementComponent implements OnInit, OnDestroy {
   this.showDeleteConfirmation = false;
 
   try {
+    this.API.socketSend({
+      event: 'get-out',
+      id: this.userToDelete.id
+    });
     const response = await this.API.delete({
       tables: this.userToDelete.role === 'Desk attendant' ? 'desk_attendants' : 'administrators',
       conditions: `WHERE id = '${this.userToDelete.id}'`

@@ -86,27 +86,33 @@ export class CreateFormatComponent {
       return;
     }
     try{
+      let descObj:Partial<Format> = {};
+
+      try{
+        descObj = this.getFormatDetails(this.item.description);
+      }catch(e){}
+
+      descObj.details = this.item.details;
+      descObj.counter_call = this.item.counter_call;
+      const updateItem:Format={
+        id: this.item.id,
+        name: this.item.name,
+        prefix: this.item.prefix,
+        description: JSON.stringify(descObj)
+      }
       if(this.item.id){
-        let descObj:Partial<Format> = {};
-
-        try{
-          descObj = this.getFormatDetails(this.item.description);
-        }catch(e){}
-
-        descObj.details = this.item.details;
-        descObj.counter_call = this.item.counter_call;
-        const updateItem:Format={
-          id: this.item.id,
-          name: this.item.name,
-          prefix: this.item.prefix,
-          description: JSON.stringify(descObj)
-        }
+      
 
         await this.formatService.update(this.item.id,updateItem);
         
       }else{
         await this.formatService.add(
-          this.item
+          {
+            name: this.item.name,
+            prefix: this.item.prefix,
+            division_id: this.item.division_id,
+            description: JSON.stringify(descObj)
+          }
         )
       }
       this.submittingForm =false;

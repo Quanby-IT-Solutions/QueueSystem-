@@ -2,7 +2,7 @@ export const config = {
     texts:{
         title: 'Philippine Charity Sweepstakes Office',
         atitle: 'PCSO',
-        location: 'Pacific Mall, Landco Business Center, F. Imperial St',
+        location: 'Sun Plaza Building, 571 Shaw Blvd, Mandaluyong, 1552 Metro Manila',
     },
     assets:{
         logo:'./assets/specifics/pcso/pcso-logo.svg',
