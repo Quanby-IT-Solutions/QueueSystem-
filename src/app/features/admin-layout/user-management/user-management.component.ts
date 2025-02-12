@@ -266,6 +266,39 @@ export class UserManagementComponent implements OnInit, OnDestroy {
       event: 'get-out',
       id: this.userToDelete.id
     });
+    const responseActiveTickets = await this.API.read({
+      selectors: ['DISTINCT terminal_sessions.id'],
+      tables: 'terminal_sessions,attended_queue',
+      conditions: `WHERE (terminal_sessions.attendant_id ='${this.userToDelete.id}')  AND terminal_sessions.id = attended_queue.desk_id AND attended_queue.status = 'ongoing'
+      `
+    });
+    if (!responseActiveTickets.success) {
+      throw new Error('Unable to get active tickets');
+    }
+    for (let ticket of responseActiveTickets.output) {
+      const closeResponse = await this.API.update({
+        tables: 'attended_queue',
+        values: {
+          status: 'skipped'
+        },
+        conditions: `WHERE desk_id = '${ticket.id}' AND status = 'ongoing'`
+      });
+
+      if (!closeResponse.success) {
+        throw new Error('Unable to update ticket session');
+      }
+    }
+    const closeResponse = await this.API.update({
+      tables: 'terminal_sessions',
+      values: {
+        status: 'closed'
+      },
+      conditions: `WHERE (attendant_id = '${this.userToDelete.id}' ) AND status != 'closed'`
+    });
+
+    if (!closeResponse.success) {
+      throw new Error('Unable to update terminal session');
+    }
     const response = await this.API.delete({
       tables: this.userToDelete.role === 'Desk attendant' ? 'desk_attendants' : 'administrators',
       conditions: `WHERE id = '${this.userToDelete.id}'`
@@ -281,6 +314,9 @@ export class UserManagementComponent implements OnInit, OnDestroy {
   } catch (error) {
     console.error('Error occurred during user deletion:', error);
   } finally {
+    this.API.socketSend({event:'kiosk-events'});
+    this.API.socketSend({event:'queue-events'});
+    this.API.socketSend({event:'terminal-events'});
     this.userToDelete = null;
   }
 }

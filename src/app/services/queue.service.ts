@@ -910,16 +910,17 @@ export class QueueService  {
     let queueRows = response.output;
 
     const queueList = [
-     [ 'Client Name' ,'Ticket Number', 'Client Gender','Services','Client Type', 'Date','Start','End'],
+     ['Date','Start','End', 'Client Name' ,'Ticket Number', 'Client Gender','Client Type', 'Services'],
      ...queueRows.map((row:any)=>[
+      new DatePipe('en-US').transform(new Date(row.start_time), 'MM-dd-yyy')  ,
+      new DatePipe('en-US').transform(new Date(row.start_time), 'HH:mm:ss a')  ,
+      new DatePipe('en-US').transform(new Date(row.end_time), 'HH:mm:ss a')  ,
          row.fullname || 'None',
        `${row.prefix? row.prefix: row.type == 'priority' ? 'P':'R'}-${row.number}`,
-       row.gender ,
-       row.services.split(', ').map((id:any)=> services.find((service:any)=>service.id == id)?.name).join(',') || 'N/A',
+       row.gender == 'others' ? 'N/A' : row.gender,
        row.format_name ? row.format_name : row.type == 'priority' ? 'priority' : 'regular',
-       new DatePipe('en-US').transform(new Date(row.start_time), 'MM-dd-yyy')  ,
-       new DatePipe('en-US').transform(new Date(row.start_time), 'HH:mm:ss')  ,
-       new DatePipe('en-US').transform(new Date(row.end_time), 'HH:mm:ss')  ,
+       row.services.split(', ').map((id:any)=> services.find((service:any)=>service.id == id)?.name).join(',') || 'N/A',
+      
      ])
     ];
     const now = await this.getServerTime();

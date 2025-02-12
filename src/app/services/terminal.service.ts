@@ -233,7 +233,7 @@ export class TerminalService {
         values: {
           status: 'closed'
         },
-        conditions: `WHERE attendant_id = '${this.auth.getUser().id}' OR terminal_id = '${terminal_id}' AND status != 'closed'`
+        conditions: `WHERE (attendant_id = '${this.auth.getUser().id}' OR terminal_id = '${terminal_id}') AND status != 'closed'`
       });
 
       if (!closeResponse.success) {
@@ -404,7 +404,7 @@ export class TerminalService {
         values: {
           status: 'closed'
         },
-        conditions: `WHERE attendant_id = '${lastSession.attendant_id}' AND status != 'closed'`
+        conditions: `WHERE (attendant_id = '${lastSession.attendant_id}' OR terminal_id = '${lastSession.terminal_id}') AND status != 'closed'`
       });
       // alert(lastSession.id);
       if (!closeResponse.success) {
@@ -412,6 +412,9 @@ export class TerminalService {
       }
       this.logService.pushLog('closed-terminal', `terminated a terminal session.`)
       this.queueService.resolveAttendedQueue('return');
+      this.API.socketSend({ event: 'admin-dashboard-events' })
+      this.API.socketSend({ event: 'queue-events' })
+      this.API.socketSend({ event: 'terminal-events' })
     }
 
   }

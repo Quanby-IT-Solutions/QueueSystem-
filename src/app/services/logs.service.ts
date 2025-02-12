@@ -18,7 +18,7 @@ export class LogsService {
         id: this.API.createUniqueID32(),
         event:event,
         division_id: this.auth.getUser().division_id,
-        log: `${this.auth.getUser().fullname} ${log}`,
+        log: `${this.auth.getUser().username} ${log}`,
         timestamp:new DatePipe('en-US').transform(now, 'yyyy-MM-dd HH:mm:ss.SSSSSS'),
       }
     })
