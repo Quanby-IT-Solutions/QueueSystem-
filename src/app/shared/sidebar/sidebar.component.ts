@@ -49,11 +49,11 @@ export class SidebarComponent implements OnInit {
     this.menuItems = this.role =='admin'? [
       { title: 'Dashboard', route: '/admin/dashboard', active: true, icon: 'dashboard' },
       { title: 'Content Management', route: '/admin/content-management', active: false, icon: 'content_paste' },
-      { title: 'User Management', route: '/admin/user-management', active: false, icon: 'people' },
-      { title: 'Terminal Management', route: '/admin/terminal', active: false, icon: 'computer' },
-      { title: 'Kiosk Management', route: '/admin/kiosk-management', active: false, icon: 'touch_app' },
-      { title: 'Service Management', route: '/admin/service-management', active: false, icon: 'description' },
-      { title: 'Format Management', route: '/admin/format-management', active: false, icon: 'tag' },
+      // { title: 'User Management', route: '/admin/user-management', active: false, icon: 'people' },
+      // { title: 'Terminal Management', route: '/admin/terminal', active: false, icon: 'computer' },
+      // { title: 'Kiosk Management', route: '/admin/kiosk-management', active: false, icon: 'touch_app' },
+      // { title: 'Service Management', route: '/admin/service-management', active: false, icon: 'description' },
+      // { title: 'Format Management', route: '/admin/format-management', active: false, icon: 'tag' },
     ]: [
       { title: 'Dashboard', route: '/desk-attendant/dashboard', active: true, icon: 'dashboard' },
       { title: 'Terminal', route: '/desk-attendant/terminalmgmt', active: false, icon: 'computer' },
