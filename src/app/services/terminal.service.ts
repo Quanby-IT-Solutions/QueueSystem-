@@ -168,7 +168,7 @@ async deleteTerminal(id:string){
             const lastActive = new Date(this.last_active);
             const diffInMinutes = (now.getTime() - lastActive.getTime()) / 60000; 
     
-            if (diffInMinutes < 1.5 && this._status !== 'maintenance' && this.session_status !== 'closed') {
+            if (this._status !== 'maintenance' && this.session_status !== 'closed' && this.last_active) {
                 return 'online';
             } else {
                 return this._status; // Return the default status if not online
@@ -186,20 +186,19 @@ async deleteTerminal(id:string){
 
 
   async startTerminalSession(terminal_id:string){
-    const lastSession = await this.getActiveSession();
-    if(lastSession){
-      const closeResponse = await this.API.update({
-        tables: 'terminal_sessions',
-        values:{
-          status: 'closed'
-        }  ,
-        conditions: `WHERE id = '${lastSession.id}'`
-      });
-    
-      if(!closeResponse.success){
-        throw new Error('Unable to update terminal session');
-      }
+
+    const closeResponse = await this.API.update({
+      tables: 'terminal_sessions',
+      values:{
+        status: 'closed'
+      }  ,
+      conditions: `WHERE attendant_id = '${this.auth.getUser().id}' OR terminal_id = '${terminal_id}'`
+    });
+  
+    if(!closeResponse.success){
+      throw new Error('Unable to update terminal session');
     }
+  
 
     const now = await this.getServerTime()
     const id = this.API.createUniqueID32();
@@ -248,7 +247,7 @@ async deleteTerminal(id:string){
       const lastActive = new Date(lastSession.last_active);
  
       const diffInMinutes = (now.getTime() - lastActive.getTime()) / 60000; 
-      if (diffInMinutes <= 1.5) {
+      if (lastSession.last_active) {
         return lastSession; 
       }else{
         return null;
@@ -280,7 +279,7 @@ async deleteTerminal(id:string){
         const lastActive = new Date(lastSession.last_active);
   
         const diffInMinutes = (now.getTime() - lastActive.getTime()) / 60000; 
-        if (diffInMinutes <= 1.5) {
+        if (lastSession.last_active) {
           activeUsers.push(response.output[i].attendant_id); 
         }
       }

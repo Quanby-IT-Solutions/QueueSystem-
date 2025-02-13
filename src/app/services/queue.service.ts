@@ -742,6 +742,7 @@ async forwardQueue(nextQueue:Queue, service_id:string){
         conditions: `
           WHERE attended_queue.queue_id = queue.id AND queue.division_id = '${this.divisionService.selectedDivision?.id}' 
           AND terminal_sessions.id = attended_queue.desk_id
+          AND queue.timestamp::date = CURRENT_DATE
           AND terminal_sessions.attendant_id = '${user.id}'  AND attended_queue.status = 'ongoing' ORDER BY attended_on DESC
         `
       });
@@ -812,6 +813,7 @@ async forwardQueue(nextQueue:Queue, service_id:string){
         conditions: `
           WHERE attended_queue.queue_id = queue.id AND queue.division_id = '${this.divisionService.selectedDivision?.id}' 
           AND terminal_sessions.attendant_id = '${user.id}'  AND attended_queue.status != 'ongoing' 
+          AND queue.timestamp::date = CURRENT_DATE
           ORDER BY attended_queue.finished_on DESC
         `
       });

@@ -265,12 +265,12 @@
                                     <label for="announcement" class="px-1 text-lg text-gray-800">Announcements</label>
                                     <div class="flex flex-row items-center gap-4">
                                         <div class="flex flex-row items-center gap-2">
-                                            <button *ngIf="collapsables.announcements" class="bg-green-500 hover:bg-green-800 flex items-center justify-center rounded-full h-5 w-5">
+                                            <button (click)="addAnnouncement()" *ngIf="collapsables.announcements" class="bg-green-500 hover:bg-green-800 flex items-center justify-center rounded-full h-5 w-5">
                                                 <span  class="material-symbols-outlined text-sm text-white"> text_increase </span>
                                             </button>
-                                            <button *ngIf="collapsables.announcements" class="bg-green-500 hover:bg-green-800 flex items-center justify-center rounded-full h-5 w-5">
+                                            <!-- <button *ngIf="collapsables.announcements" class="bg-green-500 hover:bg-green-800 flex items-center justify-center rounded-full h-5 w-5">
                                                 <span *ngIf="collapsables.announcements" class="material-symbols-outlined text-sm text-white"> text_decrease </span>
-                                            </button>
+                                            </button> -->
                                         </div>
                                         <app-toggle  body="w-10 h-5" knob="w-3 h-3" translate="translate-x-5" [(isActive)]="toggles.announcements"></app-toggle>
                                     </div>
@@ -278,19 +278,24 @@
                                 
                                 <span *ngIf="!collapsables.announcements" class="material-icons"> keyboard_arrow_down </span>
                             </div>
-                            <div class="flex flex-col px-1 pb-2" *ngIf="collapsables.announcements">
-                                <textarea
-                                placeholder="This will show on queue displays once announcements are enabled"
-                                name="announcement"
-                                [(ngModel)]="inputFields.announcements"
-                                class="w-full h-24 rounded-md
-                                py-1
-                                transition-all
-                                hover:border-[var(--primary)] hover:text-[var(--primary)] hover:bg-[var(--primary-light)]
-                                text-gray-400
-                                border-gray-300 border-2 border-solid
-                                bg-white cursor-pointer select-none flex items-center px-2 justify-between"
-                                ></textarea>
+                            <div class="flex flex-col px-1 pb-2 gap-2" *ngIf="collapsables.announcements">
+                                <ng-container *ngFor="let announcement of inputFields.announcements; let a = index; trackBy: trackByFn" >
+                                    <div class="">
+                                        <textarea 
+                                        placeholder="This will show on queue displays once announcements are enabled"
+                                        name="announcement-{{a}}"
+                                        [(ngModel)]="inputFields.announcements[a]"
+                                        class="w-full h-24 rounded-md
+                                        py-1
+                                        transition-all
+                                        hover:border-[var(--primary)] hover:text-[var(--primary)] hover:bg-[var(--primary-light)]
+                                        text-gray-400
+                                        border-gray-300 border-2 border-solid
+                                        bg-white cursor-pointer select-none flex items-center px-2 justify-between"
+                                        ></textarea>
+                                        <button *ngIf="inputFields.announcements.length > 1" (click)="removeAnnouncement(a)" class="bg-red-500 w-full text-white hover:bg-red-600 rounded-md">REMOVE</button>
+                                    </div>
+                                </ng-container>
                             </div>
                         </div>
                         <div class="flex-1"></div>

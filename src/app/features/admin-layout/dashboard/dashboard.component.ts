@@ -1065,6 +1065,13 @@ const datasets = filteredMetrics.map((metric) => {
     return days;
   }
 
+  getAnnouncements(content:any){
+    try{
+      return JSON.parse(content.announcements)
+    }catch(e){
+      return [];
+    }
+  }
 
 
   async loadContents() {
@@ -1075,11 +1082,13 @@ const datasets = filteredMetrics.map((metric) => {
       this.contents = await this.contentService.getContentSettings();
       if (this.contents.length > 0) {
         this.content = this.contents.find(content => content.division_id === this.selectedDivision);
+        this.content = this.getAnnouncements(this.content);
       }
     } else {
        // Non-super admin logic:
        this.content = await this.contentService.getContentSetting();
 
+       this.content = this.getAnnouncements(this.content);
        // Calculate the number of available kiosks:
        const availableKiosks = await this.kioskService.getKiosks('available');
        this.availableKiosks = availableKiosks.length;
@@ -1114,6 +1123,7 @@ const datasets = filteredMetrics.map((metric) => {
   changeContent(division_id: string) {
     this.selectedDivision = division_id;
     this.content = this.contents.find(content => content.division_id === division_id);
+    this.content = this.getAnnouncements(this.content);
     this.cdr.detectChanges();
   }
 

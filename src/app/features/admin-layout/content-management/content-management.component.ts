@@ -35,7 +35,7 @@ interface ContentToggles {
   background:boolean
 }
 interface ContentFields {
-  announcements:string,
+  announcements:string[],
   youtubeURL?:string,
   videoUrl?:string,
   backgroundUrl?:string,
@@ -101,7 +101,7 @@ export class ContentManagementComponent implements OnInit {
   files:ContentFiles= {}
 
   inputFields:ContentFields={
-    announcements : '',
+    announcements : [''],
   }
   
   factorySettings:ContentSettings = {
@@ -150,6 +150,7 @@ export class ContentManagementComponent implements OnInit {
     return this.divisions.find((division) => division.id == this.selectedDivision);
   }
 
+  trackByFn() {}
   selectedDivision?:string;
   selectDivision(division_id:string){
     this.selectedDivision = division_id;
@@ -190,7 +191,13 @@ export class ContentManagementComponent implements OnInit {
       this.inputFields.youtubeURL = content.video
     }
 
-    this.inputFields.announcements = content.announcements ?? '';
+    if(content.announcements){
+      try{
+        this.inputFields.announcements =JSON.parse(content.announcements);
+      }catch(e){
+        this.inputFields.announcements =['','']
+      }
+    }
 
     this.previousSettings ={
       toggles: {... this.toggles},
@@ -199,6 +206,7 @@ export class ContentManagementComponent implements OnInit {
       inputFields: {...this.inputFields}
     }
   }
+
 
   async loadContents(){
     this.contentLoading = true;
@@ -251,8 +259,16 @@ export class ContentManagementComponent implements OnInit {
           this.inputFields.youtubeURL = content.video
         }
 
+        if(content.announcements){
+          try{
+            this.inputFields.announcements =JSON.parse(content.announcements);
+          }catch(e){
+            this.inputFields.announcements =['','']
+          }
+        }
 
-        this.inputFields.announcements = content.announcements ?? '';
+
+        
       
         this.API.setLoading(false);
         this.contentLoading = false;
@@ -301,7 +317,13 @@ export class ContentManagementComponent implements OnInit {
           this.inputFields.youtubeURL = content.video
         }
 
-        this.inputFields.announcements = content.announcements ?? '';
+        if(content.announcements){
+          try{
+            this.inputFields.announcements =JSON.parse(content.announcements);
+          }catch(e){
+            this.inputFields.announcements =['','']
+          }
+        }
       }
       this.previousSettings ={
         toggles: {... this.toggles},
@@ -324,6 +346,14 @@ export class ContentManagementComponent implements OnInit {
 
   toggleEditor(){
     this.showEditSection = !this.showEditSection;
+  }
+
+  addAnnouncement(){
+    this.inputFields.announcements.push('');
+  }
+
+  removeAnnouncement(index:number){
+    this.inputFields.announcements.splice(index, 1);
   }
 
   toggleCollapse(key:'uploads'|'widgets'|'colors'|'announcements'){
@@ -422,7 +452,7 @@ export class ContentManagementComponent implements OnInit {
         videoUrl: this.inputFields.youtubeURL,
         background_on: this.toggles.background,
         announcement_on:this.toggles.announcements,
-        announcements: this.toggles.announcements ?  this.inputFields.announcements : undefined,
+        announcements: this.toggles.announcements ?  JSON.stringify(this.inputFields.announcements) : undefined,
   
       });
       await this.loadContents();

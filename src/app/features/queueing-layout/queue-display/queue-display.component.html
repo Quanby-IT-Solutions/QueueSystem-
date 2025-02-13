@@ -93,13 +93,13 @@
                   <div
                     class="serving-item-content-text  flex justify-center items-end text-sm tracking-wide lg:text-4xl 2xl:text-xl font-medium text-shadow min-[3500px]:font-semibold">{{item.ticketNumber
                     ?? 'VACANT'}}</div>
-                    <div
+                    <!-- <div
                     *ngIf="!isPreview"
                     [ngStyle]="{
                       'color':  colors.secondary_text + 'EE',
                     }"
                     class="queue-item-ticket  font-bold !leading-none text-center text-sm opacity-75 flex justify-end min-[3500px]:text-3xl min-[3500px]:font-semibold">
-                    ( {{item.terminal?.attendant ?? 'Sample Attendant'}} )</div>
+                    ( {{item.terminal?.attendant ?? 'Sample Attendant'}} )</div> -->
                   <!-- <span class="tracking-wide text-xs 2xl:text-sm text-shadow min-[3500px]:text-5xl min-[3500px]:font-medium">{{item.personName}}</span> -->
                 </div>
               </div>
@@ -289,22 +289,14 @@
                     <div class="queue-item-container h-full shadow-lg gap-4 flex justify-start items-center px-4 py-1
                     min-[3500px]:border-8 min-[3500px]:rounded-3xl min-[3500px]:gap-12
                     min-[3500px]:px-14 min-[3500px]:py-10">
-                      <div 
-                      class="queue-item-icon w-10 h-10 rounded-full"
-                        [ngStyle]="{
-                          backgroundColor: item.ticket?.queue?.color ?? 'var(--primary-dark)'
-                        }"
-                      >
-
-                      </div>
-                      <div class="flex flex-col flex-1 gap-1 items-start">
+    
+                    <img [src]="item.avatar" class="queue-item-icon w-9 h-9 min-[3500px]:w-36 min-[3500px]:h-36">
+                      <!-- <div class="flex flex-1 gap-1 items-start"> -->
                         <div
                           class="queue-item-ticket !leading-none lg:text-2xl font-semibold tracking-wider min-[3500px]:text-7xl min-[3500px]:font-semibold">
                           {{item.ticketNumber}}</div>
-                        <div
-                          class="queue-item-ticket flex-1 !leading-none text-xs opacity-75 font-medium flex justify-end min-[3500px]:text-3xl min-[3500px]:font-semibold">
-                          {{getFormatName(item.type)?.replaceAll('.','')}}</div>
-                      </div>
+                 
+                      <!-- </div> -->
                     </div>
                   </div>
                 </div>
@@ -325,12 +317,16 @@
       <div class="w-full h-full relative">
         <div
           class="announcement-text absolute inline-flex min-w-[200%] animate-scroll-tailing h-full tracking-widest font-semibold min-[3500px]:text-8xl items-center  whitespace-nowrap ">
-          <span
-            class="flex-1 whitespace-nowrap  px-2 min-[3500px]:px-6 inline-block text-2xl uppercase announcement-text">{{announcements}}
-          </span>
-          <span
-            class="flex-1 whitespace-nowrap  px-2 min-[3500px]:px-6 inline-block text-2xl uppercase announcement-text">{{announcements}}
-          </span>
+          <ng-container *ngFor="let announcement of announcements;let i = index">
+            <ng-container *ngIf="currentAnnouncementIndex ==i" >
+              <span
+                class="flex-1 whitespace-nowrap  px-2 min-[3500px]:px-6 inline-block text-2xl uppercase announcement-text">{{announcement}}
+              </span>
+              <span
+                class="flex-1 whitespace-nowrap  px-2 min-[3500px]:px-6 inline-block text-2xl uppercase announcement-text">{{announcement}}
+              </span>
+            </ng-container>
+          </ng-container>
         </div>
       </div>
     </div>

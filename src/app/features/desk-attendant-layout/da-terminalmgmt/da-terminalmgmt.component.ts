@@ -686,6 +686,7 @@ this.subscription = this.queueService.queue$.subscribe((queueItems: Ticket[]) =>
         this.API.socketSend({
           event: 'number-calling',
           division: this.division?.id,
+          counter:this.selectedCounter?.number,
           message: `${this.currentTicket?.type =='priority' ? 'Priority':''} number ${this.currentTicket?.number} on ${this.dvisionService.selectedDivision?.name} .Proceed to counter ${this.selectedCounter?.number}`
         })
         this.API.sendFeedback('success', `Priority transaction started with client.`, 5000);
@@ -812,6 +813,7 @@ this.subscription = this.queueService.queue$.subscribe((queueItems: Ticket[]) =>
         this.API.socketSend({
           event: 'number-calling',
           division: this.division?.id,
+          counter:this.selectedCounter?.number,
           message: `${this.currentTicket?.metaType  ?? (this.currentTicket?.type == 'priority'? 'Priority':'') } number ${this.currentTicket?.number} on ${this.dvisionService.selectedDivision?.name}. Proceed to counter ${this.selectedCounter?.number}`
         })
       } else {
@@ -885,6 +887,7 @@ this.subscription = this.queueService.queue$.subscribe((queueItems: Ticket[]) =>
     this.API.socketSend({
       event: 'number-calling',
       division: this.division?.id,
+      counter:this.selectedCounter?.number,
       message: `${this.currentTicket?.metaType ?? (this.currentTicket?.type == 'priority'? 'Priority':'') } number ${this.currentTicket?.number} on ${this.dvisionService.selectedDivision?.name}. Proceed to counter ${this.selectedCounter?.number}`
     })
     // this.isCallNumberActive = false;
@@ -927,6 +930,7 @@ this.subscription = this.queueService.queue$.subscribe((queueItems: Ticket[]) =>
         this.API.socketSend({
           event: 'number-calling',
           division: this.division?.id,
+          counter:this.selectedCounter?.number,
           message: `${this.currentTicket?.metaType  ?? (this.currentTicket?.type == 'priority'? 'Priority':'') } number ${this.currentTicket?.number} on ${this.dvisionService.selectedDivision?.name}. Proceed to counter ${this.selectedCounter?.number}`
         })
       } else {
@@ -970,7 +974,7 @@ this.subscription = this.queueService.queue$.subscribe((queueItems: Ticket[]) =>
     const lastActive = new Date(terminal.last_active!);
     const diffInMinutes = (this.getServerTime().getTime() - lastActive.getTime()) / 60000; 
 
-    if (diffInMinutes < 1.5 && terminal._status !== 'maintenance' && terminal.session_status !== 'closed') {
+    if (terminal.last_active && terminal._status !== 'maintenance' && terminal.session_status !== 'closed') {
         return 'online';
     } else {
         return terminal._status; 

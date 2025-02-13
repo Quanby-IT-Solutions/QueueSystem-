@@ -134,7 +134,7 @@ export class QueueDisplayComponent implements OnInit, OnChanges, OnDestroy, Afte
   @Input() showCurrency: boolean = true;
   @Input() showAnnouncement: boolean = true;
   @Input() showBackground:boolean = true;
-  @Input() announcements:string = '';
+  @Input() announcements:string[]= [];
   @Input() logoUrl?:string;
   @Input() backgroundUrl?:string; 
   @Input() videoUrl?: string; 
@@ -152,7 +152,7 @@ export class QueueDisplayComponent implements OnInit, OnChanges, OnDestroy, Afte
   switcher:'weather'|'currency' = 'currency';
 
   weatherCurrencySwitchTimer:number = 6000;
-  videoSwitchTimer:number = 8000;
+  videoSwitchTimer:number = 30 * 1000;
 
   counterSwitchTimer:number = 5000;
   counterInterval:any ;
@@ -162,9 +162,9 @@ export class QueueDisplayComponent implements OnInit, OnChanges, OnDestroy, Afte
   async terminalStatusInterval(){
     for(let i = 0;  i < this.counters.length; i++) {
       this.counters[i].status = this.checkIfOnline(this.counters[i].terminal!);
-      if(this.counters[i].status != 'online' && this.counters[i].ticket){
-        await this.queueService.returnUnattendedQueue(this.counters[i].ticket);
-      }
+      // if(this.counters[i].status != 'online' && this.counters[i].ticket){
+      //   await this.queueService.returnUnattendedQueue(this.counters[i].ticket);
+      // }
     }
   }
 
@@ -290,7 +290,7 @@ export class QueueDisplayComponent implements OnInit, OnChanges, OnDestroy, Afte
   }
 
   refreshInterval:any;
-  
+  currentAnnouncementIndex = 0;
   ngOnInit(): void {
     if(!this.isPreview) {
       this.loadQueue();
@@ -388,10 +388,14 @@ export class QueueDisplayComponent implements OnInit, OnChanges, OnDestroy, Afte
     }
    
 
-  //  this.intervalVideo = setInterval(() => {
-  //     // this.toggleVideoUpNextIFrame();
-  //     this.toggleVideoUpNext();
-  //   }, this.videoSwitchTimer); 
+   this.intervalVideo = setInterval(() => {
+      // this.toggleVideoUpNextIFrame();
+      if(this.currentAnnouncementIndex+1 <= this.announcements.length){
+        this.currentAnnouncementIndex ++;
+      }else{
+        this.currentAnnouncementIndex=0
+      }
+    }, this.videoSwitchTimer); 
 
     this.intervalCurrency =setInterval(() => this.updateCurrency(), this.currencySwitchTimer);
     this.intervalWeather =setInterval(() => this.switchWeather(), this.weatherSwitchTimer);
@@ -660,7 +664,7 @@ export class QueueDisplayComponent implements OnInit, OnChanges, OnDestroy, Afte
         const lastActive = new Date(terminal.last_active!);
         const diffInMinutes = (this.getServerTime().getTime() - lastActive.getTime()) / 60000; 
     
-        if (diffInMinutes < 1.5 && terminal._status !== 'maintenance' && terminal.session_status !== 'closed') {
+        if (terminal.last_active && terminal._status !== 'maintenance' && terminal.session_status !== 'closed') {
             return 'online';
         } else {
             return terminal._status; 

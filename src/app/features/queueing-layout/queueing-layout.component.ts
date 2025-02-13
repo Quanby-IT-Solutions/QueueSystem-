@@ -40,6 +40,13 @@ export class QueueingLayoutComponent implements OnInit, OnDestroy {
   ) {}
 
 
+  getAnnouncements(content:any){
+    try{
+      return JSON.parse(content.announcements)
+    }catch(e){
+      return [];
+    }
+  }
 
   ngOnInit(): void {
 
@@ -78,6 +85,7 @@ export class QueueingLayoutComponent implements OnInit, OnDestroy {
   selectDivision(division_id: string): void {
     this.selectedDivision = division_id;
     this.content = this.contentMap[division_id];
+    this.content.announcements = this.getAnnouncements(this.content)
     localStorage.setItem('division', this.selectedDivision);
   }
 

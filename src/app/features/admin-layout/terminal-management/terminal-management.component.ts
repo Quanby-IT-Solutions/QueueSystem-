@@ -97,7 +97,7 @@ export class TerminalManagementComponent implements OnInit, OnDestroy {
       const lastActive = new Date(terminal.last_active!);
       const diffInMinutes = (now.getTime() - lastActive.getTime()) / 60000; 
 
-      if (diffInMinutes < 1.5 && terminal._status !== 'maintenance' && terminal.session_status !== 'closed') {
+      if (terminal.last_active && terminal._status !== 'maintenance' && terminal.session_status !== 'closed') {
 
           return 'online';
       } else {
