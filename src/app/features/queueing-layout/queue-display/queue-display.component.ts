@@ -21,6 +21,7 @@ interface Counter {
   ticket?:AttendedQueue;
   ticketNumber?: string;
   personName?: string;
+  pulsing?:boolean;
 }
 
 interface Queue{
@@ -306,24 +307,33 @@ export class QueueDisplayComponent implements OnInit, OnChanges, OnDestroy, Afte
 
     this.view = this.route.snapshot.queryParams['view'];
     // this.playNotes();
-    const init = speechSynthesis.getVoices()
+    try{
+      const init = speechSynthesis.getVoices()
+    }catch(e){}
 
     this.transitionCounters();
     
     this.API.addSocketListener('number-calling', (data:any)=>{
-      if(data.event == 'number-calling' && data.division == this.division?.id){
-        const voices = speechSynthesis.getVoices();
-          // Find a female voice (you may need to check which voices are available)
-        const femaleVoice = voices.find(voice => voice.name.includes('Zira'));
-        const utterance = new SpeechSynthesisUtterance(data.message);
-        utterance.volume = 3;
-        if (femaleVoice) {
-          utterance.voice = femaleVoice;
+      try{
+        if(data.event == 'number-calling' && data.division == this.division?.id){
+          const voices = speechSynthesis.getVoices();
+            // Find a female voice (you may need to check which voices are available)
+          const femaleVoice = voices.find(voice => voice.name.includes('Zira'));
+          const utterance = new SpeechSynthesisUtterance(data.message);
+          utterance.volume = 3;
+          if (femaleVoice) {
+            utterance.voice = femaleVoice;
+          }
+          // this.playNotes();
+           speechSynthesis.speak(utterance)
+           const pulsingIndex = this.counters.findIndex(counter=>counter.number == data.counter);
+           this.counters[pulsingIndex].pulsing = true;
+           setTimeout(()=>{
+             const pulsingIndex = this.counters.findIndex(counter=>counter.number == data.counter);
+             this.counters[pulsingIndex].pulsing = false;
+           },6000)
         }
-        // this.playNotes();
-         speechSynthesis.speak(utterance)
-      
-      }
+      }catch(e){}
     });
     this.getSafeYoutubeUrl(this.videoUrl);
     this.updateTime();
