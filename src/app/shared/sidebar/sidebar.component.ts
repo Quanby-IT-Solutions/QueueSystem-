@@ -14,56 +14,126 @@ interface MenuItem {
   route: string;
   active: boolean;
   icon: string;
+  roles?: string[]; // boto boto
 }
 
 @Component({
   selector: 'app-sidebar',
   standalone: true,
-  imports: [CommonModule, RouterModule,ConfirmationComponent],
+  imports: [CommonModule, RouterModule, ConfirmationComponent],
   templateUrl: './sidebar.component.html',
   styleUrls: ['./sidebar.component.css']
 })
 export class SidebarComponent implements OnInit {
-  appTitle =  config.texts.atitle;
+  appTitle = config.texts.atitle;
   appDescription = 'Queue Management System';
   isExpanded = true;
   logoutOpen = false;
   isMobile = false;
 
-  constructor(private logService:LogsService){}
-
+  constructor(private logService: LogsService) {}
 
   @Input() role: string = 'admin';
 
   private router = inject(Router);
-
   private auth = inject(UswagonAuthService);
-
   private user = inject(UserService);
-
   private terminalService = inject(TerminalService);
 
-  menuItems: MenuItem[] = []
+  menuItems: MenuItem[] = [];
 
   ngOnInit() {
-    this.menuItems = this.role =='admin'? [
-      { title: 'Dashboard', route: '/admin/dashboard', active: true, icon: 'dashboard' },
-      { title: 'Content Management', route: '/admin/content-management', active: false, icon: 'content_paste' },
-      // { title: 'User Management', route: '/admin/user-management', active: false, icon: 'people' },
-      // { title: 'Terminal Management', route: '/admin/terminal', active: false, icon: 'computer' },
-      // { title: 'Kiosk Management', route: '/admin/kiosk-management', active: false, icon: 'touch_app' },
-      // { title: 'Service Management', route: '/admin/service-management', active: false, icon: 'description' },
-      // { title: 'Format Management', route: '/admin/format-management', active: false, icon: 'tag' },
-    ]: [
-      { title: 'Dashboard', route: '/desk-attendant/dashboard', active: true, icon: 'dashboard' },
-      { title: 'Terminal', route: '/desk-attendant/terminalmgmt', active: false, icon: 'computer' },
+    const baseMenuItems: MenuItem[] = [
+      { 
+        title: 'Dashboard', 
+        route: '/admin/dashboard', 
+        active: true, 
+        icon: 'dashboard',
+        roles: ['admin', 'superadmin'] 
+      },
+      { 
+        title: 'Content Management', 
+        route: '/admin/content-management', 
+        active: false, 
+        icon: 'content_paste',
+        roles: ['admin','superadmin']
+      },
+      { 
+        title: 'Announcements', 
+        route: '/admin/announcements', 
+        active: false, 
+        icon: 'campaign',
+        roles: ['superadmin'] 
+      },
+      { 
+        title: 'User Management', 
+        route: '/admin/user-management', 
+        active: false, 
+        icon: 'people',
+        roles: ['superadmin']
+      },
+      { 
+        title: 'Terminal Management', 
+        route: '/admin/terminal', 
+        active: false, 
+        icon: 'computer',
+        roles: [ 'superadmin']
+      },
+      { 
+        title: 'Kiosk Management', 
+        route: '/admin/kiosk-management', 
+        active: false, 
+        icon: 'touch_app',
+        roles: ['superadmin']
+      },
+      { 
+        title: 'Service Management', 
+        route: '/admin/service-management', 
+        active: false, 
+        icon: 'description',
+        roles: ['superadmin']
+      },
+      { 
+        title: 'Format Management', 
+        route: '/admin/format-management', 
+        active: false, 
+        icon: 'tag',
+        roles: ['superadmin']
+      },
+      { 
+        title: 'Department Management', 
+        route: '/admin/branch-management', 
+        active: false, 
+        icon: 'apartment',
+        roles: ['superadmin'] 
+      }
     ];
 
-    if(this.auth.accountLoggedIn()=='superadmin'){
-      this.menuItems.push(
-         { title: 'Department Management', route: '/admin/branch-management', active: false, icon: 'apartment' }
-      )
+    const deskAttendantItems: MenuItem[] = [
+      { 
+        title: 'Dashboard', 
+        route: '/desk-attendant/dashboard', 
+        active: true, 
+        icon: 'dashboard' 
+      },
+      { 
+        title: 'Terminal', 
+        route: '/desk-attendant/terminalmgmt', 
+        active: false, 
+        icon: 'computer' 
+      }
+    ];
+
+    // Filter menu items based on role
+    if (this.role === 'desk-attendant') {
+      this.menuItems = deskAttendantItems;
+    } else {
+      const userRole = this.auth.accountLoggedIn();
+      this.menuItems = baseMenuItems.filter(item => 
+        item.roles?.includes(userRole) || false
+      );
     }
+
     this.checkScreenSize();
     this.updateActiveItem();
 
@@ -74,6 +144,7 @@ export class SidebarComponent implements OnInit {
     });
   }
 
+  // Rest of the component methods remain the same
   @HostListener('window:resize')
   onResize() {
     this.checkScreenSize();
@@ -88,15 +159,15 @@ export class SidebarComponent implements OnInit {
     this.isExpanded = !this.isExpanded;
   }
 
-  openLogoutModal(){
+  openLogoutModal() {
     this.logoutOpen = true;
   }
 
-  closeLogoutModal(){
+  closeLogoutModal() {
     this.logoutOpen = false;
   }
 
-  logout(){
+  logout() {
     this.logService.pushLog('user-logout', 'logged out.');
     this.terminalService.terminateTerminalSession();
     this.user.lastLogin = this.auth.getUser().role;
@@ -123,6 +194,4 @@ export class SidebarComponent implements OnInit {
       });
     });
   }
-
-
 }
