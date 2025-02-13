@@ -6,25 +6,31 @@
   line-height: 1.2;
 }
 
+
 @container queue-main (max-width:400px){
   .queue-item-icon,
   .weather-icon{
-    width: 0.5rem;
-    height: 0.5rem;
+    width: 0.5rem !important;
+    height: 0.5rem !important;
   }
+  .weather-left-container,   .currency-label,.announcement-banner,
+  .announcement-text,.banner-label{
+     font-size: 0.5rem;
+   }
+ 
 
   .right-side{
     padding:0.5rem;
   }
 
 }
-@container queue-main (min-width:400px) and (max-width:2000px){
+/* @container queue-main (min-width:400px) and (max-width:2000px){
   .queue-item-icon,
   .weather-icon{
     width: 0.8rem;
     height: 0.8rem;
   }
-}
+} */
 
 @container queue-main (max-width: 600px){
   .main-container * {
@@ -49,7 +55,12 @@
   }
 
 
-
+  .queue-item-icon,
+  .weather-icon{
+    width: 0.8rem !important;
+    height: 0.8rem !important;
+  }
+  
   .main-content,.queue-item-container,.time-container-inner,.currency-header,.division-banner{
     padding:0.2rem;
   }
@@ -114,15 +125,7 @@
 
 }
 
-@container queue-main (min-width: 500px) and (max-width:600px){
-  .currency-value,.serving-item-content-text,.current-time-container, .currency-value, .weather-left-container, .queue-item-ticket{
-    font-size: 0.9em;
-  }
-  .timezone-container,   .timezone-text{
-    font-size: 0.6rem;
-  }
 
-}
 
 @container queue-main (min-width:600px) and (max-width:800px){
   .banner-title{
@@ -204,7 +207,27 @@
   }
 
 }
-@container queue-main (min-width:800px) and (max-width:2000px){
+
+@container queue-main (min-width: 500px) and (max-width:800px){
+  .currency-value,.serving-item-content-text,.current-time-container, .currency-value, .weather-left-container, .queue-item-ticket{
+    font-size: 0.5em;
+  }
+  .timezone-container,   .timezone-text{
+    font-size: 0.6rem;
+  }
+
+}
+
+@container queue-main (min-width:800px) and (max-width:1000px){
+  .serving-item-header,.serving-item-content-text{
+    font-size: 1.3rem;
+   }
+  
+   .queue-item-ticket{
+    font-size: 1rem;
+   }
+}
+@container queue-main (min-width:800px) and (max-width:1000px){
   .banner-title{
     font-size: 1.6rem;
   }
@@ -262,7 +285,7 @@
   }
 }
 
-@container queue-main (min-width: 600px) and (max-width: 2000px) {
+@container queue-main (min-width: 600px) and (max-width: 1000px) {
 
   .main-content *{
     line-height: 1;
