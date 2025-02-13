@@ -118,9 +118,10 @@ export class DaDashboardComponent implements OnInit, OnDestroy {
           'attended_queue.attended_on as start_time'
         ],
         tables: 'terminal_sessions LEFT JOIN attended_queue ON terminal_sessions.id = attended_queue.desk_id',
-        conditions: `WHERE terminal_sessions.attendant_id = '${attendantId}' ${dateFilter} AND (attended_queue.status='finished' )`
+        conditions: `WHERE terminal_sessions.attendant_id = '${attendantId}' ${dateFilter} `
       });
-  
+      // AND (attended_queue.status='finished' )
+
       if (response.success && response.output.length) {
         const sessions = response.output;
         this.calculateMetrics(sessions);

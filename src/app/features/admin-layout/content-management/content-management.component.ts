@@ -327,36 +327,42 @@ export class ContentManagementComponent implements OnInit {
   }
 
   toggleCollapse(key:'uploads'|'widgets'|'colors'|'announcements'){
-    if(this.collapsables[key] == true) return;
-    this.collapsables[key] = !this.collapsables[key];
-    if(this.collapsables[key] == true){
-      for(let collasable in this.collapsables){
-        if(collasable != key){
-          this.collapsables[collasable as keyof typeof this.collapsables] =false; 
+    if(this.auth.getUser().role !== 'superadmin' && key !== 'announcements') {
+      return;
+    }
+      if(this.collapsables[key] == true) return;
+      this.collapsables[key] = !this.collapsables[key];
+      if(this.collapsables[key] == true){
+        for(let collasable in this.collapsables){
+          if(collasable != key){
+            this.collapsables[collasable as keyof typeof this.collapsables] =false; 
+          }
         }
-      }
-    } 
+      } 
   }
 
   onFileChange(key:'logo'| 'video'|'background', event: Event){
-    const input = event.target as HTMLInputElement;
-    if (input.files && input.files.length > 0) {
-      const file = input.files[0];
-      this.files[key] = file;
-      const reader = new FileReader();
-      reader.onload = () => {
-        if(key == 'logo'){
-          this.inputFields.logoUrl = reader.result as string;
-        }
-        if(key == 'background'){
-          this.inputFields.backgroundUrl = reader.result as string;
-        }
-        if(key == 'video'){
-          this.inputFields.videoUrl = reader.result as string;
-        }
-      };
-      reader.readAsDataURL(file);
+    if(this.auth.getUser().role !== 'superadmin') {
+      return;
     }
+      const input = event.target as HTMLInputElement;
+      if (input.files && input.files.length > 0) {
+        const file = input.files[0];
+        this.files[key] = file;
+        const reader = new FileReader();
+        reader.onload = () => {
+          if(key == 'logo'){
+            this.inputFields.logoUrl = reader.result as string;
+          }
+          if(key == 'background'){
+            this.inputFields.backgroundUrl = reader.result as string;
+          }
+          if(key == 'video'){
+            this.inputFields.videoUrl = reader.result as string;
+          }
+        };
+        reader.readAsDataURL(file);
+      }
   }
 
   confirmDialog(type:'publish'| 'revert'){

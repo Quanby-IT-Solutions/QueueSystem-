@@ -19,14 +19,8 @@
                         <div class="px-1 text-lg"> Edit Contents</div>
                         <div class="px-1 font-thin">Change queue display layout by adjusting these settings.</div>
                         <!-- Uploads Collapsable -->
-                        <div class="w-full
-                            border-solid border-2 border-gray-300 text-gray-500
-                            transition-all
-                            hover:text-[var(--primary-hover)]
-                            rounded-lg
-                        "
-                        [ngClass]="{'hover:bg-[var(--primary-light)]  hover:border-[var(--primary-hover)]':!collapsables.uploads}"
-                        >
+                        <div *ngIf="isSuperAdmin" class="w-full border-solid border-2 border-gray-300 text-gray-500 transition-all hover:text-[var(--primary)] rounded-lg"
+                            [ngClass]="{'hover:bg-[var(--primary-light)] hover:border-[var(--primary-hover)]':!collapsables.widgets}">
                             <div (click)="toggleCollapse('uploads')" class="flex items-center justify-between px-2 py-2 text-lg">
                                 <span>Uploads</span>
                                 <span *ngIf="!collapsables.uploads" class="material-icons"> keyboard_arrow_down </span>
@@ -102,14 +96,8 @@
                             </div>
                         </div>
                         <!-- Widgets  Collasable-->
-                        <div class="w-full
-                            border-solid border-2 border-gray-300 text-gray-500
-                            transition-all
-                            hover:text-[var(--primary)]
-                            rounded-lg
-                        "
-                        [ngClass]="{'hover:bg-[var(--primary-light)] hover:border-[var(--primary-hover)]':!collapsables.widgets}"
-                        >
+                        <div *ngIf="isSuperAdmin" class="w-full border-solid border-2 border-gray-300 text-gray-500 transition-all hover:text-[var(--primary)] rounded-lg"
+                            [ngClass]="{'hover:bg-[var(--primary-light)] hover:border-[var(--primary-hover)]':!collapsables.widgets}">
                             <div (click)="toggleCollapse('widgets')" class="flex items-center justify-between px-2 py-2 text-lg">
                                 <div class="flex items-center justify-between w-full">
                                         <span>Widgets</span>
@@ -158,14 +146,9 @@
                             </div>
                         </div>
                         <!-- Colors Collapsable -->
-                        <div class="w-full
-                            border-solid border-2 border-gray-300 text-gray-500
-                            transition-all
-                        hover:text-[var(--primary)]
-                            rounded-lg
-                        "
-                        [ngClass]="{'hover:bg-[var(--primary-light)] hover:border-[var(--primary-hover)]':!collapsables.colors}"
-                        >
+                        <div *ngIf="isSuperAdmin" class="w-full border-solid border-2 border-gray-300 text-gray-500 transition-all hover:text-[var(--primary)] rounded-lg"
+                        [ngClass]="{'hover:bg-[var(--primary-light)] hover:border-[var(--primary-hover)]':!collapsables.colors}">
+
                             <div (click)="toggleCollapse('colors')" class="flex items-center justify-between px-2 py-2 text-lg">
                                 <div class="flex items-center justify-between w-full">
                                     <span>Colors</span>
