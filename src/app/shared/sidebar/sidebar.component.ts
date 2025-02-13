@@ -14,7 +14,7 @@ interface MenuItem {
   route: string;
   active: boolean;
   icon: string;
-  roles?: string[]; // boto boto
+  roles?: string[];
 }
 
 @Component({
@@ -56,14 +56,7 @@ export class SidebarComponent implements OnInit {
         route: '/admin/content-management', 
         active: false, 
         icon: 'content_paste',
-        roles: ['admin','superadmin']
-      },
-      { 
-        title: 'Announcements', 
-        route: '/admin/announcements', 
-        active: false, 
-        icon: 'campaign',
-        roles: ['superadmin'] 
+        roles: ['admin', 'superadmin']
       },
       { 
         title: 'User Management', 
@@ -77,7 +70,7 @@ export class SidebarComponent implements OnInit {
         route: '/admin/terminal', 
         active: false, 
         icon: 'computer',
-        roles: [ 'superadmin']
+        roles: ['superadmin']
       },
       { 
         title: 'Kiosk Management', 
@@ -144,7 +137,6 @@ export class SidebarComponent implements OnInit {
     });
   }
 
-  // Rest of the component methods remain the same
   @HostListener('window:resize')
   onResize() {
     this.checkScreenSize();
