@@ -11,11 +11,14 @@ import { UswagonCoreService } from 'uswagon-core';
 import { ServiceService } from '../../../services/service.service';
 import { CreateSubServiceComponent } from './modals/create-sub-service/create-sub-service.component';
 import { SetNextStepComponent } from "./modals/set-next-step/set-next-step.component";
+import { ServiceTerminalComponent } from './modals/service-terminal/service-terminal.component';
+import { TerminalService } from '../../../services/terminal.service';
+import { Terminal } from '../terminal-management/types/terminal.types';
 
 @Component({
   selector: 'app-service-management',
   standalone: true,
-  imports: [CommonModule, FormsModule, LottieAnimationComponent, ConfirmationComponent, CreateServiceComponent, CreateSubServiceComponent, SetNextStepComponent],
+  imports: [CommonModule, FormsModule, LottieAnimationComponent, ConfirmationComponent, CreateServiceComponent, CreateSubServiceComponent, SetNextStepComponent, ServiceTerminalComponent],
   templateUrl: './service-management.component.html',
   styleUrl: './service-management.component.css'
 })
@@ -26,6 +29,7 @@ export class ServiceManagementComponent {
   selectedDivision?:string;
 
   services: Service[]=[];
+  terminals: Terminal[]=[];
   subServices: SubService[]=[];
   allSubServices: SubService[]=[];
 
@@ -37,7 +41,7 @@ export class ServiceManagementComponent {
 
   
 
-  modalType?:'maintenance'|'delete'|'step'|'create'|'create-sub';
+  modalType?:'maintenance'|'delete'|'step'|'create'|'create-sub'|'terminals';
 
   openServiceModal:boolean = false;
   openSubServiceModal:boolean = false;
@@ -45,6 +49,7 @@ export class ServiceManagementComponent {
   // Injecting ChangeDetectorRef to trigger manual change detection
   constructor(
     private divisionService:DivisionService,
+    private terminalService:TerminalService,
     private auth:UswagonAuthService,private API:UswagonCoreService,
     private serviceService:ServiceService) {}
   ngOnInit(): void {
@@ -60,6 +65,15 @@ export class ServiceManagementComponent {
       return null;
     }
   }
+
+  getServiceTerminals(terminal_ids:string){
+    if(terminal_ids){
+      return this.terminals.filter(t=>terminal_ids.includes(t.id)).map(t=> `Terminal ${t.number}`).join(', ');
+    }else{
+      return null;
+    }
+  }
+
 
   
   
@@ -86,6 +100,15 @@ export class ServiceManagementComponent {
     this.API.sendFeedback('success', 'Service forward to has updated!',5000);
     this.API.setLoading(false);
   }
+  async closeServiceTerminals(reload:boolean){
+    this.modalType = undefined;
+    if(!reload) return;
+    this.API.setLoading(true);
+    this.services = (await this.serviceService.getAllServices(this.selectedDivision!));
+    this.subServices = (await this.serviceService.getSubServices(this.serviceOpen?.id!));
+    this.API.sendFeedback('success', 'Service terminals to has updated!',5000);
+    this.API.setLoading(false);
+  }
 
   async loadContent(){
     this.API.setLoading(true);
@@ -93,6 +116,7 @@ export class ServiceManagementComponent {
     this.divisions =(this.divisionService.divisions) as Division[];
     this.allSubServices = await this.serviceService.getAllSubServices();
     this.services = (await this.serviceService.getAllServices(this.selectedDivision!));
+    this.terminals = (await this.terminalService.getAllTerminals())
     this.API.setLoading(false);    
   }
 
@@ -102,6 +126,7 @@ export class ServiceManagementComponent {
     this.API.setLoading(true);
     this.serviceOpen = undefined;
     this.services = (await this.serviceService.getAllServices(division.id));
+    this.terminals = (await this.terminalService.getAllTerminals())
     this.API.setLoading(false);
   }
 
@@ -124,6 +149,7 @@ export class ServiceManagementComponent {
     this.selectedService = {
       name:'',
     };
+    this.openDialog('create')
   }
   addSubService(){
     this.selectedSubService = {
@@ -184,7 +210,7 @@ export class ServiceManagementComponent {
 
   
 
-  openDialog(type:'maintenance'|'delete'|'step'|'create'|'create-sub'){
+  openDialog(type:'maintenance'|'delete'|'step'|'create'|'create-sub'|'terminals'){
     this.modalType = type;
   }
   async closeDialog(shouldRefresh:boolean){

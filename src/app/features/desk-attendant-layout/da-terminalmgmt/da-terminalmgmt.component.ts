@@ -32,6 +32,7 @@ interface Terminal{
   session_status?:string;
   attendant?:string;
   specific?:string;
+  services?:string[];
 }
 
 interface Division{
@@ -103,7 +104,7 @@ export class DaTerminalmgmtComponent implements OnInit, OnDestroy {
   filteredServices: string[] = [];
   showServiceFilter: boolean = false;
   terminateModal:boolean = false;
-  divisionServices: Service[] = [];
+  divisionServices: SubService[] = [];
   tickets: Ticket[] = [
     
   ];
@@ -134,7 +135,7 @@ export class DaTerminalmgmtComponent implements OnInit, OnDestroy {
 
   actionLoading:boolean = false;
   terminals: Terminal[]=[];
-  services: any[]=[];
+  services: SubService[]=[];
   statusMap:any = {
     'available' : 'bg-green-500',
     'maintenance' : 'bg-red-500',
@@ -181,6 +182,9 @@ timerProgress: any;
         // Clear selection if selected ticket no longer exists in queue
         if (this.selectedTicket && !queueItems.find(t => t.id === this.selectedTicket!.id)) {
           this.selectedTicket = undefined;
+        }
+        if(this.selectedCounter?.services && this.selectedCounter.services.length > 0){
+          this.filterQueueByServices(this.selectedCounter.services)
         }
       });
       
@@ -233,6 +237,30 @@ timerProgress: any;
       // Otherwise, apply the filter for this service
       this.filterQueueByServices([serviceId]);
     }
+  }
+
+  
+
+   async serviceToTerminals(){
+    const services = await this.serviceService.getAllSubServices();
+    for(let service of services){
+      if(!this.getSubServiceDetails(service).terminals) continue;
+      const terminals = (this.getSubServiceDetails(service).terminals).split(',') as string[];
+
+      for(let terminal of terminals){
+        const terminalIndx = this.terminals.findIndex(t=>terminal == t.id)
+        if(terminalIndx == -1) continue
+        if(this.terminals[terminalIndx].services){
+          this.terminals[terminalIndx].services!.push(service.id!)
+        }else{
+          this.terminals[terminalIndx].services = [service.id!]
+        }
+      }
+     
+    }
+
+   
+
   }
 
   // Update the parameter type to match your existing code
@@ -315,8 +343,9 @@ timerProgress: any;
       
       this.queueService.getTodayQueues(),
       this.loadFormats(),
-      this.updateTerminalData()
     ])
+
+    await    this.updateTerminalData();
  
     this.lastSession = await this.terminalService.getActiveSession();
 
@@ -330,8 +359,7 @@ timerProgress: any;
   
 
     this.divisionServices = this.services.filter(service => 
-      uniqueServiceIds.has(service.id) && 
-      (!service.division_id || service.division_id === this.division?.id)
+      uniqueServiceIds.has(service.id!) 
     );
     
 
@@ -349,7 +377,7 @@ timerProgress: any;
       this.currentClientDetails = {
         name: this.currentTicket?.fullname || 'N/A',
         date: this.currentTicket?.timestamp || this.currentDate,
-        services: this.services.filter(service=> this.currentTicket?.services.split(', ').includes(service.id)).map(service=>service.name),
+        services: this.services.filter(service=> this.currentTicket?.services.split(', ').includes(service.id!)).map(service=>service.name),
         student_id: this.currentTicket?.student_id || 'N/A',
         department: this.currentTicket?.department_id || 'N/A',
       };
@@ -423,7 +451,7 @@ this.subscription = this.queueService.queue$.subscribe((queueItems: Ticket[]) =>
           this.currentClientDetails = {
             name: this.currentTicket?.fullname || 'N/A',
             date: this.currentTicket?.timestamp || this.currentDate,
-            services: this.services.filter(service=> this.currentTicket?.services.split(', ').includes(service.id)).map(service=>service.name),
+            services: this.services.filter(service=> this.currentTicket?.services.split(', ').includes(service.id!)).map(service=>service.name),
             student_id: this.currentTicket?.student_id || 'N/A',
             department: this.currentTicket?.department_id || 'N/A',
           };
@@ -472,7 +500,7 @@ this.subscription = this.queueService.queue$.subscribe((queueItems: Ticket[]) =>
           // Check if the property is a regular property (not a getter)
           const descriptor = Object.getOwnPropertyDescriptor(updatedTerminal, key);
           if (descriptor && !descriptor.get) {
-            existingTerminal[key as keyof Omit<Terminal, 'status'>] = updatedTerminal[key as keyof Omit<Terminal, 'status'>]!;
+            existingTerminal[key as keyof Omit<Terminal, 'status'|'services'>] = updatedTerminal[key as keyof Omit<Terminal, 'status'|'services'>]!;
           }
         });
       } else {
@@ -480,7 +508,9 @@ this.subscription = this.queueService.queue$.subscribe((queueItems: Ticket[]) =>
       }
 
     });
-    this.terminals = this.terminals.filter(terminal=> exisitingTerminals.includes(terminal.id))
+    // this.terminals = this.terminals.filter(terminal=> exisitingTerminals.includes(terminal.id))
+
+    await this.serviceToTerminals()
 
     if(this.lastSession){
       const terminal =  this.terminals.find(terminal=>terminal.id == this.lastSession.terminal_id);
@@ -493,6 +523,11 @@ this.subscription = this.queueService.queue$.subscribe((queueItems: Ticket[]) =>
         this.API.sendFeedback('error','Your terminal is for maintenance. You have been logout!',5000)
       }
     }
+  }
+
+  getServiceNames(services?:string[]){
+    if(!services) return null;
+    return this.services.filter(s=>services.includes(s.id!)).map(s=>s.name).join(', ');
   }
 
 
@@ -631,7 +666,7 @@ this.subscription = this.queueService.queue$.subscribe((queueItems: Ticket[]) =>
         this.currentClientDetails = {
           name: nextTicket.fullname || 'N/A',
           date: nextTicket.timestamp || this.currentDate,
-          services: this.services.filter(service=> nextTicket.services.split(', ').includes(service.id)).map(service=>service.name),
+          services: this.services.filter(service=> nextTicket.services.split(', ').includes(service.id!)).map(service=>service.name),
           student_id: nextTicket.student_id || 'N/A',
           department: nextTicket.department_id || 'N/A',
         };
@@ -752,7 +787,7 @@ this.subscription = this.queueService.queue$.subscribe((queueItems: Ticket[]) =>
         this.currentClientDetails = {
           name: nextTicket.fullname || 'N/A',
           date: nextTicket.timestamp || this.currentDate,
-          services:this.services.filter(service=> nextTicket.services.split(', ').includes(service.id)).map(service=>service.name),
+          services:this.services.filter(service=> nextTicket.services.split(', ').includes(service.id!)).map(service=>service.name),
           
           student_id: nextTicket.student_id || 'N/A',
           department: nextTicket.department_id || 'N/A',
@@ -866,7 +901,7 @@ this.subscription = this.queueService.queue$.subscribe((queueItems: Ticket[]) =>
         this.currentClientDetails = {
           name: nextTicket.fullname || 'N/A',
           date: nextTicket.timestamp || this.currentDate,
-          services:this.services.filter(service=> nextTicket.services.split(', ').includes(service.id)).map(service=>service.name),
+          services:this.services.filter(service=> nextTicket.services.split(', ').includes(service.id!)).map(service=>service.name),
           
           student_id: nextTicket.student_id || 'N/A',
           department: nextTicket.department_id || 'N/A',

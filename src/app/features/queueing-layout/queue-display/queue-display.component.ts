@@ -413,22 +413,42 @@ export class QueueDisplayComponent implements OnInit, OnChanges, OnDestroy, Afte
     const regex = /^(https?\:\/\/)?(www\.youtube\.com|youtu\.?be)\/.+$/;
     return regex.test(url);
   }
-  private getYouTubeVideoId(url: string): string {
+  private getYouTubeIds(url: string): { videoId: string, playlistId: string } {
     let videoId = '';
+    let playlistId = '';
+
     if (url.includes('youtube.com/watch?v=')) {
-      videoId = url.split('v=')[1];
+        // Extract the videoId from the standard YouTube URL
+        videoId = url.split('v=')[1];
+
+        // Check if the URL contains a playlist parameter
+        const listIndex = url.indexOf('list=');
+        if (listIndex !== -1) {
+            playlistId = url.split('list=')[1].split('&')[0]; // Extract the playlist ID
+        }
     } else if (url.includes('youtu.be/')) {
-      videoId = url.split('youtu.be/')[1];
+        // Handle the shortened URL format
+        videoId = url.split('youtu.be/')[1];
+
+        // If the URL has additional parameters (like list), handle them
+        const listIndex = url.indexOf('list=');
+        if (listIndex !== -1) {
+            playlistId = url.split('list=')[1].split('&')[0]; // Extract the playlist ID
+        }
     }
+
+    // Clean up videoId in case it has additional parameters like "&t=...".
     const ampersandPosition = videoId.indexOf('&');
     if (ampersandPosition !== -1) {
-      videoId = videoId.substring(0, ampersandPosition);
+        videoId = videoId.substring(0, ampersandPosition);
     }
-    return videoId;
-  }
+
+    return { videoId, playlistId };
+}
+
 
   videoSalt(){
-    return `?salt${Date.now()}`;
+    return `&salt${Date.now()}`;
   }
 
   safeYoutubeUrl?:SafeResourceUrl;
@@ -437,9 +457,9 @@ export class QueueDisplayComponent implements OnInit, OnChanges, OnDestroy, Afte
   
   getSafeYoutubeUrl(url?:string) {
     if (this.isValidYouTubeUrl(url ??'')) {
-      const videoId = this.getYouTubeVideoId(url!);
-      const embedUrl = `https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1&loop=1&controls=0&playlist=${videoId}`;
-      const embedUrlMute = `https://www.youtube-nocookie.com/embed/${videoId}?mute=1&autoplay=1&loop=1&controls=0&playlist=${videoId}`;
+      const {videoId,playlistId} = this.getYouTubeIds(url!);
+      const embedUrl = `https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1&loop=1&controls=0&list=${playlistId}` + this.videoSalt();
+      const embedUrlMute = `https://www.youtube-nocookie.com/embed/${videoId}?mute=1&autoplay=1&loop=1&controls=0&list=${playlistId}`+ this.videoSalt();
       this.safeYoutubeUrl = this.sanitizer.bypassSecurityTrustResourceUrl(embedUrl);
       this.safeYoutubeUrlMute = this.sanitizer.bypassSecurityTrustResourceUrl(embedUrlMute);
     } else{

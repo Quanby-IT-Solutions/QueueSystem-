@@ -38,6 +38,10 @@
                 <span class="font-medium">Client Type: </span>
                 <span class="opacity-75">{{getFormatName(terminal.specific)?? 'General'}}</span>
               </div>
+              <div>
+                <span class="font-medium">Services: </span>
+                <span class="opacity-75">{{getServiceNames(terminal.services)?? 'General'}}</span>
+              </div>
               <div class="flex w-full mt-2">
                 <div class="w-full flex justify-end">
                   <button class="rounded-lg px-10 py-1 text-white {{statusMap[checkIfOnline(terminal)]}}">
@@ -76,6 +80,7 @@
       <div class="relative">
  
         <button 
+          *ngIf="!selectedCounter.services"
           (click)="toggleServiceFilter()" 
           class="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition-colors duration-200 flex items-center space-x-2">
           <span class="material-icons text-sm">filter_list</span>
@@ -99,10 +104,10 @@
               <div class="max-h-64 overflow-y-auto">
                 <ng-container *ngIf="divisionServices.length > 0; else noServices">
                   <div *ngFor="let service of divisionServices" 
-                       (click)="handleServiceClick(service.id)"
+                       (click)="handleServiceClick(service.id!)"
                        class="px-4 py-2 hover:bg-gray-50 cursor-pointer flex items-center justify-between">
                     <span>{{service.name}}</span>
-                    <span *ngIf="filteredServices.includes(service.id)" 
+                    <span *ngIf="filteredServices.includes(service.id!)" 
                           class="material-icons text-blue-500 text-sm">check</span>
                   </div>
                 </ng-container>
@@ -269,7 +274,7 @@
                 </td>
                 <td class="p-3 text-sm w-1/6 truncate">
                   <ng-container  *ngFor="let service of services">
-                    <div *ngIf="ticket?.services?.split(', ')?.includes(service.id)">
+                    <div *ngIf="ticket?.services?.split(', ')?.includes(service.id!)">
                       {{ service.name }}
                     </div>
                   </ng-container>

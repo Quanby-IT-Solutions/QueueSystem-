@@ -112,6 +112,41 @@ async updateForwardToService(id:string, service_id:string){
   this.API.socketSend({event:'kiosk-events'})
 }
 
+async updateTerminalSpecifics(id:string, terminals:string[]){
+  const responseGet = await this.API.read({
+    selectors: ['*'],
+    tables: 'sub_services',
+    conditions: `WHERE id = '${id}'`
+  });
+
+  if(!responseGet.success){
+    throw new Error('Something went wrong.');
+  }  
+  let descObj:any = {};
+  if(responseGet.output[0].description){
+    try{
+        descObj = JSON.parse(responseGet.output[0].description);
+    }catch(e){}
+  }
+  
+  descObj.terminals = terminals.join(',');
+  
+  const response = await this.API.update({
+    tables: 'sub_services',
+    values:{
+      description: JSON.stringify(descObj),
+    }  ,
+    conditions: `WHERE id = '${id}'`
+  });
+
+  if(!response.success){
+    throw new Error('Something went wrong.');
+  }  
+  this.API.socketSend({event:'queue-events'})
+  this.API.socketSend({event:'kiosk-events'})
+  this.API.socketSend({event:'terminal-events'})
+}
+
  async updateService(id:string, name:string){
 
   const response = await this.API.update({

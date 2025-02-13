@@ -112,6 +112,10 @@
                 <span class="font-medium">Forwards to: </span>
                 <span class="opacity-75">{{(getSubServiceName(getSubServiceDetails(service)?.forwards)) ?? 'None'}}</span>
               </div>
+              <div class="flex-1">
+                <span class="font-medium">Terminals: </span>
+                <span class="opacity-75">{{(getServiceTerminals(getSubServiceDetails(service)?.terminals)) ?? 'None'}}</span>
+              </div>
 
               <div class="flex w-full mt-2">
                 <div class="flex justify-end w-full">
@@ -120,11 +124,18 @@
                       <span  class="material-icons"> delete </span>
                     </button>
                     <button
-                    (click)="selectSubService(service);openDialog('step')" class="rounded-lg px-6 py-1 text-white flex gap-2 bg-blue-500">
+                    (click)="selectSubService(service);openDialog('step')"
+                    [ngClass]="{
+                      'bg-orange-500': getSubServiceName(getSubServiceDetails(service)?.forwards),
+                      'bg-blue-500': !getSubServiceName(getSubServiceDetails(service)?.forwards)
+                    }" 
+                    class="rounded-lg px-2 py-1 text-white flex gap-2">
                     <span  class="material-icons"> fast_forward </span>
-                      <span>
-                        {{ 'Set'}}
-                      </span>
+                    </button>
+                    <button
+                    (click)="selectSubService(service);openDialog('terminals')"
+                    class="rounded-lg px-2 py-1 text-white flex gap-2 bg-blue-500">
+                    <span  class="material-icons"> vibration </span>
                     </button>
                     <button  (click)="updateSubService(service);openDialog('create-sub')" class="flex items-center justify-center px-2 py-1 text-white bg-green-500 rounded-lg hover:bg-green-600 ">
                       <span  class="material-icons"> edit </span>
@@ -176,3 +187,12 @@
 [subservice]="selectedSubService"
 (onClose)="closeNextStep($event)"
 />
+
+
+<app-service-terminal
+*ngIf="modalType == 'terminals'"
+[terminals]="terminals"
+[subservice]="selectedSubService!"
+(onClose)="closeServiceTerminals($event)"
+/>
+
